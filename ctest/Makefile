@@ -1,4 +1,4 @@
-# Makefile for cblas-trampoline ctest
+# Makefile for cblas-inject ctest
 # Uses test files from extern/OpenBLAS/ctest/
 
 OPENBLAS_CTEST = ../extern/OpenBLAS/ctest
@@ -7,10 +7,19 @@ VPATH = $(OPENBLAS_CTEST)
 CC = cc
 CFLAGS = -DADD_ -DCBLAS -I. -I$(OPENBLAS_CTEST)
 
+# Detect OS and set OpenBLAS path
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    # macOS (Homebrew)
+    OPENBLAS_LIB ?= /opt/homebrew/opt/openblas/lib
+else
+    # Linux
+    OPENBLAS_LIB ?= /usr/lib/x86_64-linux-gnu/openblas-pthread
+endif
+
 # Link cblas-inject first (provides cblas_* symbols)
 # Then OpenBLAS for Fortran BLAS (drot_, etc.) reference
-RUNTIME_LIB = ../target/release/libcblas_inject.dylib
-LDFLAGS = -L../target/release -lcblas_inject -L/opt/homebrew/opt/openblas/lib -lopenblas
+LDFLAGS = -L../target/release -lcblas_inject -L$(OPENBLAS_LIB) -lopenblas
 
 # BLAS Level 1 test objects
 stestl1o = c_sblas1.o
