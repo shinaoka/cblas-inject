@@ -1,13 +1,13 @@
 //! Integration tests for GEMM functions.
 //!
-//! These tests use cblas-sys (linked BLAS) as the backend to verify
-//! that cblas-trampoline produces correct results.
+//! These tests compare cblas-trampoline results with cblas-sys (OpenBLAS)
+//! to verify correctness across all parameter combinations.
 
 extern crate blas_src;
 
 use cblas_trampoline::{
-    blasint, cblas_dgemm, cblas_zgemm, register_dgemm, register_zgemm, CblasColMajor, CblasNoTrans,
-    CblasRowMajor, CblasTrans,
+    blasint, register_dgemm, register_zgemm, CblasColMajor, CblasConjTrans, CblasNoTrans,
+    CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
 use num_complex::Complex64;
 use std::ffi::c_char;
@@ -47,6 +47,47 @@ extern "C" {
     );
 }
 
+// CBLAS declarations from OpenBLAS for direct comparison (reference implementation)
+mod openblas {
+    use super::*;
+
+    extern "C" {
+        pub fn cblas_dgemm(
+            order: u32,
+            transa: u32,
+            transb: u32,
+            m: blasint,
+            n: blasint,
+            k: blasint,
+            alpha: f64,
+            a: *const f64,
+            lda: blasint,
+            b: *const f64,
+            ldb: blasint,
+            beta: f64,
+            c: *mut f64,
+            ldc: blasint,
+        );
+
+        pub fn cblas_zgemm(
+            order: u32,
+            transa: u32,
+            transb: u32,
+            m: blasint,
+            n: blasint,
+            k: blasint,
+            alpha: *const Complex64,
+            a: *const Complex64,
+            lda: blasint,
+            b: *const Complex64,
+            ldb: blasint,
+            beta: *const Complex64,
+            c: *mut Complex64,
+            ldc: blasint,
+        );
+    }
+}
+
 fn setup_dgemm() {
     static INIT: std::sync::Once = std::sync::Once::new();
     INIT.call_once(|| unsafe {
@@ -61,321 +102,407 @@ fn setup_zgemm() {
     });
 }
 
-/// Naive matrix multiply for reference (row-major)
-fn naive_matmul(
-    a: &[f64],
-    b: &[f64],
-    c: &mut [f64],
+/// Generate random-ish test data
+fn generate_matrix(rows: usize, cols: usize, seed: usize) -> Vec<f64> {
+    (0..rows * cols)
+        .map(|i| ((i + seed) as f64 * 0.1).sin())
+        .collect()
+}
+
+fn generate_complex_matrix(rows: usize, cols: usize, seed: usize) -> Vec<Complex64> {
+    (0..rows * cols)
+        .map(|i| {
+            Complex64::new(
+                ((i + seed) as f64 * 0.1).sin(),
+                ((i + seed) as f64 * 0.2).cos(),
+            )
+        })
+        .collect()
+}
+
+/// Calculate leading dimension for a matrix
+fn calc_lda(order: CBLAS_ORDER, trans: CBLAS_TRANSPOSE, rows: usize, cols: usize) -> blasint {
+    match order {
+        CblasRowMajor => match trans {
+            CblasNoTrans => cols as blasint,
+            CblasTrans | CblasConjTrans => rows as blasint,
+        },
+        CblasColMajor => match trans {
+            CblasNoTrans => rows as blasint,
+            CblasTrans | CblasConjTrans => cols as blasint,
+        },
+    }
+}
+
+/// Compare two f64 slices with tolerance
+fn assert_f64_eq(got: &[f64], expected: &[f64], tol: f64, context: &str) {
+    assert_eq!(got.len(), expected.len(), "{}: length mismatch", context);
+    for (i, (g, e)) in got.iter().zip(expected.iter()).enumerate() {
+        let diff = (g - e).abs();
+        let scale = e.abs().max(1.0);
+        assert!(
+            diff < tol * scale,
+            "{}: mismatch at index {}: got {}, expected {}, diff {}",
+            context,
+            i,
+            g,
+            e,
+            diff
+        );
+    }
+}
+
+/// Compare two Complex64 slices with tolerance
+fn assert_c64_eq(got: &[Complex64], expected: &[Complex64], tol: f64, context: &str) {
+    assert_eq!(got.len(), expected.len(), "{}: length mismatch", context);
+    for (i, (g, e)) in got.iter().zip(expected.iter()).enumerate() {
+        let diff = (g - e).norm();
+        let scale = e.norm().max(1.0);
+        assert!(
+            diff < tol * scale,
+            "{}: mismatch at index {}: got {:?}, expected {:?}, diff {}",
+            context,
+            i,
+            g,
+            e,
+            diff
+        );
+    }
+}
+
+// =============================================================================
+// Exhaustive DGEMM tests - compare cblas-trampoline with cblas-sys
+// =============================================================================
+
+#[test]
+fn test_dgemm_exhaustive() {
+    setup_dgemm();
+
+    let orders = [CblasRowMajor, CblasColMajor];
+    let transposes = [CblasNoTrans, CblasTrans];
+    let dims = [1, 2, 3, 5, 7, 9];
+    let alphas = [0.0, 1.0, 0.7, -1.0];
+    let betas = [0.0, 1.0, 1.3, -0.5];
+
+    let mut test_count = 0;
+
+    for &order in &orders {
+        for &transa in &transposes {
+            for &transb in &transposes {
+                for &m in &dims {
+                    for &n in &dims {
+                        for &k in &dims {
+                            for &alpha in &alphas {
+                                for &beta in &betas {
+                                    test_dgemm_case(order, transa, transb, m, n, k, alpha, beta);
+                                    test_count += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    println!("Ran {} DGEMM test cases", test_count);
+}
+
+fn test_dgemm_case(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
     m: usize,
     n: usize,
     k: usize,
     alpha: f64,
     beta: f64,
 ) {
-    for i in 0..m {
-        for j in 0..n {
-            let mut sum = 0.0;
-            for l in 0..k {
-                sum += a[i * k + l] * b[l * n + j];
-            }
-            c[i * n + j] = alpha * sum + beta * c[i * n + j];
-        }
-    }
-}
+    // Determine matrix dimensions based on transpose
+    let (a_rows, a_cols) = match transa {
+        CblasNoTrans => (m, k),
+        CblasTrans | CblasConjTrans => (k, m),
+    };
+    let (b_rows, b_cols) = match transb {
+        CblasNoTrans => (k, n),
+        CblasTrans | CblasConjTrans => (n, k),
+    };
 
-#[test]
-fn test_dgemm_row_major_no_trans() {
-    setup_dgemm();
+    // Generate test data
+    let a = generate_matrix(a_rows, a_cols, 42);
+    let b = generate_matrix(b_rows, b_cols, 123);
+    let c_init = generate_matrix(m, n, 456);
 
-    let m = 2usize;
-    let n = 3usize;
-    let k = 4usize;
+    // Leading dimensions
+    let lda = calc_lda(order, transa, m, k);
+    let ldb = calc_lda(order, transb, k, n);
+    let ldc = match order {
+        CblasRowMajor => n as blasint,
+        CblasColMajor => m as blasint,
+    };
 
-    // A: m x k matrix (row-major)
-    let a: Vec<f64> = (0..m * k).map(|i| i as f64).collect();
-    // B: k x n matrix (row-major)
-    let b: Vec<f64> = (0..k * n).map(|i| (i as f64) * 0.5).collect();
-
-    // Expected result using naive multiply
-    let mut expected = vec![0.0; m * n];
-    naive_matmul(&a, &b, &mut expected, m, n, k, 1.0, 0.0);
-
-    // Result using cblas_trampoline
-    let mut c = vec![0.0; m * n];
+    // Result from cblas-trampoline
+    let mut c_trampoline = c_init.clone();
     unsafe {
-        cblas_dgemm(
-            CblasRowMajor,
-            CblasNoTrans,
-            CblasNoTrans,
-            m as blasint,
-            n as blasint,
-            k as blasint,
-            1.0,
-            a.as_ptr(),
-            k as blasint,
-            b.as_ptr(),
-            n as blasint,
-            0.0,
-            c.as_mut_ptr(),
-            n as blasint,
-        );
-    }
-
-    for (i, (got, exp)) in c.iter().zip(expected.iter()).enumerate() {
-        assert!(
-            (got - exp).abs() < 1e-10,
-            "Mismatch at index {}: got {}, expected {}",
-            i,
-            got,
-            exp
-        );
-    }
-}
-
-#[test]
-fn test_dgemm_col_major_no_trans() {
-    setup_dgemm();
-
-    let m = 2usize;
-    let n = 3usize;
-    let k = 4usize;
-
-    // A: m x k matrix (column-major)
-    // Column-major storage: A[i,j] at index i + j*m
-    let mut a = vec![0.0; m * k];
-    for i in 0..m {
-        for j in 0..k {
-            a[i + j * m] = (i * k + j) as f64;
-        }
-    }
-
-    // B: k x n matrix (column-major)
-    let mut b = vec![0.0; k * n];
-    for i in 0..k {
-        for j in 0..n {
-            b[i + j * k] = (i * n + j) as f64 * 0.5;
-        }
-    }
-
-    // Result using cblas_trampoline
-    let mut c = vec![0.0; m * n];
-    unsafe {
-        cblas_dgemm(
-            CblasColMajor,
-            CblasNoTrans,
-            CblasNoTrans,
-            m as blasint,
-            n as blasint,
-            k as blasint,
-            1.0,
-            a.as_ptr(),
-            m as blasint, // lda = m for col-major NoTrans
-            b.as_ptr(),
-            k as blasint, // ldb = k for col-major NoTrans
-            0.0,
-            c.as_mut_ptr(),
-            m as blasint, // ldc = m for col-major
-        );
-    }
-
-    // Convert to row-major for comparison
-    let mut c_row_major = vec![0.0; m * n];
-    for i in 0..m {
-        for j in 0..n {
-            c_row_major[i * n + j] = c[i + j * m];
-        }
-    }
-
-    // Compute expected with naive (row-major)
-    let a_row: Vec<f64> = (0..m * k).map(|i| (i / k * k + i % k) as f64).collect();
-    let b_row: Vec<f64> = (0..k * n)
-        .map(|i| (i / n * n + i % n) as f64 * 0.5)
-        .collect();
-    let mut expected = vec![0.0; m * n];
-    naive_matmul(&a_row, &b_row, &mut expected, m, n, k, 1.0, 0.0);
-
-    for (i, (got, exp)) in c_row_major.iter().zip(expected.iter()).enumerate() {
-        assert!(
-            (got - exp).abs() < 1e-10,
-            "Mismatch at index {}: got {}, expected {}",
-            i,
-            got,
-            exp
-        );
-    }
-}
-
-#[test]
-fn test_dgemm_row_major_trans_a() {
-    setup_dgemm();
-
-    let m = 2usize;
-    let n = 3usize;
-    let k = 4usize;
-
-    // A: k x m matrix (row-major), will be transposed to m x k
-    let a: Vec<f64> = (0..k * m).map(|i| i as f64).collect();
-    // B: k x n matrix (row-major)
-    let b: Vec<f64> = (0..k * n).map(|i| (i as f64) * 0.5).collect();
-
-    // Compute A^T * B naively
-    // A^T[i,j] = A[j,i] (row-major of A means A[j,i] = A[j*m + i])
-    let mut expected = vec![0.0; m * n];
-    for i in 0..m {
-        for j in 0..n {
-            let mut sum = 0.0;
-            for l in 0..k {
-                let a_val = a[l * m + i]; // A^T[i,l] = A[l,i]
-                let b_val = b[l * n + j];
-                sum += a_val * b_val;
-            }
-            expected[i * n + j] = sum;
-        }
-    }
-
-    let mut c = vec![0.0; m * n];
-    unsafe {
-        cblas_dgemm(
-            CblasRowMajor,
-            CblasTrans,
-            CblasNoTrans,
-            m as blasint,
-            n as blasint,
-            k as blasint,
-            1.0,
-            a.as_ptr(),
-            m as blasint, // lda = m for row-major Trans
-            b.as_ptr(),
-            n as blasint,
-            0.0,
-            c.as_mut_ptr(),
-            n as blasint,
-        );
-    }
-
-    for (i, (got, exp)) in c.iter().zip(expected.iter()).enumerate() {
-        assert!(
-            (got - exp).abs() < 1e-10,
-            "Mismatch at index {}: got {}, expected {}",
-            i,
-            got,
-            exp
-        );
-    }
-}
-
-#[test]
-fn test_dgemm_alpha_beta() {
-    setup_dgemm();
-
-    let m = 2usize;
-    let n = 2usize;
-    let k = 2usize;
-
-    let a = vec![1.0, 2.0, 3.0, 4.0];
-    let b = vec![5.0, 6.0, 7.0, 8.0];
-    let mut c = vec![1.0, 1.0, 1.0, 1.0];
-
-    let alpha = 2.0;
-    let beta = 3.0;
-
-    // expected = alpha * A * B + beta * C
-    let mut expected = vec![1.0, 1.0, 1.0, 1.0];
-    naive_matmul(&a, &b, &mut expected, m, n, k, alpha, beta);
-
-    unsafe {
-        cblas_dgemm(
-            CblasRowMajor,
-            CblasNoTrans,
-            CblasNoTrans,
+        cblas_trampoline::cblas_dgemm(
+            order,
+            transa,
+            transb,
             m as blasint,
             n as blasint,
             k as blasint,
             alpha,
             a.as_ptr(),
-            k as blasint,
+            lda,
             b.as_ptr(),
-            n as blasint,
+            ldb,
             beta,
-            c.as_mut_ptr(),
-            n as blasint,
+            c_trampoline.as_mut_ptr(),
+            ldc,
         );
     }
 
-    for (i, (got, exp)) in c.iter().zip(expected.iter()).enumerate() {
-        assert!(
-            (got - exp).abs() < 1e-10,
-            "Mismatch at index {}: got {}, expected {}",
-            i,
-            got,
-            exp
+    // Result from OpenBLAS cblas
+    let mut c_reference = c_init.clone();
+    unsafe {
+        openblas::cblas_dgemm(
+            order as u32,
+            transa as u32,
+            transb as u32,
+            m as blasint,
+            n as blasint,
+            k as blasint,
+            alpha,
+            a.as_ptr(),
+            lda,
+            b.as_ptr(),
+            ldb,
+            beta,
+            c_reference.as_mut_ptr(),
+            ldc,
         );
     }
+
+    let context = format!(
+        "order={:?}, transa={:?}, transb={:?}, m={}, n={}, k={}, alpha={}, beta={}",
+        order, transa, transb, m, n, k, alpha, beta
+    );
+    assert_f64_eq(&c_trampoline, &c_reference, 1e-12, &context);
 }
 
+// =============================================================================
+// Exhaustive ZGEMM tests - compare cblas-trampoline with cblas-sys
+// =============================================================================
+
 #[test]
-fn test_zgemm_row_major() {
+fn test_zgemm_exhaustive() {
     setup_zgemm();
 
-    let m = 2usize;
-    let n = 2usize;
-    let k = 2usize;
-
-    let a: Vec<Complex64> = vec![
-        Complex64::new(1.0, 1.0),
-        Complex64::new(2.0, 0.0),
-        Complex64::new(0.0, 1.0),
-        Complex64::new(1.0, -1.0),
-    ];
-    let b: Vec<Complex64> = vec![
+    let orders = [CblasRowMajor, CblasColMajor];
+    let transposes = [CblasNoTrans, CblasTrans, CblasConjTrans];
+    let dims = [1, 2, 3, 5];
+    let alphas = [
+        Complex64::new(0.0, 0.0),
         Complex64::new(1.0, 0.0),
-        Complex64::new(0.0, 1.0),
-        Complex64::new(1.0, 1.0),
-        Complex64::new(2.0, 0.0),
+        Complex64::new(0.7, 0.3),
+    ];
+    let betas = [
+        Complex64::new(0.0, 0.0),
+        Complex64::new(1.0, 0.0),
+        Complex64::new(-0.5, 0.2),
     ];
 
-    // Naive complex matmul
-    let mut expected = vec![Complex64::new(0.0, 0.0); m * n];
-    for i in 0..m {
-        for j in 0..n {
-            let mut sum = Complex64::new(0.0, 0.0);
-            for l in 0..k {
-                sum += a[i * k + l] * b[l * n + j];
+    let mut test_count = 0;
+
+    for &order in &orders {
+        for &transa in &transposes {
+            for &transb in &transposes {
+                for &m in &dims {
+                    for &n in &dims {
+                        for &k in &dims {
+                            for &alpha in &alphas {
+                                for &beta in &betas {
+                                    test_zgemm_case(order, transa, transb, m, n, k, alpha, beta);
+                                    test_count += 1;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            expected[i * n + j] = sum;
         }
     }
 
-    let mut c = vec![Complex64::new(0.0, 0.0); m * n];
-    let alpha = Complex64::new(1.0, 0.0);
-    let beta = Complex64::new(0.0, 0.0);
+    println!("Ran {} ZGEMM test cases", test_count);
+}
+
+fn test_zgemm_case(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
+    m: usize,
+    n: usize,
+    k: usize,
+    alpha: Complex64,
+    beta: Complex64,
+) {
+    // Determine matrix dimensions based on transpose
+    let (a_rows, a_cols) = match transa {
+        CblasNoTrans => (m, k),
+        CblasTrans | CblasConjTrans => (k, m),
+    };
+    let (b_rows, b_cols) = match transb {
+        CblasNoTrans => (k, n),
+        CblasTrans | CblasConjTrans => (n, k),
+    };
+
+    // Generate test data
+    let a = generate_complex_matrix(a_rows, a_cols, 42);
+    let b = generate_complex_matrix(b_rows, b_cols, 123);
+    let c_init = generate_complex_matrix(m, n, 456);
+
+    // Leading dimensions
+    let lda = calc_lda(order, transa, m, k);
+    let ldb = calc_lda(order, transb, k, n);
+    let ldc = match order {
+        CblasRowMajor => n as blasint,
+        CblasColMajor => m as blasint,
+    };
+
+    // Result from cblas-trampoline
+    let mut c_trampoline = c_init.clone();
+    unsafe {
+        cblas_trampoline::cblas_zgemm(
+            order,
+            transa,
+            transb,
+            m as blasint,
+            n as blasint,
+            k as blasint,
+            alpha,
+            a.as_ptr(),
+            lda,
+            b.as_ptr(),
+            ldb,
+            beta,
+            c_trampoline.as_mut_ptr(),
+            ldc,
+        );
+    }
+
+    // Result from OpenBLAS cblas
+    let mut c_reference = c_init.clone();
+    unsafe {
+        openblas::cblas_zgemm(
+            order as u32,
+            transa as u32,
+            transb as u32,
+            m as blasint,
+            n as blasint,
+            k as blasint,
+            &alpha,
+            a.as_ptr(),
+            lda,
+            b.as_ptr(),
+            ldb,
+            &beta,
+            c_reference.as_mut_ptr(),
+            ldc,
+        );
+    }
+
+    let context = format!(
+        "order={:?}, transa={:?}, transb={:?}, m={}, n={}, k={}, alpha={:?}, beta={:?}",
+        order, transa, transb, m, n, k, alpha, beta
+    );
+    assert_c64_eq(&c_trampoline, &c_reference, 1e-12, &context);
+}
+
+// =============================================================================
+// Edge case tests
+// =============================================================================
+
+#[test]
+fn test_dgemm_zero_dimensions() {
+    setup_dgemm();
+
+    // m=0 case
+    let a: Vec<f64> = vec![];
+    let b = vec![1.0, 2.0];
+    let mut c: Vec<f64> = vec![];
 
     unsafe {
-        cblas_zgemm(
+        cblas_trampoline::cblas_dgemm(
+            CblasRowMajor,
+            CblasNoTrans,
+            CblasNoTrans,
+            0,
+            2,
+            1,
+            1.0,
+            a.as_ptr(),
+            1,
+            b.as_ptr(),
+            2,
+            0.0,
+            c.as_mut_ptr(),
+            2,
+        );
+    }
+    // Should not crash
+}
+
+#[test]
+fn test_dgemm_non_square() {
+    setup_dgemm();
+
+    // Non-square matrices: A(3x5), B(5x7) -> C(3x7)
+    let m = 3;
+    let n = 7;
+    let k = 5;
+
+    let a = generate_matrix(m, k, 1);
+    let b = generate_matrix(k, n, 2);
+    let c_init = generate_matrix(m, n, 3);
+
+    let mut c_trampoline = c_init.clone();
+    let mut c_reference = c_init.clone();
+
+    unsafe {
+        cblas_trampoline::cblas_dgemm(
             CblasRowMajor,
             CblasNoTrans,
             CblasNoTrans,
             m as blasint,
             n as blasint,
             k as blasint,
-            alpha,
+            1.5,
             a.as_ptr(),
             k as blasint,
             b.as_ptr(),
             n as blasint,
-            beta,
-            c.as_mut_ptr(),
+            0.5,
+            c_trampoline.as_mut_ptr(),
+            n as blasint,
+        );
+
+        openblas::cblas_dgemm(
+            CblasRowMajor as u32,
+            CblasNoTrans as u32,
+            CblasNoTrans as u32,
+            m as blasint,
+            n as blasint,
+            k as blasint,
+            1.5,
+            a.as_ptr(),
+            k as blasint,
+            b.as_ptr(),
+            n as blasint,
+            0.5,
+            c_reference.as_mut_ptr(),
             n as blasint,
         );
     }
 
-    for (i, (got, exp)) in c.iter().zip(expected.iter()).enumerate() {
-        assert!(
-            (got - exp).norm() < 1e-10,
-            "Mismatch at index {}: got {:?}, expected {:?}",
-            i,
-            got,
-            exp
-        );
-    }
+    assert_f64_eq(&c_trampoline, &c_reference, 1e-12, "non-square test");
 }
