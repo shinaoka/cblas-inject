@@ -46,3 +46,8 @@ pub use types::*;
 
 // Re-export commonly used functions at crate root
 pub use blas3::gemm::{cblas_cgemm, cblas_dgemm, cblas_sgemm, cblas_zgemm};
+pub use blas3::symm::cblas_dsymm;
+pub use blas3::syr2k::cblas_dsyr2k;
+pub use blas3::syrk::cblas_dsyrk;
+pub use blas3::trmm::cblas_dtrmm;
+pub use blas3::trsm::cblas_dtrsm;

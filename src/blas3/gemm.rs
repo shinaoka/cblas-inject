@@ -2,8 +2,9 @@
 //!
 //! Computes: C = alpha * op(A) * op(B) + beta * C
 //!
-//! The row-major handling follows OpenBLAS's approach:
-//! <https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c#L489-L537>
+//! Row-major conversion logic derived from OpenBLAS.
+//! Copyright (c) 2011-2014, The OpenBLAS Project. BSD-3-Clause License.
+//! <https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c>
 //!
 //! For row-major layout, we swap A↔B, m↔n, lda↔ldb, TransA↔TransB.
 //! The transpose flags are NOT inverted, just swapped.
