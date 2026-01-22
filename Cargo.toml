@@ -1,0 +1,22 @@
+[package]
+name = "cblas-trampoline"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "CBLAS/LAPACKE compatible interface backed by Fortran BLAS/LAPACK function pointers"
+repository = "https://github.com/shinaoka/cblas-trampoline"
+keywords = ["blas", "lapack", "cblas", "ffi", "linear-algebra"]
+categories = ["science", "mathematics", "external-ffi-bindings"]
+
+[dependencies]
+num-complex = "0.4"
+
+[dev-dependencies]
+cblas-sys = "0.1"
+lapack-sys = "0.14"
+blas-src = { version = "0.10", features = ["openblas"] }
+openblas-src = { version = "0.10", features = ["system"] }
+
+[features]
+default = []
+ilp64 = []
