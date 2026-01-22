@@ -89,17 +89,25 @@ mod openblas {
 }
 
 fn setup_dgemm() {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| unsafe {
-        register_dgemm(dgemm_);
-    });
+    // When openblas feature is enabled, autoregister handles this
+    #[cfg(not(feature = "openblas"))]
+    {
+        static INIT: std::sync::Once = std::sync::Once::new();
+        INIT.call_once(|| unsafe {
+            register_dgemm(dgemm_);
+        });
+    }
 }
 
 fn setup_zgemm() {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| unsafe {
-        register_zgemm(zgemm_);
-    });
+    // When openblas feature is enabled, autoregister handles this
+    #[cfg(not(feature = "openblas"))]
+    {
+        static INIT: std::sync::Once = std::sync::Once::new();
+        INIT.call_once(|| unsafe {
+            register_zgemm(zgemm_);
+        });
+    }
 }
 
 /// Generate random-ish test data
@@ -380,12 +388,12 @@ fn test_zgemm_case(
             m as blasint,
             n as blasint,
             k as blasint,
-            alpha,
+            &alpha,
             a.as_ptr(),
             lda,
             b.as_ptr(),
             ldb,
-            beta,
+            &beta,
             c_trampoline.as_mut_ptr(),
             ldc,
         );

@@ -236,6 +236,20 @@ extern "C" {
         ldc: *const i32,
     );
 
+    fn ssymm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        b: *const f32,
+        ldb: *const i32,
+        beta: *const f32,
+        c: *mut f32,
+        ldc: *const i32,
+    );
     fn dsymm_(
         side: *const i8,
         uplo: *const i8,
@@ -250,6 +264,62 @@ extern "C" {
         c: *mut f64,
         ldc: *const i32,
     );
+    fn csymm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zsymm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn chemm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zhemm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
     fn dsyrk_(
         uplo: *const i8,
         trans: *const i8,
@@ -260,6 +330,66 @@ extern "C" {
         lda: *const i32,
         beta: *const f64,
         c: *mut f64,
+        ldc: *const i32,
+    );
+    fn ssyrk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        beta: *const f32,
+        c: *mut f32,
+        ldc: *const i32,
+    );
+    fn csyrk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zsyrk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn cherk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f32,
+        a: *const (),
+        lda: *const i32,
+        beta: *const f32,
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zherk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f64,
+        a: *const (),
+        lda: *const i32,
+        beta: *const f64,
+        c: *mut (),
         ldc: *const i32,
     );
     fn dsyr2k_(
@@ -274,6 +404,76 @@ extern "C" {
         ldb: *const i32,
         beta: *const f64,
         c: *mut f64,
+        ldc: *const i32,
+    );
+    fn ssyr2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        b: *const f32,
+        ldb: *const i32,
+        beta: *const f32,
+        c: *mut f32,
+        ldc: *const i32,
+    );
+    fn csyr2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zsyr2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn cher2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const f32,
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zher2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const f64,
+        c: *mut (),
         ldc: *const i32,
     );
     fn dtrmm_(
@@ -300,6 +500,84 @@ extern "C" {
         a: *const f64,
         lda: *const i32,
         b: *mut f64,
+        ldb: *const i32,
+    );
+    fn strmm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        b: *mut f32,
+        ldb: *const i32,
+    );
+    fn ctrmm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *mut (),
+        ldb: *const i32,
+    );
+    fn ztrmm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *mut (),
+        ldb: *const i32,
+    );
+    fn strsm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        b: *mut f32,
+        ldb: *const i32,
+    );
+    fn ctrsm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *mut (),
+        ldb: *const i32,
+    );
+    fn ztrsm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *mut (),
         ldb: *const i32,
     );
 
@@ -1213,10 +1491,31 @@ fn register_all_blas() {
         register_dgemm(std::mem::transmute(dgemm_ as *const ()));
         register_cgemm(std::mem::transmute(cgemm_ as *const ()));
         register_zgemm(std::mem::transmute(zgemm_ as *const ()));
+        register_ssymm(std::mem::transmute(ssymm_ as *const ()));
         register_dsymm(std::mem::transmute(dsymm_ as *const ()));
+        register_csymm(std::mem::transmute(csymm_ as *const ()));
+        register_zsymm(std::mem::transmute(zsymm_ as *const ()));
+        register_chemm(std::mem::transmute(chemm_ as *const ()));
+        register_zhemm(std::mem::transmute(zhemm_ as *const ()));
         register_dsyrk(std::mem::transmute(dsyrk_ as *const ()));
+        register_ssyrk(std::mem::transmute(ssyrk_ as *const ()));
+        register_csyrk(std::mem::transmute(csyrk_ as *const ()));
+        register_zsyrk(std::mem::transmute(zsyrk_ as *const ()));
+        register_cherk(std::mem::transmute(cherk_ as *const ()));
+        register_zherk(std::mem::transmute(zherk_ as *const ()));
         register_dsyr2k(std::mem::transmute(dsyr2k_ as *const ()));
+        register_ssyr2k(std::mem::transmute(ssyr2k_ as *const ()));
+        register_csyr2k(std::mem::transmute(csyr2k_ as *const ()));
+        register_zsyr2k(std::mem::transmute(zsyr2k_ as *const ()));
+        register_cher2k(std::mem::transmute(cher2k_ as *const ()));
+        register_zher2k(std::mem::transmute(zher2k_ as *const ()));
         register_dtrmm(std::mem::transmute(dtrmm_ as *const ()));
         register_dtrsm(std::mem::transmute(dtrsm_ as *const ()));
+        register_strmm(std::mem::transmute(strmm_ as *const ()));
+        register_ctrmm(std::mem::transmute(ctrmm_ as *const ()));
+        register_ztrmm(std::mem::transmute(ztrmm_ as *const ()));
+        register_strsm(std::mem::transmute(strsm_ as *const ()));
+        register_ctrsm(std::mem::transmute(ctrsm_ as *const ()));
+        register_ztrsm(std::mem::transmute(ztrsm_ as *const ()));
     }
 }
