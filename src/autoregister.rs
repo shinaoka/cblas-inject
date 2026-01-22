@@ -1330,10 +1330,10 @@ extern "C" {
 
 #[ctor::ctor]
 fn register_all_blas() {
-    // OpenBLAS uses return value convention for complex dot products
-    set_complex_return_style(ComplexReturnStyle::ReturnValue);
-
     unsafe {
+        // OpenBLAS uses return value convention for complex dot products
+        set_complex_return_style(ComplexReturnStyle::ReturnValue);
+
         // BLAS Level 1 - Single
         register_srot(std::mem::transmute(srot_ as *const ()));
         register_srotg(std::mem::transmute(srotg_ as *const ()));
