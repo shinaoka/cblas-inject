@@ -6,8 +6,8 @@
 extern crate blas_src;
 
 use cblas_inject::{
-    blasint, register_dgemm, register_zgemm, CblasColMajor, CblasConjTrans, CblasNoTrans,
-    CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
+    blasint, register_dgemm, register_zgemm, CblasColMajor, CblasConjNoTrans, CblasConjTrans,
+    CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
 use num_complex::Complex64;
 use std::ffi::c_char;
@@ -132,11 +132,11 @@ fn generate_complex_matrix(rows: usize, cols: usize, seed: usize) -> Vec<Complex
 fn calc_lda(order: CBLAS_ORDER, trans: CBLAS_TRANSPOSE, rows: usize, cols: usize) -> blasint {
     match order {
         CblasRowMajor => match trans {
-            CblasNoTrans => cols as blasint,
+            CblasNoTrans | CblasConjNoTrans => cols as blasint,
             CblasTrans | CblasConjTrans => rows as blasint,
         },
         CblasColMajor => match trans {
-            CblasNoTrans => rows as blasint,
+            CblasNoTrans | CblasConjNoTrans => rows as blasint,
             CblasTrans | CblasConjTrans => cols as blasint,
         },
     }
@@ -227,12 +227,13 @@ fn test_dgemm_case(
     beta: f64,
 ) {
     // Determine matrix dimensions based on transpose
+    // For real types, ConjNoTrans = NoTrans, ConjTrans = Trans
     let (a_rows, a_cols) = match transa {
-        CblasNoTrans => (m, k),
+        CblasNoTrans | CblasConjNoTrans => (m, k),
         CblasTrans | CblasConjTrans => (k, m),
     };
     let (b_rows, b_cols) = match transb {
-        CblasNoTrans => (k, n),
+        CblasNoTrans | CblasConjNoTrans => (k, n),
         CblasTrans | CblasConjTrans => (n, k),
     };
 
@@ -356,12 +357,13 @@ fn test_zgemm_case(
     beta: Complex64,
 ) {
     // Determine matrix dimensions based on transpose
+    // For complex types, ConjNoTrans and ConjTrans are distinct
     let (a_rows, a_cols) = match transa {
-        CblasNoTrans => (m, k),
+        CblasNoTrans | CblasConjNoTrans => (m, k),
         CblasTrans | CblasConjTrans => (k, m),
     };
     let (b_rows, b_cols) = match transb {
-        CblasNoTrans => (k, n),
+        CblasNoTrans | CblasConjNoTrans => (k, n),
         CblasTrans | CblasConjTrans => (n, k),
     };
 

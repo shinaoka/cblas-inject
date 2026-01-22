@@ -35,9 +35,14 @@ pub enum CBLAS_TRANSPOSE {
     CblasTrans = 112,
     /// Conjugate transpose (Hermitian)
     CblasConjTrans = 113,
+    /// Conjugate, no transpose (CBLAS extension used by OpenBLAS: maps to Fortran 'R')
+    ///
+    /// Note: This is distinct from `CblasNoTrans` for complex-valued operations.
+    /// For real-valued operations, it is equivalent to `CblasNoTrans`.
+    CblasConjNoTrans = 114,
 }
 
-pub use CBLAS_TRANSPOSE::{CblasConjTrans, CblasNoTrans, CblasTrans};
+pub use CBLAS_TRANSPOSE::{CblasConjNoTrans, CblasConjTrans, CblasNoTrans, CblasTrans};
 
 /// Upper/Lower triangle selector for symmetric/triangular operations.
 #[repr(C)]
@@ -90,6 +95,19 @@ pub(crate) fn transpose_to_char(trans: CBLAS_TRANSPOSE) -> c_char {
         CblasNoTrans => b'N' as c_char,
         CblasTrans => b'T' as c_char,
         CblasConjTrans => b'C' as c_char,
+        CblasConjNoTrans => b'R' as c_char,
+    }
+}
+
+/// Normalize transpose mode for real-valued BLAS operations.
+///
+/// - `CblasConjTrans` behaves like `CblasTrans`
+/// - `CblasConjNoTrans` behaves like `CblasNoTrans`
+#[inline]
+pub(crate) fn normalize_transpose_real(trans: CBLAS_TRANSPOSE) -> CBLAS_TRANSPOSE {
+    match trans {
+        CblasNoTrans | CblasConjNoTrans => CblasNoTrans,
+        CblasTrans | CblasConjTrans => CblasTrans,
     }
 }
 

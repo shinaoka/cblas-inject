@@ -15,9 +15,9 @@ use crate::backend::{
     get_ctpmv, get_ctpsv, get_dtpmv, get_dtpsv, get_stpmv, get_stpsv, get_ztpmv, get_ztpsv,
 };
 use crate::types::{
-    blasint, diag_to_char, transpose_to_char, uplo_to_char, CblasColMajor, CblasConjTrans,
-    CblasLower, CblasNoTrans, CblasRowMajor, CblasTrans, CblasUpper, CBLAS_DIAG, CBLAS_ORDER,
-    CBLAS_TRANSPOSE, CBLAS_UPLO,
+    blasint, diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char, CblasColMajor,
+    CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor, CblasTrans,
+    CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_UPLO,
 };
 
 // =============================================================================
@@ -49,7 +49,7 @@ pub unsafe extern "C" fn cblas_stpmv(
     match order {
         CblasColMajor => {
             let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             let diag_char = diag_to_char(diag);
             stpmv(&uplo_char, &trans_char, &diag_char, &n, ap, x, &incx);
         }
@@ -59,10 +59,10 @@ pub unsafe extern "C" fn cblas_stpmv(
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
             };
-            let new_trans = match trans {
+            let new_trans = match normalize_transpose_real(trans) {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasNoTrans, // For real types, ConjTrans = Trans
+                _ => unreachable!(),
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -97,7 +97,7 @@ pub unsafe extern "C" fn cblas_dtpmv(
     match order {
         CblasColMajor => {
             let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             let diag_char = diag_to_char(diag);
             dtpmv(&uplo_char, &trans_char, &diag_char, &n, ap, x, &incx);
         }
@@ -107,10 +107,10 @@ pub unsafe extern "C" fn cblas_dtpmv(
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
             };
-            let new_trans = match trans {
+            let new_trans = match normalize_transpose_real(trans) {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasNoTrans, // For real types, ConjTrans = Trans
+                _ => unreachable!(),
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -151,7 +151,7 @@ pub unsafe extern "C" fn cblas_ctpmv(
         }
         CblasRowMajor => {
             // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
             let new_uplo = match uplo {
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
@@ -159,7 +159,8 @@ pub unsafe extern "C" fn cblas_ctpmv(
             let new_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasConjTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -200,7 +201,7 @@ pub unsafe extern "C" fn cblas_ztpmv(
         }
         CblasRowMajor => {
             // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
             let new_uplo = match uplo {
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
@@ -208,7 +209,8 @@ pub unsafe extern "C" fn cblas_ztpmv(
             let new_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasConjTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -247,7 +249,7 @@ pub unsafe extern "C" fn cblas_stpsv(
     match order {
         CblasColMajor => {
             let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             let diag_char = diag_to_char(diag);
             stpsv(&uplo_char, &trans_char, &diag_char, &n, ap, x, &incx);
         }
@@ -257,10 +259,10 @@ pub unsafe extern "C" fn cblas_stpsv(
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
             };
-            let new_trans = match trans {
+            let new_trans = match normalize_transpose_real(trans) {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasNoTrans, // For real types, ConjTrans = Trans
+                _ => unreachable!(),
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -295,7 +297,7 @@ pub unsafe extern "C" fn cblas_dtpsv(
     match order {
         CblasColMajor => {
             let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             let diag_char = diag_to_char(diag);
             dtpsv(&uplo_char, &trans_char, &diag_char, &n, ap, x, &incx);
         }
@@ -305,10 +307,10 @@ pub unsafe extern "C" fn cblas_dtpsv(
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
             };
-            let new_trans = match trans {
+            let new_trans = match normalize_transpose_real(trans) {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasNoTrans, // For real types, ConjTrans = Trans
+                _ => unreachable!(),
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -349,7 +351,7 @@ pub unsafe extern "C" fn cblas_ctpsv(
         }
         CblasRowMajor => {
             // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
             let new_uplo = match uplo {
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
@@ -357,7 +359,8 @@ pub unsafe extern "C" fn cblas_ctpsv(
             let new_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasConjTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
@@ -398,7 +401,7 @@ pub unsafe extern "C" fn cblas_ztpsv(
         }
         CblasRowMajor => {
             // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
             let new_uplo = match uplo {
                 CblasUpper => CblasLower,
                 CblasLower => CblasUpper,
@@ -406,7 +409,8 @@ pub unsafe extern "C" fn cblas_ztpsv(
             let new_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => CblasConjTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);

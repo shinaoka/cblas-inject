@@ -16,23 +16,19 @@ use num_complex::{Complex32, Complex64};
 
 use crate::backend::{get_cgbmv, get_dgbmv, get_sgbmv, get_zgbmv};
 use crate::types::{
-    blasint, transpose_to_char, CblasColMajor, CblasConjTrans, CblasNoTrans, CblasRowMajor,
-    CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
+    blasint, normalize_transpose_real, transpose_to_char, CblasColMajor, CblasConjNoTrans,
+    CblasConjTrans, CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
 
-/// Flip transpose operation for row-major conversion.
+/// Flip transpose operation for row-major conversion (real-valued operations).
 ///
-/// NoTrans <-> Trans, ConjNoTrans <-> ConjTrans
+/// For real types, conjugation is a no-op, so we normalize to {NoTrans, Trans}.
 #[inline]
-fn flip_transpose(trans: CBLAS_TRANSPOSE) -> CBLAS_TRANSPOSE {
-    match trans {
+fn flip_transpose_real(trans: CBLAS_TRANSPOSE) -> CBLAS_TRANSPOSE {
+    match normalize_transpose_real(trans) {
         CblasNoTrans => CblasTrans,
         CblasTrans => CblasNoTrans,
-        CblasConjTrans => {
-            // ConjNoTrans is not in our enum but maps to ConjTrans flip
-            // For real types, ConjTrans == Trans
-            CblasNoTrans
-        }
+        _ => unreachable!(),
     }
 }
 
@@ -69,7 +65,7 @@ pub unsafe extern "C" fn cblas_sgbmv(
     match order {
         CblasColMajor => {
             // Column-major: call Fortran directly
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             sgbmv(
                 &trans_char,
                 &m,
@@ -89,7 +85,7 @@ pub unsafe extern "C" fn cblas_sgbmv(
         CblasRowMajor => {
             // Row-major: swap m/n, kl/ku and flip transpose
             // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gbmv.c
-            let trans_char = transpose_to_char(flip_transpose(trans));
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
             sgbmv(
                 &trans_char,
                 &n,  // swapped: m -> n
@@ -141,7 +137,7 @@ pub unsafe extern "C" fn cblas_dgbmv(
 
     match order {
         CblasColMajor => {
-            let trans_char = transpose_to_char(trans);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
             dgbmv(
                 &trans_char,
                 &m,
@@ -159,7 +155,7 @@ pub unsafe extern "C" fn cblas_dgbmv(
             );
         }
         CblasRowMajor => {
-            let trans_char = transpose_to_char(flip_transpose(trans));
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
             dgbmv(
                 &trans_char,
                 &n,
@@ -229,18 +225,13 @@ pub unsafe extern "C" fn cblas_cgbmv(
             );
         }
         CblasRowMajor => {
-            // For complex, we need to handle ConjTrans specially
+            // For complex, row-major requires flipping transpose with conjugation preserved:
+            // NoTrans <-> Trans, ConjNoTrans <-> ConjTrans (OpenBLAS)
             let flipped_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => {
-                    // ConjTrans in row-major becomes ConjNoTrans in col-major
-                    // But Fortran uses 'R' for this (conjugate, no transpose)
-                    // OpenBLAS maps CblasConjTrans -> trans=2 (R) for row-major
-                    // However, we don't have a ConjNoTrans enum value
-                    // For row-major ConjTrans: becomes column-major with conjugate and no transpose
-                    CblasNoTrans // This is approximate - complex conjugate handling differs
-                }
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let trans_char = transpose_to_char(flipped_trans);
             cgbmv(
@@ -312,14 +303,12 @@ pub unsafe extern "C" fn cblas_zgbmv(
             );
         }
         CblasRowMajor => {
-            // For complex, we need to handle ConjTrans specially
+            // Same handling as cgbmv (OpenBLAS row-major transpose flip for complex)
             let flipped_trans = match trans {
                 CblasNoTrans => CblasTrans,
                 CblasTrans => CblasNoTrans,
-                CblasConjTrans => {
-                    // Same handling as cgbmv
-                    CblasNoTrans
-                }
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
             };
             let trans_char = transpose_to_char(flipped_trans);
             zgbmv(
