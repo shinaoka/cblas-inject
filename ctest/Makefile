@@ -18,15 +18,26 @@ dtestl1o = c_dblas1.o
 ctestl1o = c_cblas1.o
 ztestl1o = c_zblas1.o
 
+# BLAS Level 2 test objects
+stestl2o = c_sblas2.o c_s2chke.o auxiliary.o c_xerbla.o
+dtestl2o = c_dblas2.o c_d2chke.o auxiliary.o c_xerbla.o
+ctestl2o = c_cblas2.o c_c2chke.o auxiliary.o c_xerbla.o
+ztestl2o = c_zblas2.o c_z2chke.o auxiliary.o c_xerbla.o
+
 # Test drivers
 stestl1_driver = c_sblat1c.o
 dtestl1_driver = c_dblat1c.o
 ctestl1_driver = c_cblat1c.o
 ztestl1_driver = c_zblat1c.o
 
-.PHONY: all clean test test1 build-trampoline
+stestl2_driver = c_sblat2c.o
+dtestl2_driver = c_dblat2c.o
+ctestl2_driver = c_cblat2c.o
+ztestl2_driver = c_zblat2c.o
 
-all: build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1
+.PHONY: all clean test test1 test2 build-trampoline
+
+all: build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1 xscblat2 xdcblat2 xccblat2 xzcblat2
 
 build-trampoline:
 	cd .. && cargo build --release --features openblas
@@ -48,12 +59,32 @@ xccblat1: $(ctestl1_driver) $(ctestl1o)
 xzcblat1: $(ztestl1_driver) $(ztestl1o)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+# BLAS Level 2 test executables
+xscblat2: $(stestl2_driver) $(stestl2o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+xdcblat2: $(dtestl2_driver) $(dtestl2o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+xccblat2: $(ctestl2_driver) $(ctestl2o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+xzcblat2: $(ztestl2_driver) $(ztestl2o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
 test1: all
-	DYLD_LIBRARY_PATH=../target/release ./xscblat1
-	DYLD_LIBRARY_PATH=../target/release ./xdcblat1
-	DYLD_LIBRARY_PATH=../target/release ./xccblat1
-	DYLD_LIBRARY_PATH=../target/release ./xzcblat1
+	./xscblat1
+	./xdcblat1
+	./xccblat1
+	./xzcblat1
+
+test2: all
+	./xscblat2 < $(OPENBLAS_CTEST)/sin2
+	./xdcblat2 < $(OPENBLAS_CTEST)/din2
+	./xccblat2 < $(OPENBLAS_CTEST)/cin2
+	./xzcblat2 < $(OPENBLAS_CTEST)/zin2
 
 clean:
 	rm -f xscblat1 xdcblat1 xccblat1 xzcblat1
+	rm -f xscblat2 xdcblat2 xccblat2 xzcblat2
 	rm -f *.o

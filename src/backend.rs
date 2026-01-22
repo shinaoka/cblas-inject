@@ -400,6 +400,394 @@ pub type IcamaxFnPtr =
 pub type IzamaxFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const Complex64, incx: *const blasint) -> blasint;
 
+// BLAS Level 2: Matrix-Vector operations
+
+/// Fortran sgemv function pointer type (single precision general matrix-vector multiply)
+pub type SgemvFnPtr = unsafe extern "C" fn(
+    trans: *const c_char,
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const f32,
+    a: *const f32,
+    lda: *const blasint,
+    x: *const f32,
+    incx: *const blasint,
+    beta: *const f32,
+    y: *mut f32,
+    incy: *const blasint,
+);
+
+/// Fortran dgemv function pointer type (double precision general matrix-vector multiply)
+pub type DgemvFnPtr = unsafe extern "C" fn(
+    trans: *const c_char,
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const f64,
+    a: *const f64,
+    lda: *const blasint,
+    x: *const f64,
+    incx: *const blasint,
+    beta: *const f64,
+    y: *mut f64,
+    incy: *const blasint,
+);
+
+/// Fortran cgemv function pointer type (single precision complex general matrix-vector multiply)
+pub type CgemvFnPtr = unsafe extern "C" fn(
+    trans: *const c_char,
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: *const blasint,
+    x: *const Complex32,
+    incx: *const blasint,
+    beta: *const Complex32,
+    y: *mut Complex32,
+    incy: *const blasint,
+);
+
+/// Fortran zgemv function pointer type (double precision complex general matrix-vector multiply)
+pub type ZgemvFnPtr = unsafe extern "C" fn(
+    trans: *const c_char,
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: *const blasint,
+    x: *const Complex64,
+    incx: *const blasint,
+    beta: *const Complex64,
+    y: *mut Complex64,
+    incy: *const blasint,
+);
+
+/// Fortran ssymv function pointer type (single precision symmetric matrix-vector multiply)
+pub type SsymvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f32,
+    a: *const f32,
+    lda: *const blasint,
+    x: *const f32,
+    incx: *const blasint,
+    beta: *const f32,
+    y: *mut f32,
+    incy: *const blasint,
+);
+
+/// Fortran dsymv function pointer type (double precision symmetric matrix-vector multiply)
+pub type DsymvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f64,
+    a: *const f64,
+    lda: *const blasint,
+    x: *const f64,
+    incx: *const blasint,
+    beta: *const f64,
+    y: *mut f64,
+    incy: *const blasint,
+);
+
+/// Fortran chemv function pointer type (single precision complex Hermitian matrix-vector multiply)
+pub type ChemvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: *const blasint,
+    x: *const Complex32,
+    incx: *const blasint,
+    beta: *const Complex32,
+    y: *mut Complex32,
+    incy: *const blasint,
+);
+
+/// Fortran zhemv function pointer type (double precision complex Hermitian matrix-vector multiply)
+pub type ZhemvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: *const blasint,
+    x: *const Complex64,
+    incx: *const blasint,
+    beta: *const Complex64,
+    y: *mut Complex64,
+    incy: *const blasint,
+);
+
+/// Fortran strmv function pointer type (single precision triangular matrix-vector multiply)
+pub type StrmvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const f32,
+    lda: *const blasint,
+    x: *mut f32,
+    incx: *const blasint,
+);
+
+/// Fortran dtrmv function pointer type (double precision triangular matrix-vector multiply)
+pub type DtrmvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const f64,
+    lda: *const blasint,
+    x: *mut f64,
+    incx: *const blasint,
+);
+
+/// Fortran ctrmv function pointer type (single precision complex triangular matrix-vector multiply)
+pub type CtrmvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const Complex32,
+    lda: *const blasint,
+    x: *mut Complex32,
+    incx: *const blasint,
+);
+
+/// Fortran ztrmv function pointer type (double precision complex triangular matrix-vector multiply)
+pub type ZtrmvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const Complex64,
+    lda: *const blasint,
+    x: *mut Complex64,
+    incx: *const blasint,
+);
+
+/// Fortran strsv function pointer type (single precision triangular solve)
+pub type StrsvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const f32,
+    lda: *const blasint,
+    x: *mut f32,
+    incx: *const blasint,
+);
+
+/// Fortran dtrsv function pointer type (double precision triangular solve)
+pub type DtrsvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const f64,
+    lda: *const blasint,
+    x: *mut f64,
+    incx: *const blasint,
+);
+
+/// Fortran ctrsv function pointer type (single precision complex triangular solve)
+pub type CtrsvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const Complex32,
+    lda: *const blasint,
+    x: *mut Complex32,
+    incx: *const blasint,
+);
+
+/// Fortran ztrsv function pointer type (double precision complex triangular solve)
+pub type ZtrsvFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    trans: *const c_char,
+    diag: *const c_char,
+    n: *const blasint,
+    a: *const Complex64,
+    lda: *const blasint,
+    x: *mut Complex64,
+    incx: *const blasint,
+);
+
+/// Fortran sger function pointer type (single precision rank-1 update)
+pub type SgerFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const f32,
+    x: *const f32,
+    incx: *const blasint,
+    y: *const f32,
+    incy: *const blasint,
+    a: *mut f32,
+    lda: *const blasint,
+);
+
+/// Fortran dger function pointer type (double precision rank-1 update)
+pub type DgerFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const f64,
+    x: *const f64,
+    incx: *const blasint,
+    y: *const f64,
+    incy: *const blasint,
+    a: *mut f64,
+    lda: *const blasint,
+);
+
+/// Fortran cgeru function pointer type (single complex unconjugated rank-1 update)
+pub type CgeruFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex32,
+    x: *const Complex32,
+    incx: *const blasint,
+    y: *const Complex32,
+    incy: *const blasint,
+    a: *mut Complex32,
+    lda: *const blasint,
+);
+
+/// Fortran cgerc function pointer type (single complex conjugated rank-1 update)
+pub type CgercFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex32,
+    x: *const Complex32,
+    incx: *const blasint,
+    y: *const Complex32,
+    incy: *const blasint,
+    a: *mut Complex32,
+    lda: *const blasint,
+);
+
+/// Fortran zgeru function pointer type (double complex unconjugated rank-1 update)
+pub type ZgeruFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex64,
+    x: *const Complex64,
+    incx: *const blasint,
+    y: *const Complex64,
+    incy: *const blasint,
+    a: *mut Complex64,
+    lda: *const blasint,
+);
+
+/// Fortran zgerc function pointer type (double complex conjugated rank-1 update)
+pub type ZgercFnPtr = unsafe extern "C" fn(
+    m: *const blasint,
+    n: *const blasint,
+    alpha: *const Complex64,
+    x: *const Complex64,
+    incx: *const blasint,
+    y: *const Complex64,
+    incy: *const blasint,
+    a: *mut Complex64,
+    lda: *const blasint,
+);
+
+/// Fortran ssyr function pointer type (single precision symmetric rank-1 update)
+pub type SsyrFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f32,
+    x: *const f32,
+    incx: *const blasint,
+    a: *mut f32,
+    lda: *const blasint,
+);
+
+/// Fortran dsyr function pointer type (double precision symmetric rank-1 update)
+pub type DsyrFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f64,
+    x: *const f64,
+    incx: *const blasint,
+    a: *mut f64,
+    lda: *const blasint,
+);
+
+/// Fortran cher function pointer type (single complex hermitian rank-1 update)
+pub type CherFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f32,
+    x: *const Complex32,
+    incx: *const blasint,
+    a: *mut Complex32,
+    lda: *const blasint,
+);
+
+/// Fortran zher function pointer type (double complex hermitian rank-1 update)
+pub type ZherFnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f64,
+    x: *const Complex64,
+    incx: *const blasint,
+    a: *mut Complex64,
+    lda: *const blasint,
+);
+
+/// Fortran ssyr2 function pointer type (single precision symmetric rank-2 update)
+pub type Ssyr2FnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f32,
+    x: *const f32,
+    incx: *const blasint,
+    y: *const f32,
+    incy: *const blasint,
+    a: *mut f32,
+    lda: *const blasint,
+);
+
+/// Fortran dsyr2 function pointer type (double precision symmetric rank-2 update)
+pub type Dsyr2FnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const f64,
+    x: *const f64,
+    incx: *const blasint,
+    y: *const f64,
+    incy: *const blasint,
+    a: *mut f64,
+    lda: *const blasint,
+);
+
+/// Fortran cher2 function pointer type (single complex hermitian rank-2 update)
+pub type Cher2FnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const Complex32,
+    x: *const Complex32,
+    incx: *const blasint,
+    y: *const Complex32,
+    incy: *const blasint,
+    a: *mut Complex32,
+    lda: *const blasint,
+);
+
+/// Fortran zher2 function pointer type (double complex hermitian rank-2 update)
+pub type Zher2FnPtr = unsafe extern "C" fn(
+    uplo: *const c_char,
+    n: *const blasint,
+    alpha: *const Complex64,
+    x: *const Complex64,
+    incx: *const blasint,
+    y: *const Complex64,
+    incy: *const blasint,
+    a: *mut Complex64,
+    lda: *const blasint,
+);
+
 // BLAS Level 3: Matrix-Matrix operations
 
 /// Fortran dgemm function pointer type (double precision general matrix multiply)
@@ -643,6 +1031,38 @@ static IDAMAX: OnceLock<IdamaxFnPtr> = OnceLock::new();
 static ICAMAX: OnceLock<IcamaxFnPtr> = OnceLock::new();
 static IZAMAX: OnceLock<IzamaxFnPtr> = OnceLock::new();
 
+// BLAS Level 2
+static SGEMV: OnceLock<SgemvFnPtr> = OnceLock::new();
+static DGEMV: OnceLock<DgemvFnPtr> = OnceLock::new();
+static CGEMV: OnceLock<CgemvFnPtr> = OnceLock::new();
+static ZGEMV: OnceLock<ZgemvFnPtr> = OnceLock::new();
+static SSYMV: OnceLock<SsymvFnPtr> = OnceLock::new();
+static DSYMV: OnceLock<DsymvFnPtr> = OnceLock::new();
+static CHEMV: OnceLock<ChemvFnPtr> = OnceLock::new();
+static ZHEMV: OnceLock<ZhemvFnPtr> = OnceLock::new();
+static STRMV: OnceLock<StrmvFnPtr> = OnceLock::new();
+static DTRMV: OnceLock<DtrmvFnPtr> = OnceLock::new();
+static CTRMV: OnceLock<CtrmvFnPtr> = OnceLock::new();
+static ZTRMV: OnceLock<ZtrmvFnPtr> = OnceLock::new();
+static STRSV: OnceLock<StrsvFnPtr> = OnceLock::new();
+static DTRSV: OnceLock<DtrsvFnPtr> = OnceLock::new();
+static CTRSV: OnceLock<CtrsvFnPtr> = OnceLock::new();
+static ZTRSV: OnceLock<ZtrsvFnPtr> = OnceLock::new();
+static SGER: OnceLock<SgerFnPtr> = OnceLock::new();
+static DGER: OnceLock<DgerFnPtr> = OnceLock::new();
+static CGERU: OnceLock<CgeruFnPtr> = OnceLock::new();
+static CGERC: OnceLock<CgercFnPtr> = OnceLock::new();
+static ZGERU: OnceLock<ZgeruFnPtr> = OnceLock::new();
+static ZGERC: OnceLock<ZgercFnPtr> = OnceLock::new();
+static SSYR: OnceLock<SsyrFnPtr> = OnceLock::new();
+static DSYR: OnceLock<DsyrFnPtr> = OnceLock::new();
+static CHER: OnceLock<CherFnPtr> = OnceLock::new();
+static ZHER: OnceLock<ZherFnPtr> = OnceLock::new();
+static SSYR2: OnceLock<Ssyr2FnPtr> = OnceLock::new();
+static DSYR2: OnceLock<Dsyr2FnPtr> = OnceLock::new();
+static CHER2: OnceLock<Cher2FnPtr> = OnceLock::new();
+static ZHER2: OnceLock<Zher2FnPtr> = OnceLock::new();
+
 // BLAS Level 3
 static DGEMM: OnceLock<DgemmFnPtr> = OnceLock::new();
 static SGEMM: OnceLock<SgemmFnPtr> = OnceLock::new();
@@ -856,6 +1276,288 @@ pub unsafe fn register_zdscal(f: ZdscalFnPtr) {
     ZDSCAL
         .set(f)
         .expect("zdscal already registered (can only be set once)");
+}
+
+// BLAS Level 2 registration
+
+/// Register the Fortran sgemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran sgemv implementation.
+pub unsafe fn register_sgemv(f: SgemvFnPtr) {
+    SGEMV
+        .set(f)
+        .expect("sgemv already registered (can only be set once)");
+}
+
+/// Register the Fortran dgemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dgemv implementation.
+pub unsafe fn register_dgemv(f: DgemvFnPtr) {
+    DGEMV
+        .set(f)
+        .expect("dgemv already registered (can only be set once)");
+}
+
+/// Register the Fortran cgemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran cgemv implementation.
+pub unsafe fn register_cgemv(f: CgemvFnPtr) {
+    CGEMV
+        .set(f)
+        .expect("cgemv already registered (can only be set once)");
+}
+
+/// Register the Fortran zgemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zgemv implementation.
+pub unsafe fn register_zgemv(f: ZgemvFnPtr) {
+    ZGEMV
+        .set(f)
+        .expect("zgemv already registered (can only be set once)");
+}
+
+/// Register the Fortran strmv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran strmv implementation.
+pub unsafe fn register_strmv(f: StrmvFnPtr) {
+    STRMV
+        .set(f)
+        .expect("strmv already registered (can only be set once)");
+}
+
+/// Register the Fortran dtrmv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dtrmv implementation.
+pub unsafe fn register_dtrmv(f: DtrmvFnPtr) {
+    DTRMV
+        .set(f)
+        .expect("dtrmv already registered (can only be set once)");
+}
+
+/// Register the Fortran ctrmv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ctrmv implementation.
+pub unsafe fn register_ctrmv(f: CtrmvFnPtr) {
+    CTRMV
+        .set(f)
+        .expect("ctrmv already registered (can only be set once)");
+}
+
+/// Register the Fortran ztrmv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ztrmv implementation.
+pub unsafe fn register_ztrmv(f: ZtrmvFnPtr) {
+    ZTRMV
+        .set(f)
+        .expect("ztrmv already registered (can only be set once)");
+}
+
+/// Register the Fortran strsv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran strsv implementation.
+pub unsafe fn register_strsv(f: StrsvFnPtr) {
+    STRSV
+        .set(f)
+        .expect("strsv already registered (can only be set once)");
+}
+
+/// Register the Fortran dtrsv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dtrsv implementation.
+pub unsafe fn register_dtrsv(f: DtrsvFnPtr) {
+    DTRSV
+        .set(f)
+        .expect("dtrsv already registered (can only be set once)");
+}
+
+/// Register the Fortran ctrsv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ctrsv implementation.
+pub unsafe fn register_ctrsv(f: CtrsvFnPtr) {
+    CTRSV
+        .set(f)
+        .expect("ctrsv already registered (can only be set once)");
+}
+
+/// Register the Fortran ztrsv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ztrsv implementation.
+pub unsafe fn register_ztrsv(f: ZtrsvFnPtr) {
+    ZTRSV
+        .set(f)
+        .expect("ztrsv already registered (can only be set once)");
+}
+
+/// Register the Fortran sger function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran sger implementation.
+pub unsafe fn register_sger(f: SgerFnPtr) {
+    SGER.set(f)
+        .expect("sger already registered (can only be set once)");
+}
+
+/// Register the Fortran dger function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dger implementation.
+pub unsafe fn register_dger(f: DgerFnPtr) {
+    DGER.set(f)
+        .expect("dger already registered (can only be set once)");
+}
+
+/// Register the Fortran cgeru function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran cgeru implementation.
+pub unsafe fn register_cgeru(f: CgeruFnPtr) {
+    CGERU
+        .set(f)
+        .expect("cgeru already registered (can only be set once)");
+}
+
+/// Register the Fortran cgerc function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran cgerc implementation.
+pub unsafe fn register_cgerc(f: CgercFnPtr) {
+    CGERC
+        .set(f)
+        .expect("cgerc already registered (can only be set once)");
+}
+
+/// Register the Fortran zgeru function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zgeru implementation.
+pub unsafe fn register_zgeru(f: ZgeruFnPtr) {
+    ZGERU
+        .set(f)
+        .expect("zgeru already registered (can only be set once)");
+}
+
+/// Register the Fortran zgerc function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zgerc implementation.
+pub unsafe fn register_zgerc(f: ZgercFnPtr) {
+    ZGERC
+        .set(f)
+        .expect("zgerc already registered (can only be set once)");
+}
+
+/// Register the Fortran ssyr function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ssyr implementation.
+pub unsafe fn register_ssyr(f: SsyrFnPtr) {
+    SSYR.set(f)
+        .expect("ssyr already registered (can only be set once)");
+}
+
+/// Register the Fortran dsyr function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dsyr implementation.
+pub unsafe fn register_dsyr(f: DsyrFnPtr) {
+    DSYR.set(f)
+        .expect("dsyr already registered (can only be set once)");
+}
+
+/// Register the Fortran cher function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran cher implementation.
+pub unsafe fn register_cher(f: CherFnPtr) {
+    CHER.set(f)
+        .expect("cher already registered (can only be set once)");
+}
+
+/// Register the Fortran zher function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zher implementation.
+pub unsafe fn register_zher(f: ZherFnPtr) {
+    ZHER.set(f)
+        .expect("zher already registered (can only be set once)");
+}
+
+/// Register the Fortran ssyr2 function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ssyr2 implementation.
+pub unsafe fn register_ssyr2(f: Ssyr2FnPtr) {
+    SSYR2
+        .set(f)
+        .expect("ssyr2 already registered (can only be set once)");
+}
+
+/// Register the Fortran dsyr2 function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dsyr2 implementation.
+pub unsafe fn register_dsyr2(f: Dsyr2FnPtr) {
+    DSYR2
+        .set(f)
+        .expect("dsyr2 already registered (can only be set once)");
+}
+
+/// Register the Fortran cher2 function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran cher2 implementation.
+pub unsafe fn register_cher2(f: Cher2FnPtr) {
+    CHER2
+        .set(f)
+        .expect("cher2 already registered (can only be set once)");
+}
+
+/// Register the Fortran zher2 function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zher2 implementation.
+pub unsafe fn register_zher2(f: Zher2FnPtr) {
+    ZHER2
+        .set(f)
+        .expect("zher2 already registered (can only be set once)");
 }
 
 // BLAS Level 3 registration
@@ -1354,9 +2056,241 @@ pub unsafe fn register_izamax(f: IzamaxFnPtr) {
         .expect("izamax already registered (can only be set once)");
 }
 
+// BLAS Level 2 registration
+
+/// Register the Fortran ssymv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran ssymv implementation.
+pub unsafe fn register_ssymv(f: SsymvFnPtr) {
+    SSYMV
+        .set(f)
+        .expect("ssymv already registered (can only be set once)");
+}
+
+/// Register the Fortran dsymv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran dsymv implementation.
+pub unsafe fn register_dsymv(f: DsymvFnPtr) {
+    DSYMV
+        .set(f)
+        .expect("dsymv already registered (can only be set once)");
+}
+
+/// Register the Fortran chemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran chemv implementation.
+pub unsafe fn register_chemv(f: ChemvFnPtr) {
+    CHEMV
+        .set(f)
+        .expect("chemv already registered (can only be set once)");
+}
+
+/// Register the Fortran zhemv function pointer.
+///
+/// # Safety
+///
+/// The function pointer must be a valid Fortran zhemv implementation.
+pub unsafe fn register_zhemv(f: ZhemvFnPtr) {
+    ZHEMV
+        .set(f)
+        .expect("zhemv already registered (can only be set once)");
+}
+
 // =============================================================================
-// Internal getters (used by blas3/gemm.rs etc.)
+// Internal getters (used by blas2/gemv.rs, blas3/gemm.rs etc.)
 // =============================================================================
+
+// BLAS Level 2 getters
+
+#[inline]
+pub(crate) fn get_sgemv() -> SgemvFnPtr {
+    *SGEMV
+        .get()
+        .expect("sgemv not registered: call register_sgemv() first")
+}
+
+#[inline]
+pub(crate) fn get_dgemv() -> DgemvFnPtr {
+    *DGEMV
+        .get()
+        .expect("dgemv not registered: call register_dgemv() first")
+}
+
+#[inline]
+pub(crate) fn get_cgemv() -> CgemvFnPtr {
+    *CGEMV
+        .get()
+        .expect("cgemv not registered: call register_cgemv() first")
+}
+
+#[inline]
+pub(crate) fn get_zgemv() -> ZgemvFnPtr {
+    *ZGEMV
+        .get()
+        .expect("zgemv not registered: call register_zgemv() first")
+}
+
+#[inline]
+pub(crate) fn get_strmv() -> StrmvFnPtr {
+    *STRMV
+        .get()
+        .expect("strmv not registered: call register_strmv() first")
+}
+
+#[inline]
+pub(crate) fn get_dtrmv() -> DtrmvFnPtr {
+    *DTRMV
+        .get()
+        .expect("dtrmv not registered: call register_dtrmv() first")
+}
+
+#[inline]
+pub(crate) fn get_ctrmv() -> CtrmvFnPtr {
+    *CTRMV
+        .get()
+        .expect("ctrmv not registered: call register_ctrmv() first")
+}
+
+#[inline]
+pub(crate) fn get_ztrmv() -> ZtrmvFnPtr {
+    *ZTRMV
+        .get()
+        .expect("ztrmv not registered: call register_ztrmv() first")
+}
+
+#[inline]
+pub(crate) fn get_strsv() -> StrsvFnPtr {
+    *STRSV
+        .get()
+        .expect("strsv not registered: call register_strsv() first")
+}
+
+#[inline]
+pub(crate) fn get_dtrsv() -> DtrsvFnPtr {
+    *DTRSV
+        .get()
+        .expect("dtrsv not registered: call register_dtrsv() first")
+}
+
+#[inline]
+pub(crate) fn get_ctrsv() -> CtrsvFnPtr {
+    *CTRSV
+        .get()
+        .expect("ctrsv not registered: call register_ctrsv() first")
+}
+
+#[inline]
+pub(crate) fn get_ztrsv() -> ZtrsvFnPtr {
+    *ZTRSV
+        .get()
+        .expect("ztrsv not registered: call register_ztrsv() first")
+}
+
+#[inline]
+pub(crate) fn get_sger() -> SgerFnPtr {
+    *SGER
+        .get()
+        .expect("sger not registered: call register_sger() first")
+}
+
+#[inline]
+pub(crate) fn get_dger() -> DgerFnPtr {
+    *DGER
+        .get()
+        .expect("dger not registered: call register_dger() first")
+}
+
+#[inline]
+pub(crate) fn get_cgeru() -> CgeruFnPtr {
+    *CGERU
+        .get()
+        .expect("cgeru not registered: call register_cgeru() first")
+}
+
+#[inline]
+pub(crate) fn get_cgerc() -> CgercFnPtr {
+    *CGERC
+        .get()
+        .expect("cgerc not registered: call register_cgerc() first")
+}
+
+#[inline]
+pub(crate) fn get_zgeru() -> ZgeruFnPtr {
+    *ZGERU
+        .get()
+        .expect("zgeru not registered: call register_zgeru() first")
+}
+
+#[inline]
+pub(crate) fn get_zgerc() -> ZgercFnPtr {
+    *ZGERC
+        .get()
+        .expect("zgerc not registered: call register_zgerc() first")
+}
+
+#[inline]
+pub(crate) fn get_ssyr() -> SsyrFnPtr {
+    *SSYR
+        .get()
+        .expect("ssyr not registered: call register_ssyr() first")
+}
+
+#[inline]
+pub(crate) fn get_dsyr() -> DsyrFnPtr {
+    *DSYR
+        .get()
+        .expect("dsyr not registered: call register_dsyr() first")
+}
+
+#[inline]
+pub(crate) fn get_cher() -> CherFnPtr {
+    *CHER
+        .get()
+        .expect("cher not registered: call register_cher() first")
+}
+
+#[inline]
+pub(crate) fn get_zher() -> ZherFnPtr {
+    *ZHER
+        .get()
+        .expect("zher not registered: call register_zher() first")
+}
+
+#[inline]
+pub(crate) fn get_ssyr2() -> Ssyr2FnPtr {
+    *SSYR2
+        .get()
+        .expect("ssyr2 not registered: call register_ssyr2() first")
+}
+
+#[inline]
+pub(crate) fn get_dsyr2() -> Dsyr2FnPtr {
+    *DSYR2
+        .get()
+        .expect("dsyr2 not registered: call register_dsyr2() first")
+}
+
+#[inline]
+pub(crate) fn get_cher2() -> Cher2FnPtr {
+    *CHER2
+        .get()
+        .expect("cher2 not registered: call register_cher2() first")
+}
+
+#[inline]
+pub(crate) fn get_zher2() -> Zher2FnPtr {
+    *ZHER2
+        .get()
+        .expect("zher2 not registered: call register_zher2() first")
+}
+
+// BLAS Level 3 getters
 
 #[inline]
 pub(crate) fn get_dgemm() -> DgemmFnPtr {
@@ -1419,6 +2353,36 @@ pub(crate) fn get_dtrsm() -> DtrsmFnPtr {
     *DTRSM
         .get()
         .expect("dtrsm not registered: call register_dtrsm() first")
+}
+
+// BLAS Level 2 getters
+
+#[inline]
+pub(crate) fn get_ssymv() -> SsymvFnPtr {
+    *SSYMV
+        .get()
+        .expect("ssymv not registered: call register_ssymv() first")
+}
+
+#[inline]
+pub(crate) fn get_dsymv() -> DsymvFnPtr {
+    *DSYMV
+        .get()
+        .expect("dsymv not registered: call register_dsymv() first")
+}
+
+#[inline]
+pub(crate) fn get_chemv() -> ChemvFnPtr {
+    *CHEMV
+        .get()
+        .expect("chemv not registered: call register_chemv() first")
+}
+
+#[inline]
+pub(crate) fn get_zhemv() -> ZhemvFnPtr {
+    *ZHEMV
+        .get()
+        .expect("zhemv not registered: call register_zhemv() first")
 }
 
 #[inline]

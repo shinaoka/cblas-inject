@@ -43,6 +43,7 @@ mod types;
 mod autoregister;
 
 pub mod blas1;
+pub mod blas2;
 pub mod blas3;
 
 pub use backend::*;
@@ -65,6 +66,17 @@ pub use blas1::vector::{
     cblas_dscal, cblas_dswap, cblas_saxpy, cblas_scopy, cblas_sscal, cblas_sswap, cblas_zaxpy,
     cblas_zcopy, cblas_zdscal, cblas_zscal, cblas_zswap,
 };
+
+// BLAS Level 2
+pub use blas2::gemv::{cblas_cgemv, cblas_dgemv, cblas_sgemv, cblas_zgemv};
+pub use blas2::ger::{cblas_cgerc, cblas_cgeru, cblas_dger, cblas_sger, cblas_zgerc, cblas_zgeru};
+pub use blas2::symv::{cblas_chemv, cblas_dsymv, cblas_ssymv, cblas_zhemv};
+pub use blas2::syr::{
+    cblas_cher, cblas_cher2, cblas_dsyr, cblas_dsyr2, cblas_ssyr, cblas_ssyr2, cblas_zher,
+    cblas_zher2,
+};
+pub use blas2::trmv::{cblas_ctrmv, cblas_dtrmv, cblas_strmv, cblas_ztrmv};
+pub use blas2::trsv::{cblas_ctrsv, cblas_dtrsv, cblas_strsv, cblas_ztrsv};
 
 // BLAS Level 3
 pub use blas3::gemm::{cblas_cgemm, cblas_dgemm, cblas_sgemm, cblas_zgemm};

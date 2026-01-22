@@ -24,7 +24,13 @@ use crate::types::blasint;
 /// - All pointers must be valid and properly aligned
 /// - sswap must be registered via `register_sswap`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_sswap(n: blasint, x: *mut f32, incx: blasint, y: *mut f32, incy: blasint) {
+pub unsafe extern "C" fn cblas_sswap(
+    n: blasint,
+    x: *mut f32,
+    incx: blasint,
+    y: *mut f32,
+    incy: blasint,
+) {
     let sswap = get_sswap();
     sswap(&n, x, &incx, y, &incy);
 }
@@ -38,7 +44,13 @@ pub unsafe extern "C" fn cblas_sswap(n: blasint, x: *mut f32, incx: blasint, y: 
 /// - All pointers must be valid and properly aligned
 /// - dswap must be registered via `register_dswap`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_dswap(n: blasint, x: *mut f64, incx: blasint, y: *mut f64, incy: blasint) {
+pub unsafe extern "C" fn cblas_dswap(
+    n: blasint,
+    x: *mut f64,
+    incx: blasint,
+    y: *mut f64,
+    incy: blasint,
+) {
     let dswap = get_dswap();
     dswap(&n, x, &incx, y, &incy);
 }
@@ -96,7 +108,13 @@ pub unsafe extern "C" fn cblas_zswap(
 /// - All pointers must be valid and properly aligned
 /// - scopy must be registered via `register_scopy`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_scopy(n: blasint, x: *const f32, incx: blasint, y: *mut f32, incy: blasint) {
+pub unsafe extern "C" fn cblas_scopy(
+    n: blasint,
+    x: *const f32,
+    incx: blasint,
+    y: *mut f32,
+    incy: blasint,
+) {
     let scopy = get_scopy();
     scopy(&n, x, &incx, y, &incy);
 }
@@ -110,7 +128,13 @@ pub unsafe extern "C" fn cblas_scopy(n: blasint, x: *const f32, incx: blasint, y
 /// - All pointers must be valid and properly aligned
 /// - dcopy must be registered via `register_dcopy`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_dcopy(n: blasint, x: *const f64, incx: blasint, y: *mut f64, incy: blasint) {
+pub unsafe extern "C" fn cblas_dcopy(
+    n: blasint,
+    x: *const f64,
+    incx: blasint,
+    y: *mut f64,
+    incy: blasint,
+) {
     let dcopy = get_dcopy();
     dcopy(&n, x, &incx, y, &incy);
 }
@@ -270,7 +294,12 @@ pub unsafe extern "C" fn cblas_dscal(n: blasint, alpha: f64, x: *mut f64, incx: 
 /// - All pointers must be valid and properly aligned
 /// - cscal must be registered via `register_cscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_cscal(n: blasint, alpha: *const Complex32, x: *mut Complex32, incx: blasint) {
+pub unsafe extern "C" fn cblas_cscal(
+    n: blasint,
+    alpha: *const Complex32,
+    x: *mut Complex32,
+    incx: blasint,
+) {
     let cscal = get_cscal();
     cscal(&n, alpha, x, &incx);
 }
@@ -282,7 +311,12 @@ pub unsafe extern "C" fn cblas_cscal(n: blasint, alpha: *const Complex32, x: *mu
 /// - All pointers must be valid and properly aligned
 /// - zscal must be registered via `register_zscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_zscal(n: blasint, alpha: *const Complex64, x: *mut Complex64, incx: blasint) {
+pub unsafe extern "C" fn cblas_zscal(
+    n: blasint,
+    alpha: *const Complex64,
+    x: *mut Complex64,
+    incx: blasint,
+) {
     let zscal = get_zscal();
     zscal(&n, alpha, x, &incx);
 }

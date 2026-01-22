@@ -172,7 +172,13 @@ pub unsafe extern "C" fn cblas_srotm(
 /// - Parameter array `p` must have at least 5 elements
 /// - drotmg must be registered via `register_drotmg`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_drotmg(d1: *mut f64, d2: *mut f64, b1: *mut f64, b2: f64, p: *mut f64) {
+pub unsafe extern "C" fn cblas_drotmg(
+    d1: *mut f64,
+    d2: *mut f64,
+    b1: *mut f64,
+    b2: f64,
+    p: *mut f64,
+) {
     let drotmg = get_drotmg();
     drotmg(d1, d2, b1, &b2, p);
 }
@@ -195,7 +201,13 @@ pub unsafe extern "C" fn cblas_drotmg(d1: *mut f64, d2: *mut f64, b1: *mut f64, 
 /// - Parameter array `p` must have at least 5 elements
 /// - srotmg must be registered via `register_srotmg`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_srotmg(d1: *mut f32, d2: *mut f32, b1: *mut f32, b2: f32, p: *mut f32) {
+pub unsafe extern "C" fn cblas_srotmg(
+    d1: *mut f32,
+    d2: *mut f32,
+    b1: *mut f32,
+    b2: f32,
+    p: *mut f32,
+) {
     let srotmg = get_srotmg();
     srotmg(d1, d2, b1, &b2, p);
 }

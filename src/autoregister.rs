@@ -12,31 +12,100 @@ use num_complex::{Complex32, Complex64};
 #[link(name = "openblas")]
 extern "C" {
     // BLAS Level 1 - Single precision
-    fn srot_(n: *const i32, x: *mut f32, incx: *const i32, y: *mut f32, incy: *const i32, c: *const f32, s: *const f32);
+    fn srot_(
+        n: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+        y: *mut f32,
+        incy: *const i32,
+        c: *const f32,
+        s: *const f32,
+    );
     fn srotg_(a: *mut f32, b: *mut f32, c: *mut f32, s: *mut f32);
-    fn srotm_(n: *const i32, x: *mut f32, incx: *const i32, y: *mut f32, incy: *const i32, param: *const f32);
+    fn srotm_(
+        n: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+        y: *mut f32,
+        incy: *const i32,
+        param: *const f32,
+    );
     fn srotmg_(d1: *mut f32, d2: *mut f32, x1: *mut f32, y1: *const f32, param: *mut f32);
     fn sswap_(n: *const i32, x: *mut f32, incx: *const i32, y: *mut f32, incy: *const i32);
     fn scopy_(n: *const i32, x: *const f32, incx: *const i32, y: *mut f32, incy: *const i32);
-    fn saxpy_(n: *const i32, alpha: *const f32, x: *const f32, incx: *const i32, y: *mut f32, incy: *const i32);
+    fn saxpy_(
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        y: *mut f32,
+        incy: *const i32,
+    );
     fn sscal_(n: *const i32, alpha: *const f32, x: *mut f32, incx: *const i32);
-    fn sdot_(n: *const i32, x: *const f32, incx: *const i32, y: *const f32, incy: *const i32) -> f32;
-    fn sdsdot_(n: *const i32, sb: *const f32, x: *const f32, incx: *const i32, y: *const f32, incy: *const i32) -> f32;
+    fn sdot_(
+        n: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+    ) -> f32;
+    fn sdsdot_(
+        n: *const i32,
+        sb: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+    ) -> f32;
     fn snrm2_(n: *const i32, x: *const f32, incx: *const i32) -> f32;
     fn sasum_(n: *const i32, x: *const f32, incx: *const i32) -> f32;
     fn isamax_(n: *const i32, x: *const f32, incx: *const i32) -> i32;
 
     // BLAS Level 1 - Double precision
-    fn drot_(n: *const i32, x: *mut f64, incx: *const i32, y: *mut f64, incy: *const i32, c: *const f64, s: *const f64);
+    fn drot_(
+        n: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+        y: *mut f64,
+        incy: *const i32,
+        c: *const f64,
+        s: *const f64,
+    );
     fn drotg_(a: *mut f64, b: *mut f64, c: *mut f64, s: *mut f64);
-    fn drotm_(n: *const i32, x: *mut f64, incx: *const i32, y: *mut f64, incy: *const i32, param: *const f64);
+    fn drotm_(
+        n: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+        y: *mut f64,
+        incy: *const i32,
+        param: *const f64,
+    );
     fn drotmg_(d1: *mut f64, d2: *mut f64, x1: *mut f64, y1: *const f64, param: *mut f64);
     fn dswap_(n: *const i32, x: *mut f64, incx: *const i32, y: *mut f64, incy: *const i32);
     fn dcopy_(n: *const i32, x: *const f64, incx: *const i32, y: *mut f64, incy: *const i32);
-    fn daxpy_(n: *const i32, alpha: *const f64, x: *const f64, incx: *const i32, y: *mut f64, incy: *const i32);
+    fn daxpy_(
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        y: *mut f64,
+        incy: *const i32,
+    );
     fn dscal_(n: *const i32, alpha: *const f64, x: *mut f64, incx: *const i32);
-    fn ddot_(n: *const i32, x: *const f64, incx: *const i32, y: *const f64, incy: *const i32) -> f64;
-    fn dsdot_(n: *const i32, x: *const f32, incx: *const i32, y: *const f32, incy: *const i32) -> f64;
+    fn ddot_(
+        n: *const i32,
+        x: *const f64,
+        incx: *const i32,
+        y: *const f64,
+        incy: *const i32,
+    ) -> f64;
+    fn dsdot_(
+        n: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+    ) -> f64;
     fn dnrm2_(n: *const i32, x: *const f64, incx: *const i32) -> f64;
     fn dasum_(n: *const i32, x: *const f64, incx: *const i32) -> f64;
     fn idamax_(n: *const i32, x: *const f64, incx: *const i32) -> i32;
@@ -44,12 +113,31 @@ extern "C" {
     // BLAS Level 1 - Single complex
     fn cswap_(n: *const i32, x: *mut (), incx: *const i32, y: *mut (), incy: *const i32);
     fn ccopy_(n: *const i32, x: *const (), incx: *const i32, y: *mut (), incy: *const i32);
-    fn caxpy_(n: *const i32, alpha: *const (), x: *const (), incx: *const i32, y: *mut (), incy: *const i32);
+    fn caxpy_(
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *mut (),
+        incy: *const i32,
+    );
     fn cscal_(n: *const i32, alpha: *const (), x: *mut (), incx: *const i32);
     fn csscal_(n: *const i32, alpha: *const f32, x: *mut (), incx: *const i32);
     // Note: On ARM64/x86_64 with gfortran, complex dot products return value by register
-    fn cdotu_(n: *const i32, x: *const (), incx: *const i32, y: *const (), incy: *const i32) -> Complex32;
-    fn cdotc_(n: *const i32, x: *const (), incx: *const i32, y: *const (), incy: *const i32) -> Complex32;
+    fn cdotu_(
+        n: *const i32,
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+    ) -> Complex32;
+    fn cdotc_(
+        n: *const i32,
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+    ) -> Complex32;
     fn scnrm2_(n: *const i32, x: *const (), incx: *const i32) -> f32;
     fn scasum_(n: *const i32, x: *const (), incx: *const i32) -> f32;
     fn icamax_(n: *const i32, x: *const (), incx: *const i32) -> i32;
@@ -57,45 +145,503 @@ extern "C" {
     // BLAS Level 1 - Double complex
     fn zswap_(n: *const i32, x: *mut (), incx: *const i32, y: *mut (), incy: *const i32);
     fn zcopy_(n: *const i32, x: *const (), incx: *const i32, y: *mut (), incy: *const i32);
-    fn zaxpy_(n: *const i32, alpha: *const (), x: *const (), incx: *const i32, y: *mut (), incy: *const i32);
+    fn zaxpy_(
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *mut (),
+        incy: *const i32,
+    );
     fn zscal_(n: *const i32, alpha: *const (), x: *mut (), incx: *const i32);
     fn zdscal_(n: *const i32, alpha: *const f64, x: *mut (), incx: *const i32);
     // Note: On ARM64/x86_64 with gfortran, complex dot products return value by register
-    fn zdotu_(n: *const i32, x: *const (), incx: *const i32, y: *const (), incy: *const i32) -> Complex64;
-    fn zdotc_(n: *const i32, x: *const (), incx: *const i32, y: *const (), incy: *const i32) -> Complex64;
+    fn zdotu_(
+        n: *const i32,
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+    ) -> Complex64;
+    fn zdotc_(
+        n: *const i32,
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+    ) -> Complex64;
     fn dznrm2_(n: *const i32, x: *const (), incx: *const i32) -> f64;
     fn dzasum_(n: *const i32, x: *const (), incx: *const i32) -> f64;
     fn izamax_(n: *const i32, x: *const (), incx: *const i32) -> i32;
 
     // BLAS Level 3
-    fn sgemm_(transa: *const i8, transb: *const i8, m: *const i32, n: *const i32, k: *const i32,
-              alpha: *const f32, a: *const f32, lda: *const i32, b: *const f32, ldb: *const i32,
-              beta: *const f32, c: *mut f32, ldc: *const i32);
-    fn dgemm_(transa: *const i8, transb: *const i8, m: *const i32, n: *const i32, k: *const i32,
-              alpha: *const f64, a: *const f64, lda: *const i32, b: *const f64, ldb: *const i32,
-              beta: *const f64, c: *mut f64, ldc: *const i32);
-    fn cgemm_(transa: *const i8, transb: *const i8, m: *const i32, n: *const i32, k: *const i32,
-              alpha: *const (), a: *const (), lda: *const i32, b: *const (), ldb: *const i32,
-              beta: *const (), c: *mut (), ldc: *const i32);
-    fn zgemm_(transa: *const i8, transb: *const i8, m: *const i32, n: *const i32, k: *const i32,
-              alpha: *const (), a: *const (), lda: *const i32, b: *const (), ldb: *const i32,
-              beta: *const (), c: *mut (), ldc: *const i32);
+    fn sgemm_(
+        transa: *const i8,
+        transb: *const i8,
+        m: *const i32,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        b: *const f32,
+        ldb: *const i32,
+        beta: *const f32,
+        c: *mut f32,
+        ldc: *const i32,
+    );
+    fn dgemm_(
+        transa: *const i8,
+        transb: *const i8,
+        m: *const i32,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        b: *const f64,
+        ldb: *const i32,
+        beta: *const f64,
+        c: *mut f64,
+        ldc: *const i32,
+    );
+    fn cgemm_(
+        transa: *const i8,
+        transb: *const i8,
+        m: *const i32,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
+    fn zgemm_(
+        transa: *const i8,
+        transb: *const i8,
+        m: *const i32,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        b: *const (),
+        ldb: *const i32,
+        beta: *const (),
+        c: *mut (),
+        ldc: *const i32,
+    );
 
-    fn dsymm_(side: *const i8, uplo: *const i8, m: *const i32, n: *const i32,
-              alpha: *const f64, a: *const f64, lda: *const i32, b: *const f64, ldb: *const i32,
-              beta: *const f64, c: *mut f64, ldc: *const i32);
-    fn dsyrk_(uplo: *const i8, trans: *const i8, n: *const i32, k: *const i32,
-              alpha: *const f64, a: *const f64, lda: *const i32,
-              beta: *const f64, c: *mut f64, ldc: *const i32);
-    fn dsyr2k_(uplo: *const i8, trans: *const i8, n: *const i32, k: *const i32,
-               alpha: *const f64, a: *const f64, lda: *const i32, b: *const f64, ldb: *const i32,
-               beta: *const f64, c: *mut f64, ldc: *const i32);
-    fn dtrmm_(side: *const i8, uplo: *const i8, transa: *const i8, diag: *const i8,
-              m: *const i32, n: *const i32, alpha: *const f64, a: *const f64, lda: *const i32,
-              b: *mut f64, ldb: *const i32);
-    fn dtrsm_(side: *const i8, uplo: *const i8, transa: *const i8, diag: *const i8,
-              m: *const i32, n: *const i32, alpha: *const f64, a: *const f64, lda: *const i32,
-              b: *mut f64, ldb: *const i32);
+    fn dsymm_(
+        side: *const i8,
+        uplo: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        b: *const f64,
+        ldb: *const i32,
+        beta: *const f64,
+        c: *mut f64,
+        ldc: *const i32,
+    );
+    fn dsyrk_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        beta: *const f64,
+        c: *mut f64,
+        ldc: *const i32,
+    );
+    fn dsyr2k_(
+        uplo: *const i8,
+        trans: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        b: *const f64,
+        ldb: *const i32,
+        beta: *const f64,
+        c: *mut f64,
+        ldc: *const i32,
+    );
+    fn dtrmm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        b: *mut f64,
+        ldb: *const i32,
+    );
+    fn dtrsm_(
+        side: *const i8,
+        uplo: *const i8,
+        transa: *const i8,
+        diag: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        b: *mut f64,
+        ldb: *const i32,
+    );
+
+    // BLAS Level 2 - General matrix-vector multiply
+    fn sgemv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        beta: *const f32,
+        y: *mut f32,
+        incy: *const i32,
+    );
+    fn dgemv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        x: *const f64,
+        incx: *const i32,
+        beta: *const f64,
+        y: *mut f64,
+        incy: *const i32,
+    );
+    fn cgemv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+    fn zgemv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian matrix-vector
+    fn ssymv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        beta: *const f32,
+        y: *mut f32,
+        incy: *const i32,
+    );
+    fn dsymv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        x: *const f64,
+        incx: *const i32,
+        beta: *const f64,
+        y: *mut f64,
+        incy: *const i32,
+    );
+    fn chemv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+    fn zhemv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular matrix-vector
+    fn strmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const f32,
+        lda: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtrmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const f64,
+        lda: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctrmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztrmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular solve
+    fn strsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const f32,
+        lda: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtrsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const f64,
+        lda: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctrsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztrsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Rank-1 update (GER)
+    fn sger_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+        a: *mut f32,
+        lda: *const i32,
+    );
+    fn dger_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        y: *const f64,
+        incy: *const i32,
+        a: *mut f64,
+        lda: *const i32,
+    );
+    fn cgeru_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+    fn cgerc_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+    fn zgeru_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+    fn zgerc_(
+        m: *const i32,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian rank-1 update (SYR/HER)
+    fn ssyr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        a: *mut f32,
+        lda: *const i32,
+    );
+    fn dsyr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        a: *mut f64,
+        lda: *const i32,
+    );
+    fn cher_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const (),
+        incx: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+    fn zher_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const (),
+        incx: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian rank-2 update (SYR2/HER2)
+    fn ssyr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+        a: *mut f32,
+        lda: *const i32,
+    );
+    fn dsyr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        y: *const f64,
+        incy: *const i32,
+        a: *mut f64,
+        lda: *const i32,
+    );
+    fn cher2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
+    fn zher2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        a: *mut (),
+        lda: *const i32,
+    );
 }
 
 #[ctor::ctor]
@@ -157,6 +703,50 @@ fn register_all_blas() {
         register_dznrm2(std::mem::transmute(dznrm2_ as *const ()));
         register_dzasum(std::mem::transmute(dzasum_ as *const ()));
         register_izamax(std::mem::transmute(izamax_ as *const ()));
+
+        // BLAS Level 2 - GEMV
+        register_sgemv(std::mem::transmute(sgemv_ as *const ()));
+        register_dgemv(std::mem::transmute(dgemv_ as *const ()));
+        register_cgemv(std::mem::transmute(cgemv_ as *const ()));
+        register_zgemv(std::mem::transmute(zgemv_ as *const ()));
+
+        // BLAS Level 2 - SYMV/HEMV
+        register_ssymv(std::mem::transmute(ssymv_ as *const ()));
+        register_dsymv(std::mem::transmute(dsymv_ as *const ()));
+        register_chemv(std::mem::transmute(chemv_ as *const ()));
+        register_zhemv(std::mem::transmute(zhemv_ as *const ()));
+
+        // BLAS Level 2 - TRMV
+        register_strmv(std::mem::transmute(strmv_ as *const ()));
+        register_dtrmv(std::mem::transmute(dtrmv_ as *const ()));
+        register_ctrmv(std::mem::transmute(ctrmv_ as *const ()));
+        register_ztrmv(std::mem::transmute(ztrmv_ as *const ()));
+
+        // BLAS Level 2 - TRSV
+        register_strsv(std::mem::transmute(strsv_ as *const ()));
+        register_dtrsv(std::mem::transmute(dtrsv_ as *const ()));
+        register_ctrsv(std::mem::transmute(ctrsv_ as *const ()));
+        register_ztrsv(std::mem::transmute(ztrsv_ as *const ()));
+
+        // BLAS Level 2 - GER (rank-1 update)
+        register_sger(std::mem::transmute(sger_ as *const ()));
+        register_dger(std::mem::transmute(dger_ as *const ()));
+        register_cgeru(std::mem::transmute(cgeru_ as *const ()));
+        register_cgerc(std::mem::transmute(cgerc_ as *const ()));
+        register_zgeru(std::mem::transmute(zgeru_ as *const ()));
+        register_zgerc(std::mem::transmute(zgerc_ as *const ()));
+
+        // BLAS Level 2 - SYR/HER (symmetric/hermitian rank-1 update)
+        register_ssyr(std::mem::transmute(ssyr_ as *const ()));
+        register_dsyr(std::mem::transmute(dsyr_ as *const ()));
+        register_cher(std::mem::transmute(cher_ as *const ()));
+        register_zher(std::mem::transmute(zher_ as *const ()));
+
+        // BLAS Level 2 - SYR2/HER2 (symmetric/hermitian rank-2 update)
+        register_ssyr2(std::mem::transmute(ssyr2_ as *const ()));
+        register_dsyr2(std::mem::transmute(dsyr2_ as *const ()));
+        register_cher2(std::mem::transmute(cher2_ as *const ()));
+        register_zher2(std::mem::transmute(zher2_ as *const ()));
 
         // BLAS Level 3
         register_sgemm(std::mem::transmute(sgemm_ as *const ()));
