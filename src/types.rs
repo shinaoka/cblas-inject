@@ -139,3 +139,6 @@ pub enum ComplexReturnStyle {
     /// Complex written to first pointer argument (gfortran default, MKL gf)
     HiddenArgument = 1,
 }
+
+/// Index type returned by iamax functions
+pub type CBLAS_INDEX = blasint;
