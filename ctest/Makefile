@@ -19,7 +19,8 @@ endif
 
 # Link cblas-inject first (provides cblas_* symbols)
 # Then OpenBLAS for Fortran BLAS (drot_, etc.) reference
-LDFLAGS = -L../target/release -lcblas_inject -L$(OPENBLAS_LIB) -lopenblas
+# -lm is needed on Linux for math functions (sqrt, etc.)
+LDFLAGS = -L../target/release -lcblas_inject -L$(OPENBLAS_LIB) -lopenblas -lm
 
 # BLAS Level 1 test objects
 stestl1o = c_sblas1.o
@@ -105,19 +106,19 @@ xccblat3: $(ctestl3_driver) $(ctestl3o)
 xzcblat3: $(ztestl3_driver) $(ztestl3o)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-test1: all
+test1: build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1
 	./xscblat1
 	./xdcblat1
 	./xccblat1
 	./xzcblat1
 
-test2: all
+test2: build-trampoline xscblat2 xdcblat2 xccblat2 xzcblat2
 	./xscblat2 < $(OPENBLAS_CTEST)/sin2
 	./xdcblat2 < $(OPENBLAS_CTEST)/din2
 	./xccblat2 < $(OPENBLAS_CTEST)/cin2
 	./xzcblat2 < $(OPENBLAS_CTEST)/zin2
 
-test3: all
+test3: build-trampoline xscblat3 xdcblat3 xccblat3 xzcblat3
 	./xscblat3 < $(OPENBLAS_CTEST)/sin3
 	./xdcblat3 < $(OPENBLAS_CTEST)/din3
 	./xccblat3 < $(OPENBLAS_CTEST)/cin3
