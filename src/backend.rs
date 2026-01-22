@@ -1930,7 +1930,8 @@ static ZTRSM: OnceLock<ZtrsmFnPtr> = OnceLock::new();
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sswap implementation.
-pub unsafe fn register_sswap(f: SswapFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sswap(f: SswapFnPtr) {
     SSWAP
         .set(f)
         .expect("sswap already registered (can only be set once)");
@@ -1941,7 +1942,8 @@ pub unsafe fn register_sswap(f: SswapFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dswap implementation.
-pub unsafe fn register_dswap(f: DswapFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dswap(f: DswapFnPtr) {
     DSWAP
         .set(f)
         .expect("dswap already registered (can only be set once)");
@@ -1952,7 +1954,8 @@ pub unsafe fn register_dswap(f: DswapFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cswap implementation.
-pub unsafe fn register_cswap(f: CswapFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cswap(f: CswapFnPtr) {
     CSWAP
         .set(f)
         .expect("cswap already registered (can only be set once)");
@@ -1963,7 +1966,8 @@ pub unsafe fn register_cswap(f: CswapFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zswap implementation.
-pub unsafe fn register_zswap(f: ZswapFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zswap(f: ZswapFnPtr) {
     ZSWAP
         .set(f)
         .expect("zswap already registered (can only be set once)");
@@ -1974,7 +1978,8 @@ pub unsafe fn register_zswap(f: ZswapFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran scopy implementation.
-pub unsafe fn register_scopy(f: ScopyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_scopy(f: ScopyFnPtr) {
     SCOPY
         .set(f)
         .expect("scopy already registered (can only be set once)");
@@ -1985,7 +1990,8 @@ pub unsafe fn register_scopy(f: ScopyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dcopy implementation.
-pub unsafe fn register_dcopy(f: DcopyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dcopy(f: DcopyFnPtr) {
     DCOPY
         .set(f)
         .expect("dcopy already registered (can only be set once)");
@@ -1996,7 +2002,8 @@ pub unsafe fn register_dcopy(f: DcopyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ccopy implementation.
-pub unsafe fn register_ccopy(f: CcopyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ccopy(f: CcopyFnPtr) {
     CCOPY
         .set(f)
         .expect("ccopy already registered (can only be set once)");
@@ -2007,7 +2014,8 @@ pub unsafe fn register_ccopy(f: CcopyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zcopy implementation.
-pub unsafe fn register_zcopy(f: ZcopyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zcopy(f: ZcopyFnPtr) {
     ZCOPY
         .set(f)
         .expect("zcopy already registered (can only be set once)");
@@ -2018,7 +2026,8 @@ pub unsafe fn register_zcopy(f: ZcopyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran saxpy implementation.
-pub unsafe fn register_saxpy(f: SaxpyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_saxpy(f: SaxpyFnPtr) {
     SAXPY
         .set(f)
         .expect("saxpy already registered (can only be set once)");
@@ -2029,7 +2038,8 @@ pub unsafe fn register_saxpy(f: SaxpyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran daxpy implementation.
-pub unsafe fn register_daxpy(f: DaxpyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_daxpy(f: DaxpyFnPtr) {
     DAXPY
         .set(f)
         .expect("daxpy already registered (can only be set once)");
@@ -2040,7 +2050,8 @@ pub unsafe fn register_daxpy(f: DaxpyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran caxpy implementation.
-pub unsafe fn register_caxpy(f: CaxpyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_caxpy(f: CaxpyFnPtr) {
     CAXPY
         .set(f)
         .expect("caxpy already registered (can only be set once)");
@@ -2051,7 +2062,8 @@ pub unsafe fn register_caxpy(f: CaxpyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zaxpy implementation.
-pub unsafe fn register_zaxpy(f: ZaxpyFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zaxpy(f: ZaxpyFnPtr) {
     ZAXPY
         .set(f)
         .expect("zaxpy already registered (can only be set once)");
@@ -2062,7 +2074,8 @@ pub unsafe fn register_zaxpy(f: ZaxpyFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sscal implementation.
-pub unsafe fn register_sscal(f: SscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sscal(f: SscalFnPtr) {
     SSCAL
         .set(f)
         .expect("sscal already registered (can only be set once)");
@@ -2073,7 +2086,8 @@ pub unsafe fn register_sscal(f: SscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dscal implementation.
-pub unsafe fn register_dscal(f: DscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dscal(f: DscalFnPtr) {
     DSCAL
         .set(f)
         .expect("dscal already registered (can only be set once)");
@@ -2084,7 +2098,8 @@ pub unsafe fn register_dscal(f: DscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cscal implementation.
-pub unsafe fn register_cscal(f: CscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cscal(f: CscalFnPtr) {
     CSCAL
         .set(f)
         .expect("cscal already registered (can only be set once)");
@@ -2095,7 +2110,8 @@ pub unsafe fn register_cscal(f: CscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zscal implementation.
-pub unsafe fn register_zscal(f: ZscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zscal(f: ZscalFnPtr) {
     ZSCAL
         .set(f)
         .expect("zscal already registered (can only be set once)");
@@ -2106,7 +2122,8 @@ pub unsafe fn register_zscal(f: ZscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran csscal implementation.
-pub unsafe fn register_csscal(f: CsscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_csscal(f: CsscalFnPtr) {
     CSSCAL
         .set(f)
         .expect("csscal already registered (can only be set once)");
@@ -2117,7 +2134,8 @@ pub unsafe fn register_csscal(f: CsscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zdscal implementation.
-pub unsafe fn register_zdscal(f: ZdscalFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zdscal(f: ZdscalFnPtr) {
     ZDSCAL
         .set(f)
         .expect("zdscal already registered (can only be set once)");
@@ -2130,7 +2148,8 @@ pub unsafe fn register_zdscal(f: ZdscalFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sgemv implementation.
-pub unsafe fn register_sgemv(f: SgemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sgemv(f: SgemvFnPtr) {
     SGEMV
         .set(f)
         .expect("sgemv already registered (can only be set once)");
@@ -2141,7 +2160,8 @@ pub unsafe fn register_sgemv(f: SgemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dgemv implementation.
-pub unsafe fn register_dgemv(f: DgemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dgemv(f: DgemvFnPtr) {
     DGEMV
         .set(f)
         .expect("dgemv already registered (can only be set once)");
@@ -2152,7 +2172,8 @@ pub unsafe fn register_dgemv(f: DgemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cgemv implementation.
-pub unsafe fn register_cgemv(f: CgemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cgemv(f: CgemvFnPtr) {
     CGEMV
         .set(f)
         .expect("cgemv already registered (can only be set once)");
@@ -2163,7 +2184,8 @@ pub unsafe fn register_cgemv(f: CgemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zgemv implementation.
-pub unsafe fn register_zgemv(f: ZgemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zgemv(f: ZgemvFnPtr) {
     ZGEMV
         .set(f)
         .expect("zgemv already registered (can only be set once)");
@@ -2174,7 +2196,8 @@ pub unsafe fn register_zgemv(f: ZgemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sgbmv implementation.
-pub unsafe fn register_sgbmv(f: SgbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sgbmv(f: SgbmvFnPtr) {
     SGBMV
         .set(f)
         .expect("sgbmv already registered (can only be set once)");
@@ -2185,7 +2208,8 @@ pub unsafe fn register_sgbmv(f: SgbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dgbmv implementation.
-pub unsafe fn register_dgbmv(f: DgbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dgbmv(f: DgbmvFnPtr) {
     DGBMV
         .set(f)
         .expect("dgbmv already registered (can only be set once)");
@@ -2196,7 +2220,8 @@ pub unsafe fn register_dgbmv(f: DgbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cgbmv implementation.
-pub unsafe fn register_cgbmv(f: CgbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cgbmv(f: CgbmvFnPtr) {
     CGBMV
         .set(f)
         .expect("cgbmv already registered (can only be set once)");
@@ -2207,7 +2232,8 @@ pub unsafe fn register_cgbmv(f: CgbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zgbmv implementation.
-pub unsafe fn register_zgbmv(f: ZgbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zgbmv(f: ZgbmvFnPtr) {
     ZGBMV
         .set(f)
         .expect("zgbmv already registered (can only be set once)");
@@ -2218,7 +2244,8 @@ pub unsafe fn register_zgbmv(f: ZgbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran strmv implementation.
-pub unsafe fn register_strmv(f: StrmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_strmv(f: StrmvFnPtr) {
     STRMV
         .set(f)
         .expect("strmv already registered (can only be set once)");
@@ -2229,7 +2256,8 @@ pub unsafe fn register_strmv(f: StrmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtrmv implementation.
-pub unsafe fn register_dtrmv(f: DtrmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtrmv(f: DtrmvFnPtr) {
     DTRMV
         .set(f)
         .expect("dtrmv already registered (can only be set once)");
@@ -2240,7 +2268,8 @@ pub unsafe fn register_dtrmv(f: DtrmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctrmv implementation.
-pub unsafe fn register_ctrmv(f: CtrmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctrmv(f: CtrmvFnPtr) {
     CTRMV
         .set(f)
         .expect("ctrmv already registered (can only be set once)");
@@ -2251,7 +2280,8 @@ pub unsafe fn register_ctrmv(f: CtrmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztrmv implementation.
-pub unsafe fn register_ztrmv(f: ZtrmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztrmv(f: ZtrmvFnPtr) {
     ZTRMV
         .set(f)
         .expect("ztrmv already registered (can only be set once)");
@@ -2262,7 +2292,8 @@ pub unsafe fn register_ztrmv(f: ZtrmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran strsv implementation.
-pub unsafe fn register_strsv(f: StrsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_strsv(f: StrsvFnPtr) {
     STRSV
         .set(f)
         .expect("strsv already registered (can only be set once)");
@@ -2273,7 +2304,8 @@ pub unsafe fn register_strsv(f: StrsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtrsv implementation.
-pub unsafe fn register_dtrsv(f: DtrsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtrsv(f: DtrsvFnPtr) {
     DTRSV
         .set(f)
         .expect("dtrsv already registered (can only be set once)");
@@ -2284,7 +2316,8 @@ pub unsafe fn register_dtrsv(f: DtrsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctrsv implementation.
-pub unsafe fn register_ctrsv(f: CtrsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctrsv(f: CtrsvFnPtr) {
     CTRSV
         .set(f)
         .expect("ctrsv already registered (can only be set once)");
@@ -2295,7 +2328,8 @@ pub unsafe fn register_ctrsv(f: CtrsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztrsv implementation.
-pub unsafe fn register_ztrsv(f: ZtrsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztrsv(f: ZtrsvFnPtr) {
     ZTRSV
         .set(f)
         .expect("ztrsv already registered (can only be set once)");
@@ -2306,7 +2340,8 @@ pub unsafe fn register_ztrsv(f: ZtrsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran stbmv implementation.
-pub unsafe fn register_stbmv(f: StbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_stbmv(f: StbmvFnPtr) {
     STBMV
         .set(f)
         .expect("stbmv already registered (can only be set once)");
@@ -2317,7 +2352,8 @@ pub unsafe fn register_stbmv(f: StbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtbmv implementation.
-pub unsafe fn register_dtbmv(f: DtbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtbmv(f: DtbmvFnPtr) {
     DTBMV
         .set(f)
         .expect("dtbmv already registered (can only be set once)");
@@ -2328,7 +2364,8 @@ pub unsafe fn register_dtbmv(f: DtbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctbmv implementation.
-pub unsafe fn register_ctbmv(f: CtbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctbmv(f: CtbmvFnPtr) {
     CTBMV
         .set(f)
         .expect("ctbmv already registered (can only be set once)");
@@ -2339,7 +2376,8 @@ pub unsafe fn register_ctbmv(f: CtbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztbmv implementation.
-pub unsafe fn register_ztbmv(f: ZtbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztbmv(f: ZtbmvFnPtr) {
     ZTBMV
         .set(f)
         .expect("ztbmv already registered (can only be set once)");
@@ -2350,7 +2388,8 @@ pub unsafe fn register_ztbmv(f: ZtbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran stbsv implementation.
-pub unsafe fn register_stbsv(f: StbsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_stbsv(f: StbsvFnPtr) {
     STBSV
         .set(f)
         .expect("stbsv already registered (can only be set once)");
@@ -2361,7 +2400,8 @@ pub unsafe fn register_stbsv(f: StbsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtbsv implementation.
-pub unsafe fn register_dtbsv(f: DtbsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtbsv(f: DtbsvFnPtr) {
     DTBSV
         .set(f)
         .expect("dtbsv already registered (can only be set once)");
@@ -2372,7 +2412,8 @@ pub unsafe fn register_dtbsv(f: DtbsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctbsv implementation.
-pub unsafe fn register_ctbsv(f: CtbsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctbsv(f: CtbsvFnPtr) {
     CTBSV
         .set(f)
         .expect("ctbsv already registered (can only be set once)");
@@ -2383,7 +2424,8 @@ pub unsafe fn register_ctbsv(f: CtbsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztbsv implementation.
-pub unsafe fn register_ztbsv(f: ZtbsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztbsv(f: ZtbsvFnPtr) {
     ZTBSV
         .set(f)
         .expect("ztbsv already registered (can only be set once)");
@@ -2394,7 +2436,8 @@ pub unsafe fn register_ztbsv(f: ZtbsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sger implementation.
-pub unsafe fn register_sger(f: SgerFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sger(f: SgerFnPtr) {
     SGER.set(f)
         .expect("sger already registered (can only be set once)");
 }
@@ -2404,7 +2447,8 @@ pub unsafe fn register_sger(f: SgerFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dger implementation.
-pub unsafe fn register_dger(f: DgerFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dger(f: DgerFnPtr) {
     DGER.set(f)
         .expect("dger already registered (can only be set once)");
 }
@@ -2414,7 +2458,8 @@ pub unsafe fn register_dger(f: DgerFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cgeru implementation.
-pub unsafe fn register_cgeru(f: CgeruFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cgeru(f: CgeruFnPtr) {
     CGERU
         .set(f)
         .expect("cgeru already registered (can only be set once)");
@@ -2425,7 +2470,8 @@ pub unsafe fn register_cgeru(f: CgeruFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cgerc implementation.
-pub unsafe fn register_cgerc(f: CgercFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cgerc(f: CgercFnPtr) {
     CGERC
         .set(f)
         .expect("cgerc already registered (can only be set once)");
@@ -2436,7 +2482,8 @@ pub unsafe fn register_cgerc(f: CgercFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zgeru implementation.
-pub unsafe fn register_zgeru(f: ZgeruFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zgeru(f: ZgeruFnPtr) {
     ZGERU
         .set(f)
         .expect("zgeru already registered (can only be set once)");
@@ -2447,7 +2494,8 @@ pub unsafe fn register_zgeru(f: ZgeruFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zgerc implementation.
-pub unsafe fn register_zgerc(f: ZgercFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zgerc(f: ZgercFnPtr) {
     ZGERC
         .set(f)
         .expect("zgerc already registered (can only be set once)");
@@ -2458,7 +2506,8 @@ pub unsafe fn register_zgerc(f: ZgercFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssyr implementation.
-pub unsafe fn register_ssyr(f: SsyrFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssyr(f: SsyrFnPtr) {
     SSYR.set(f)
         .expect("ssyr already registered (can only be set once)");
 }
@@ -2468,7 +2517,8 @@ pub unsafe fn register_ssyr(f: SsyrFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsyr implementation.
-pub unsafe fn register_dsyr(f: DsyrFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsyr(f: DsyrFnPtr) {
     DSYR.set(f)
         .expect("dsyr already registered (can only be set once)");
 }
@@ -2478,7 +2528,8 @@ pub unsafe fn register_dsyr(f: DsyrFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cher implementation.
-pub unsafe fn register_cher(f: CherFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cher(f: CherFnPtr) {
     CHER.set(f)
         .expect("cher already registered (can only be set once)");
 }
@@ -2488,7 +2539,8 @@ pub unsafe fn register_cher(f: CherFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zher implementation.
-pub unsafe fn register_zher(f: ZherFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zher(f: ZherFnPtr) {
     ZHER.set(f)
         .expect("zher already registered (can only be set once)");
 }
@@ -2498,7 +2550,8 @@ pub unsafe fn register_zher(f: ZherFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssyr2 implementation.
-pub unsafe fn register_ssyr2(f: Ssyr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssyr2(f: Ssyr2FnPtr) {
     SSYR2
         .set(f)
         .expect("ssyr2 already registered (can only be set once)");
@@ -2509,7 +2562,8 @@ pub unsafe fn register_ssyr2(f: Ssyr2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsyr2 implementation.
-pub unsafe fn register_dsyr2(f: Dsyr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsyr2(f: Dsyr2FnPtr) {
     DSYR2
         .set(f)
         .expect("dsyr2 already registered (can only be set once)");
@@ -2520,7 +2574,8 @@ pub unsafe fn register_dsyr2(f: Dsyr2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cher2 implementation.
-pub unsafe fn register_cher2(f: Cher2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cher2(f: Cher2FnPtr) {
     CHER2
         .set(f)
         .expect("cher2 already registered (can only be set once)");
@@ -2531,7 +2586,8 @@ pub unsafe fn register_cher2(f: Cher2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zher2 implementation.
-pub unsafe fn register_zher2(f: Zher2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zher2(f: Zher2FnPtr) {
     ZHER2
         .set(f)
         .expect("zher2 already registered (can only be set once)");
@@ -2544,7 +2600,8 @@ pub unsafe fn register_zher2(f: Zher2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sspmv implementation.
-pub unsafe fn register_sspmv(f: SspmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sspmv(f: SspmvFnPtr) {
     SSPMV
         .set(f)
         .expect("sspmv already registered (can only be set once)");
@@ -2555,7 +2612,8 @@ pub unsafe fn register_sspmv(f: SspmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dspmv implementation.
-pub unsafe fn register_dspmv(f: DspmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dspmv(f: DspmvFnPtr) {
     DSPMV
         .set(f)
         .expect("dspmv already registered (can only be set once)");
@@ -2566,7 +2624,8 @@ pub unsafe fn register_dspmv(f: DspmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chpmv implementation.
-pub unsafe fn register_chpmv(f: ChpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chpmv(f: ChpmvFnPtr) {
     CHPMV
         .set(f)
         .expect("chpmv already registered (can only be set once)");
@@ -2577,7 +2636,8 @@ pub unsafe fn register_chpmv(f: ChpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhpmv implementation.
-pub unsafe fn register_zhpmv(f: ZhpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhpmv(f: ZhpmvFnPtr) {
     ZHPMV
         .set(f)
         .expect("zhpmv already registered (can only be set once)");
@@ -2588,7 +2648,8 @@ pub unsafe fn register_zhpmv(f: ZhpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran stpmv implementation.
-pub unsafe fn register_stpmv(f: StpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_stpmv(f: StpmvFnPtr) {
     STPMV
         .set(f)
         .expect("stpmv already registered (can only be set once)");
@@ -2599,7 +2660,8 @@ pub unsafe fn register_stpmv(f: StpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtpmv implementation.
-pub unsafe fn register_dtpmv(f: DtpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtpmv(f: DtpmvFnPtr) {
     DTPMV
         .set(f)
         .expect("dtpmv already registered (can only be set once)");
@@ -2610,7 +2672,8 @@ pub unsafe fn register_dtpmv(f: DtpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctpmv implementation.
-pub unsafe fn register_ctpmv(f: CtpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctpmv(f: CtpmvFnPtr) {
     CTPMV
         .set(f)
         .expect("ctpmv already registered (can only be set once)");
@@ -2621,7 +2684,8 @@ pub unsafe fn register_ctpmv(f: CtpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztpmv implementation.
-pub unsafe fn register_ztpmv(f: ZtpmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztpmv(f: ZtpmvFnPtr) {
     ZTPMV
         .set(f)
         .expect("ztpmv already registered (can only be set once)");
@@ -2632,7 +2696,8 @@ pub unsafe fn register_ztpmv(f: ZtpmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran stpsv implementation.
-pub unsafe fn register_stpsv(f: StpsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_stpsv(f: StpsvFnPtr) {
     STPSV
         .set(f)
         .expect("stpsv already registered (can only be set once)");
@@ -2643,7 +2708,8 @@ pub unsafe fn register_stpsv(f: StpsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtpsv implementation.
-pub unsafe fn register_dtpsv(f: DtpsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtpsv(f: DtpsvFnPtr) {
     DTPSV
         .set(f)
         .expect("dtpsv already registered (can only be set once)");
@@ -2654,7 +2720,8 @@ pub unsafe fn register_dtpsv(f: DtpsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctpsv implementation.
-pub unsafe fn register_ctpsv(f: CtpsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctpsv(f: CtpsvFnPtr) {
     CTPSV
         .set(f)
         .expect("ctpsv already registered (can only be set once)");
@@ -2665,7 +2732,8 @@ pub unsafe fn register_ctpsv(f: CtpsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztpsv implementation.
-pub unsafe fn register_ztpsv(f: ZtpsvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztpsv(f: ZtpsvFnPtr) {
     ZTPSV
         .set(f)
         .expect("ztpsv already registered (can only be set once)");
@@ -2676,7 +2744,8 @@ pub unsafe fn register_ztpsv(f: ZtpsvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sspr implementation.
-pub unsafe fn register_sspr(f: SsprFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sspr(f: SsprFnPtr) {
     SSPR.set(f)
         .expect("sspr already registered (can only be set once)");
 }
@@ -2686,7 +2755,8 @@ pub unsafe fn register_sspr(f: SsprFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dspr implementation.
-pub unsafe fn register_dspr(f: DsprFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dspr(f: DsprFnPtr) {
     DSPR.set(f)
         .expect("dspr already registered (can only be set once)");
 }
@@ -2696,7 +2766,8 @@ pub unsafe fn register_dspr(f: DsprFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chpr implementation.
-pub unsafe fn register_chpr(f: ChprFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chpr(f: ChprFnPtr) {
     CHPR.set(f)
         .expect("chpr already registered (can only be set once)");
 }
@@ -2706,7 +2777,8 @@ pub unsafe fn register_chpr(f: ChprFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhpr implementation.
-pub unsafe fn register_zhpr(f: ZhprFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhpr(f: ZhprFnPtr) {
     ZHPR.set(f)
         .expect("zhpr already registered (can only be set once)");
 }
@@ -2716,7 +2788,8 @@ pub unsafe fn register_zhpr(f: ZhprFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sspr2 implementation.
-pub unsafe fn register_sspr2(f: Sspr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sspr2(f: Sspr2FnPtr) {
     SSPR2
         .set(f)
         .expect("sspr2 already registered (can only be set once)");
@@ -2727,7 +2800,8 @@ pub unsafe fn register_sspr2(f: Sspr2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dspr2 implementation.
-pub unsafe fn register_dspr2(f: Dspr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dspr2(f: Dspr2FnPtr) {
     DSPR2
         .set(f)
         .expect("dspr2 already registered (can only be set once)");
@@ -2738,7 +2812,8 @@ pub unsafe fn register_dspr2(f: Dspr2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chpr2 implementation.
-pub unsafe fn register_chpr2(f: Chpr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chpr2(f: Chpr2FnPtr) {
     CHPR2
         .set(f)
         .expect("chpr2 already registered (can only be set once)");
@@ -2749,7 +2824,8 @@ pub unsafe fn register_chpr2(f: Chpr2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhpr2 implementation.
-pub unsafe fn register_zhpr2(f: Zhpr2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhpr2(f: Zhpr2FnPtr) {
     ZHPR2
         .set(f)
         .expect("zhpr2 already registered (can only be set once)");
@@ -2767,7 +2843,8 @@ pub unsafe fn register_zhpr2(f: Zhpr2FnPtr) {
 /// # Panics
 ///
 /// Panics if dgemm has already been registered.
-pub unsafe fn register_dgemm(f: DgemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
     DGEMM
         .set(f)
         .expect("dgemm already registered (can only be set once)");
@@ -2782,7 +2859,8 @@ pub unsafe fn register_dgemm(f: DgemmFnPtr) {
 /// # Panics
 ///
 /// Panics if sgemm has already been registered.
-pub unsafe fn register_sgemm(f: SgemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sgemm(f: SgemmFnPtr) {
     SGEMM
         .set(f)
         .expect("sgemm already registered (can only be set once)");
@@ -2797,7 +2875,8 @@ pub unsafe fn register_sgemm(f: SgemmFnPtr) {
 /// # Panics
 ///
 /// Panics if zgemm has already been registered.
-pub unsafe fn register_zgemm(f: ZgemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
     ZGEMM
         .set(f)
         .expect("zgemm already registered (can only be set once)");
@@ -2812,7 +2891,8 @@ pub unsafe fn register_zgemm(f: ZgemmFnPtr) {
 /// # Panics
 ///
 /// Panics if cgemm has already been registered.
-pub unsafe fn register_cgemm(f: CgemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cgemm(f: CgemmFnPtr) {
     CGEMM
         .set(f)
         .expect("cgemm already registered (can only be set once)");
@@ -2823,7 +2903,8 @@ pub unsafe fn register_cgemm(f: CgemmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssymm implementation.
-pub unsafe fn register_ssymm(f: SsymmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssymm(f: SsymmFnPtr) {
     SSYMM
         .set(f)
         .expect("ssymm already registered (can only be set once)");
@@ -2834,7 +2915,8 @@ pub unsafe fn register_ssymm(f: SsymmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsymm implementation.
-pub unsafe fn register_dsymm(f: DsymmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsymm(f: DsymmFnPtr) {
     DSYMM
         .set(f)
         .expect("dsymm already registered (can only be set once)");
@@ -2845,7 +2927,8 @@ pub unsafe fn register_dsymm(f: DsymmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran csymm implementation.
-pub unsafe fn register_csymm(f: CsymmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_csymm(f: CsymmFnPtr) {
     CSYMM
         .set(f)
         .expect("csymm already registered (can only be set once)");
@@ -2856,7 +2939,8 @@ pub unsafe fn register_csymm(f: CsymmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zsymm implementation.
-pub unsafe fn register_zsymm(f: ZsymmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zsymm(f: ZsymmFnPtr) {
     ZSYMM
         .set(f)
         .expect("zsymm already registered (can only be set once)");
@@ -2867,7 +2951,8 @@ pub unsafe fn register_zsymm(f: ZsymmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chemm implementation.
-pub unsafe fn register_chemm(f: ChemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chemm(f: ChemmFnPtr) {
     CHEMM
         .set(f)
         .expect("chemm already registered (can only be set once)");
@@ -2878,7 +2963,8 @@ pub unsafe fn register_chemm(f: ChemmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhemm implementation.
-pub unsafe fn register_zhemm(f: ZhemmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhemm(f: ZhemmFnPtr) {
     ZHEMM
         .set(f)
         .expect("zhemm already registered (can only be set once)");
@@ -2889,7 +2975,8 @@ pub unsafe fn register_zhemm(f: ZhemmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsyrk implementation.
-pub unsafe fn register_dsyrk(f: DsyrkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsyrk(f: DsyrkFnPtr) {
     DSYRK
         .set(f)
         .expect("dsyrk already registered (can only be set once)");
@@ -2900,7 +2987,8 @@ pub unsafe fn register_dsyrk(f: DsyrkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssyrk implementation.
-pub unsafe fn register_ssyrk(f: SsyrkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssyrk(f: SsyrkFnPtr) {
     SSYRK
         .set(f)
         .expect("ssyrk already registered (can only be set once)");
@@ -2911,7 +2999,8 @@ pub unsafe fn register_ssyrk(f: SsyrkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran csyrk implementation.
-pub unsafe fn register_csyrk(f: CsyrkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_csyrk(f: CsyrkFnPtr) {
     CSYRK
         .set(f)
         .expect("csyrk already registered (can only be set once)");
@@ -2922,7 +3011,8 @@ pub unsafe fn register_csyrk(f: CsyrkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zsyrk implementation.
-pub unsafe fn register_zsyrk(f: ZsyrkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zsyrk(f: ZsyrkFnPtr) {
     ZSYRK
         .set(f)
         .expect("zsyrk already registered (can only be set once)");
@@ -2933,7 +3023,8 @@ pub unsafe fn register_zsyrk(f: ZsyrkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cherk implementation.
-pub unsafe fn register_cherk(f: CherkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cherk(f: CherkFnPtr) {
     CHERK
         .set(f)
         .expect("cherk already registered (can only be set once)");
@@ -2944,7 +3035,8 @@ pub unsafe fn register_cherk(f: CherkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zherk implementation.
-pub unsafe fn register_zherk(f: ZherkFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zherk(f: ZherkFnPtr) {
     ZHERK
         .set(f)
         .expect("zherk already registered (can only be set once)");
@@ -2955,7 +3047,8 @@ pub unsafe fn register_zherk(f: ZherkFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsyr2k implementation.
-pub unsafe fn register_dsyr2k(f: Dsyr2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsyr2k(f: Dsyr2kFnPtr) {
     DSYR2K
         .set(f)
         .expect("dsyr2k already registered (can only be set once)");
@@ -2966,7 +3059,8 @@ pub unsafe fn register_dsyr2k(f: Dsyr2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssyr2k implementation.
-pub unsafe fn register_ssyr2k(f: Ssyr2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssyr2k(f: Ssyr2kFnPtr) {
     SSYR2K
         .set(f)
         .expect("ssyr2k already registered (can only be set once)");
@@ -2977,7 +3071,8 @@ pub unsafe fn register_ssyr2k(f: Ssyr2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran csyr2k implementation.
-pub unsafe fn register_csyr2k(f: Csyr2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_csyr2k(f: Csyr2kFnPtr) {
     CSYR2K
         .set(f)
         .expect("csyr2k already registered (can only be set once)");
@@ -2988,7 +3083,8 @@ pub unsafe fn register_csyr2k(f: Csyr2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zsyr2k implementation.
-pub unsafe fn register_zsyr2k(f: Zsyr2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zsyr2k(f: Zsyr2kFnPtr) {
     ZSYR2K
         .set(f)
         .expect("zsyr2k already registered (can only be set once)");
@@ -2999,7 +3095,8 @@ pub unsafe fn register_zsyr2k(f: Zsyr2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cher2k implementation.
-pub unsafe fn register_cher2k(f: Cher2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cher2k(f: Cher2kFnPtr) {
     CHER2K
         .set(f)
         .expect("cher2k already registered (can only be set once)");
@@ -3010,7 +3107,8 @@ pub unsafe fn register_cher2k(f: Cher2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zher2k implementation.
-pub unsafe fn register_zher2k(f: Zher2kFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zher2k(f: Zher2kFnPtr) {
     ZHER2K
         .set(f)
         .expect("zher2k already registered (can only be set once)");
@@ -3021,7 +3119,8 @@ pub unsafe fn register_zher2k(f: Zher2kFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtrmm implementation.
-pub unsafe fn register_dtrmm(f: DtrmmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtrmm(f: DtrmmFnPtr) {
     DTRMM
         .set(f)
         .expect("dtrmm already registered (can only be set once)");
@@ -3032,7 +3131,8 @@ pub unsafe fn register_dtrmm(f: DtrmmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dtrsm implementation.
-pub unsafe fn register_dtrsm(f: DtrsmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dtrsm(f: DtrsmFnPtr) {
     DTRSM
         .set(f)
         .expect("dtrsm already registered (can only be set once)");
@@ -3044,7 +3144,8 @@ pub unsafe fn register_dtrsm(f: DtrsmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran strmm implementation.
-pub unsafe fn register_strmm(f: StrmmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_strmm(f: StrmmFnPtr) {
     STRMM
         .set(f)
         .expect("strmm already registered (can only be set once)");
@@ -3055,7 +3156,8 @@ pub unsafe fn register_strmm(f: StrmmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctrmm implementation.
-pub unsafe fn register_ctrmm(f: CtrmmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctrmm(f: CtrmmFnPtr) {
     CTRMM
         .set(f)
         .expect("ctrmm already registered (can only be set once)");
@@ -3066,7 +3168,8 @@ pub unsafe fn register_ctrmm(f: CtrmmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztrmm implementation.
-pub unsafe fn register_ztrmm(f: ZtrmmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztrmm(f: ZtrmmFnPtr) {
     ZTRMM
         .set(f)
         .expect("ztrmm already registered (can only be set once)");
@@ -3077,7 +3180,8 @@ pub unsafe fn register_ztrmm(f: ZtrmmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran strsm implementation.
-pub unsafe fn register_strsm(f: StrsmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_strsm(f: StrsmFnPtr) {
     STRSM
         .set(f)
         .expect("strsm already registered (can only be set once)");
@@ -3088,7 +3192,8 @@ pub unsafe fn register_strsm(f: StrsmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ctrsm implementation.
-pub unsafe fn register_ctrsm(f: CtrsmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ctrsm(f: CtrsmFnPtr) {
     CTRSM
         .set(f)
         .expect("ctrsm already registered (can only be set once)");
@@ -3099,7 +3204,8 @@ pub unsafe fn register_ctrsm(f: CtrsmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ztrsm implementation.
-pub unsafe fn register_ztrsm(f: ZtrsmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ztrsm(f: ZtrsmFnPtr) {
     ZTRSM
         .set(f)
         .expect("ztrsm already registered (can only be set once)");
@@ -3109,7 +3215,8 @@ pub unsafe fn register_ztrsm(f: ZtrsmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran srot implementation.
-pub unsafe fn register_srot(f: SrotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_srot(f: SrotFnPtr) {
     SROT.set(f)
         .expect("srot already registered (can only be set once)");
 }
@@ -3119,7 +3226,8 @@ pub unsafe fn register_srot(f: SrotFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran drot implementation.
-pub unsafe fn register_drot(f: DrotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_drot(f: DrotFnPtr) {
     DROT.set(f)
         .expect("drot already registered (can only be set once)");
 }
@@ -3129,7 +3237,8 @@ pub unsafe fn register_drot(f: DrotFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran srotg implementation.
-pub unsafe fn register_srotg(f: SrotgFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_srotg(f: SrotgFnPtr) {
     SROTG
         .set(f)
         .expect("srotg already registered (can only be set once)");
@@ -3140,7 +3249,8 @@ pub unsafe fn register_srotg(f: SrotgFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran drotg implementation.
-pub unsafe fn register_drotg(f: DrotgFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_drotg(f: DrotgFnPtr) {
     DROTG
         .set(f)
         .expect("drotg already registered (can only be set once)");
@@ -3151,7 +3261,8 @@ pub unsafe fn register_drotg(f: DrotgFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran srotm implementation.
-pub unsafe fn register_srotm(f: SrotmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_srotm(f: SrotmFnPtr) {
     SROTM
         .set(f)
         .expect("srotm already registered (can only be set once)");
@@ -3162,7 +3273,8 @@ pub unsafe fn register_srotm(f: SrotmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran drotm implementation.
-pub unsafe fn register_drotm(f: DrotmFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_drotm(f: DrotmFnPtr) {
     DROTM
         .set(f)
         .expect("drotm already registered (can only be set once)");
@@ -3173,7 +3285,8 @@ pub unsafe fn register_drotm(f: DrotmFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran srotmg implementation.
-pub unsafe fn register_srotmg(f: SrotmgFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_srotmg(f: SrotmgFnPtr) {
     SROTMG
         .set(f)
         .expect("srotmg already registered (can only be set once)");
@@ -3184,7 +3297,8 @@ pub unsafe fn register_srotmg(f: SrotmgFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran drotmg implementation.
-pub unsafe fn register_drotmg(f: DrotmgFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_drotmg(f: DrotmgFnPtr) {
     DROTMG
         .set(f)
         .expect("drotmg already registered (can only be set once)");
@@ -3195,7 +3309,8 @@ pub unsafe fn register_drotmg(f: DrotmgFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran scabs1 implementation.
-pub unsafe fn register_scabs1(f: Scabs1FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_scabs1(f: Scabs1FnPtr) {
     SCABS1
         .set(f)
         .expect("scabs1 already registered (can only be set once)");
@@ -3206,7 +3321,8 @@ pub unsafe fn register_scabs1(f: Scabs1FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dcabs1 implementation.
-pub unsafe fn register_dcabs1(f: Dcabs1FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dcabs1(f: Dcabs1FnPtr) {
     DCABS1
         .set(f)
         .expect("dcabs1 already registered (can only be set once)");
@@ -3217,7 +3333,8 @@ pub unsafe fn register_dcabs1(f: Dcabs1FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sdot implementation.
-pub unsafe fn register_sdot(f: SdotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sdot(f: SdotFnPtr) {
     SDOT.set(f)
         .expect("sdot already registered (can only be set once)");
 }
@@ -3227,7 +3344,8 @@ pub unsafe fn register_sdot(f: SdotFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ddot implementation.
-pub unsafe fn register_ddot(f: DdotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ddot(f: DdotFnPtr) {
     DDOT.set(f)
         .expect("ddot already registered (can only be set once)");
 }
@@ -3238,7 +3356,8 @@ pub unsafe fn register_ddot(f: DdotFnPtr) {
 ///
 /// The function pointer must be a valid Fortran cdotu implementation
 /// using the return value convention.
-pub unsafe fn register_cdotu(f: CdotuFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cdotu(f: CdotuFnPtr) {
     CDOTU_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("cdotu already registered (can only be set once)");
@@ -3250,7 +3369,8 @@ pub unsafe fn register_cdotu(f: CdotuFnPtr) {
 ///
 /// The function pointer must be a valid Fortran cdotu implementation.
 /// The calling convention must match the currently set `ComplexReturnStyle`.
-pub unsafe fn register_cdotu_raw(ptr: *const ()) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cdotu_raw(ptr: *const ()) {
     CDOTU_PTR
         .set(FnPtrWrapper(ptr))
         .expect("cdotu already registered (can only be set once)");
@@ -3262,7 +3382,8 @@ pub unsafe fn register_cdotu_raw(ptr: *const ()) {
 ///
 /// The function pointer must be a valid Fortran zdotu implementation
 /// using the return value convention.
-pub unsafe fn register_zdotu(f: ZdotuFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zdotu(f: ZdotuFnPtr) {
     ZDOTU_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("zdotu already registered (can only be set once)");
@@ -3274,7 +3395,8 @@ pub unsafe fn register_zdotu(f: ZdotuFnPtr) {
 ///
 /// The function pointer must be a valid Fortran zdotu implementation.
 /// The calling convention must match the currently set `ComplexReturnStyle`.
-pub unsafe fn register_zdotu_raw(ptr: *const ()) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zdotu_raw(ptr: *const ()) {
     ZDOTU_PTR
         .set(FnPtrWrapper(ptr))
         .expect("zdotu already registered (can only be set once)");
@@ -3286,7 +3408,8 @@ pub unsafe fn register_zdotu_raw(ptr: *const ()) {
 ///
 /// The function pointer must be a valid Fortran cdotc implementation
 /// using the return value convention.
-pub unsafe fn register_cdotc(f: CdotcFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cdotc(f: CdotcFnPtr) {
     CDOTC_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("cdotc already registered (can only be set once)");
@@ -3298,7 +3421,8 @@ pub unsafe fn register_cdotc(f: CdotcFnPtr) {
 ///
 /// The function pointer must be a valid Fortran cdotc implementation.
 /// The calling convention must match the currently set `ComplexReturnStyle`.
-pub unsafe fn register_cdotc_raw(ptr: *const ()) {
+#[no_mangle]
+pub unsafe extern "C" fn register_cdotc_raw(ptr: *const ()) {
     CDOTC_PTR
         .set(FnPtrWrapper(ptr))
         .expect("cdotc already registered (can only be set once)");
@@ -3310,7 +3434,8 @@ pub unsafe fn register_cdotc_raw(ptr: *const ()) {
 ///
 /// The function pointer must be a valid Fortran zdotc implementation
 /// using the return value convention.
-pub unsafe fn register_zdotc(f: ZdotcFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zdotc(f: ZdotcFnPtr) {
     ZDOTC_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("zdotc already registered (can only be set once)");
@@ -3322,7 +3447,8 @@ pub unsafe fn register_zdotc(f: ZdotcFnPtr) {
 ///
 /// The function pointer must be a valid Fortran zdotc implementation.
 /// The calling convention must match the currently set `ComplexReturnStyle`.
-pub unsafe fn register_zdotc_raw(ptr: *const ()) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zdotc_raw(ptr: *const ()) {
     ZDOTC_PTR
         .set(FnPtrWrapper(ptr))
         .expect("zdotc already registered (can only be set once)");
@@ -3333,7 +3459,8 @@ pub unsafe fn register_zdotc_raw(ptr: *const ()) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sdsdot implementation.
-pub unsafe fn register_sdsdot(f: SdsdotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sdsdot(f: SdsdotFnPtr) {
     SDSDOT
         .set(f)
         .expect("sdsdot already registered (can only be set once)");
@@ -3344,7 +3471,8 @@ pub unsafe fn register_sdsdot(f: SdsdotFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsdot implementation.
-pub unsafe fn register_dsdot(f: DsdotFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsdot(f: DsdotFnPtr) {
     DSDOT
         .set(f)
         .expect("dsdot already registered (can only be set once)");
@@ -3355,7 +3483,8 @@ pub unsafe fn register_dsdot(f: DsdotFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran snrm2 implementation.
-pub unsafe fn register_snrm2(f: Snrm2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_snrm2(f: Snrm2FnPtr) {
     SNRM2
         .set(f)
         .expect("snrm2 already registered (can only be set once)");
@@ -3366,7 +3495,8 @@ pub unsafe fn register_snrm2(f: Snrm2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dnrm2 implementation.
-pub unsafe fn register_dnrm2(f: Dnrm2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dnrm2(f: Dnrm2FnPtr) {
     DNRM2
         .set(f)
         .expect("dnrm2 already registered (can only be set once)");
@@ -3377,7 +3507,8 @@ pub unsafe fn register_dnrm2(f: Dnrm2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran scnrm2 implementation.
-pub unsafe fn register_scnrm2(f: Scnrm2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_scnrm2(f: Scnrm2FnPtr) {
     SCNRM2
         .set(f)
         .expect("scnrm2 already registered (can only be set once)");
@@ -3388,7 +3519,8 @@ pub unsafe fn register_scnrm2(f: Scnrm2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dznrm2 implementation.
-pub unsafe fn register_dznrm2(f: Dznrm2FnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dznrm2(f: Dznrm2FnPtr) {
     DZNRM2
         .set(f)
         .expect("dznrm2 already registered (can only be set once)");
@@ -3399,7 +3531,8 @@ pub unsafe fn register_dznrm2(f: Dznrm2FnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran sasum implementation.
-pub unsafe fn register_sasum(f: SasumFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_sasum(f: SasumFnPtr) {
     SASUM
         .set(f)
         .expect("sasum already registered (can only be set once)");
@@ -3410,7 +3543,8 @@ pub unsafe fn register_sasum(f: SasumFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dasum implementation.
-pub unsafe fn register_dasum(f: DasumFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dasum(f: DasumFnPtr) {
     DASUM
         .set(f)
         .expect("dasum already registered (can only be set once)");
@@ -3421,7 +3555,8 @@ pub unsafe fn register_dasum(f: DasumFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran scasum implementation.
-pub unsafe fn register_scasum(f: ScasumFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_scasum(f: ScasumFnPtr) {
     SCASUM
         .set(f)
         .expect("scasum already registered (can only be set once)");
@@ -3432,7 +3567,8 @@ pub unsafe fn register_scasum(f: ScasumFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dzasum implementation.
-pub unsafe fn register_dzasum(f: DzasumFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dzasum(f: DzasumFnPtr) {
     DZASUM
         .set(f)
         .expect("dzasum already registered (can only be set once)");
@@ -3443,7 +3579,8 @@ pub unsafe fn register_dzasum(f: DzasumFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran isamax implementation.
-pub unsafe fn register_isamax(f: IsamaxFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_isamax(f: IsamaxFnPtr) {
     ISAMAX
         .set(f)
         .expect("isamax already registered (can only be set once)");
@@ -3454,7 +3591,8 @@ pub unsafe fn register_isamax(f: IsamaxFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran idamax implementation.
-pub unsafe fn register_idamax(f: IdamaxFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_idamax(f: IdamaxFnPtr) {
     IDAMAX
         .set(f)
         .expect("idamax already registered (can only be set once)");
@@ -3465,7 +3603,8 @@ pub unsafe fn register_idamax(f: IdamaxFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran icamax implementation.
-pub unsafe fn register_icamax(f: IcamaxFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_icamax(f: IcamaxFnPtr) {
     ICAMAX
         .set(f)
         .expect("icamax already registered (can only be set once)");
@@ -3476,7 +3615,8 @@ pub unsafe fn register_icamax(f: IcamaxFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran izamax implementation.
-pub unsafe fn register_izamax(f: IzamaxFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_izamax(f: IzamaxFnPtr) {
     IZAMAX
         .set(f)
         .expect("izamax already registered (can only be set once)");
@@ -3489,7 +3629,8 @@ pub unsafe fn register_izamax(f: IzamaxFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssymv implementation.
-pub unsafe fn register_ssymv(f: SsymvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssymv(f: SsymvFnPtr) {
     SSYMV
         .set(f)
         .expect("ssymv already registered (can only be set once)");
@@ -3500,7 +3641,8 @@ pub unsafe fn register_ssymv(f: SsymvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsymv implementation.
-pub unsafe fn register_dsymv(f: DsymvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsymv(f: DsymvFnPtr) {
     DSYMV
         .set(f)
         .expect("dsymv already registered (can only be set once)");
@@ -3511,7 +3653,8 @@ pub unsafe fn register_dsymv(f: DsymvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chemv implementation.
-pub unsafe fn register_chemv(f: ChemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chemv(f: ChemvFnPtr) {
     CHEMV
         .set(f)
         .expect("chemv already registered (can only be set once)");
@@ -3522,7 +3665,8 @@ pub unsafe fn register_chemv(f: ChemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhemv implementation.
-pub unsafe fn register_zhemv(f: ZhemvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhemv(f: ZhemvFnPtr) {
     ZHEMV
         .set(f)
         .expect("zhemv already registered (can only be set once)");
@@ -3533,7 +3677,8 @@ pub unsafe fn register_zhemv(f: ZhemvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran ssbmv implementation.
-pub unsafe fn register_ssbmv(f: SsbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_ssbmv(f: SsbmvFnPtr) {
     SSBMV
         .set(f)
         .expect("ssbmv already registered (can only be set once)");
@@ -3544,7 +3689,8 @@ pub unsafe fn register_ssbmv(f: SsbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran dsbmv implementation.
-pub unsafe fn register_dsbmv(f: DsbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_dsbmv(f: DsbmvFnPtr) {
     DSBMV
         .set(f)
         .expect("dsbmv already registered (can only be set once)");
@@ -3555,7 +3701,8 @@ pub unsafe fn register_dsbmv(f: DsbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran chbmv implementation.
-pub unsafe fn register_chbmv(f: ChbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_chbmv(f: ChbmvFnPtr) {
     CHBMV
         .set(f)
         .expect("chbmv already registered (can only be set once)");
@@ -3566,7 +3713,8 @@ pub unsafe fn register_chbmv(f: ChbmvFnPtr) {
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zhbmv implementation.
-pub unsafe fn register_zhbmv(f: ZhbmvFnPtr) {
+#[no_mangle]
+pub unsafe extern "C" fn register_zhbmv(f: ZhbmvFnPtr) {
     ZHBMV
         .set(f)
         .expect("zhbmv already registered (can only be set once)");

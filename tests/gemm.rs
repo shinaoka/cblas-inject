@@ -5,7 +5,7 @@
 
 extern crate blas_src;
 
-use cblas_trampoline::{
+use cblas_runtime::{
     blasint, register_dgemm, register_zgemm, CblasColMajor, CblasConjTrans, CblasNoTrans,
     CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
@@ -252,7 +252,7 @@ fn test_dgemm_case(
     // Result from cblas-trampoline
     let mut c_trampoline = c_init.clone();
     unsafe {
-        cblas_trampoline::cblas_dgemm(
+        cblas_runtime::cblas_dgemm(
             order,
             transa,
             transb,
@@ -381,7 +381,7 @@ fn test_zgemm_case(
     // Result from cblas-trampoline
     let mut c_trampoline = c_init.clone();
     unsafe {
-        cblas_trampoline::cblas_zgemm(
+        cblas_runtime::cblas_zgemm(
             order,
             transa,
             transb,
@@ -441,7 +441,7 @@ fn test_dgemm_zero_dimensions() {
     let mut c: Vec<f64> = vec![];
 
     unsafe {
-        cblas_trampoline::cblas_dgemm(
+        cblas_runtime::cblas_dgemm(
             CblasRowMajor,
             CblasNoTrans,
             CblasNoTrans,
@@ -478,7 +478,7 @@ fn test_dgemm_non_square() {
     let mut c_reference = c_init.clone();
 
     unsafe {
-        cblas_trampoline::cblas_dgemm(
+        cblas_runtime::cblas_dgemm(
             CblasRowMajor,
             CblasNoTrans,
             CblasNoTrans,

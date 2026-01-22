@@ -1,14 +1,15 @@
 [package]
-name = "cblas-trampoline"
+name = "cblas-runtime"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-description = "CBLAS/LAPACKE compatible interface backed by Fortran BLAS/LAPACK function pointers"
-repository = "https://github.com/shinaoka/cblas-trampoline"
-keywords = ["blas", "lapack", "cblas", "ffi", "linear-algebra"]
+description = "CBLAS compatible interface backed by runtime-registered Fortran BLAS function pointers"
+repository = "https://github.com/shinaoka/cblas-runtime"
+keywords = ["blas", "cblas", "ffi", "linear-algebra", "runtime"]
 categories = ["science", "mathematics", "external-ffi-bindings"]
 
 [lib]
+name = "cblas_runtime"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]

@@ -1,0 +1,80 @@
+name: Examples
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  julia-openblas:
+    name: Julia + OpenBLAS
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.10'
+
+      - name: Build library (ILP64 for Julia)
+        run: cargo build --release --features ilp64
+
+      - name: Run Julia example
+        run: julia examples/julia/dgemm_example.jl
+
+  julia-mkl:
+    name: Julia + MKL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.10'
+
+      - name: Install MKL.jl
+        run: julia -e 'using Pkg; Pkg.add("MKL")'
+
+      - name: Build library (ILP64 for MKL)
+        run: cargo build --release --features ilp64
+
+      - name: Run Julia example with MKL
+        run: julia -e 'using MKL' && julia examples/julia/dgemm_example.jl
+
+  scipy:
+    name: Python (scipy)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install scipy
+        run: pip install scipy numpy
+
+      - name: Build library (LP64 for scipy)
+        run: cargo build --release
+
+      - name: Run Python example
+        run: python examples/python/dgemm_example.py
