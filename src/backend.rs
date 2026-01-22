@@ -1734,10 +1734,15 @@ static COMPLEX_RETURN_STYLE: OnceLock<ComplexReturnStyle> = OnceLock::new();
 ///
 /// This must be called before registering cdotu, zdotu, cdotc, zdotc.
 ///
+/// # Safety
+///
+/// Must be called before any complex dot product functions are registered.
+///
 /// # Panics
 ///
 /// Panics if the style has already been set.
-pub fn set_complex_return_style(style: ComplexReturnStyle) {
+#[no_mangle]
+pub unsafe extern "C" fn set_complex_return_style(style: ComplexReturnStyle) {
     COMPLEX_RETURN_STYLE
         .set(style)
         .expect("complex return style already set (can only be set once)");
@@ -1746,8 +1751,8 @@ pub fn set_complex_return_style(style: ComplexReturnStyle) {
 /// Get the current complex return style.
 ///
 /// Returns `ReturnValue` as the default if not explicitly set.
-#[inline]
-pub fn get_complex_return_style() -> ComplexReturnStyle {
+#[no_mangle]
+pub extern "C" fn get_complex_return_style() -> ComplexReturnStyle {
     COMPLEX_RETURN_STYLE
         .get()
         .copied()

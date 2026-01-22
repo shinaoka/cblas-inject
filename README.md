@@ -16,6 +16,7 @@ This crate provides CBLAS-style functions (with row-major support) that internal
 - **Partial registration**: Only register the functions you need
 - **Zero runtime overhead**: Uses `OnceLock` for minimal overhead (~0.5ns per call)
 - **LP64/ILP64 support**: Compile with `ilp64` feature for 64-bit integers
+- **Complex return style**: Configurable ABI for complex dot products (cdotc, cdotu, zdotc, zdotu)
 
 ## Usage
 
@@ -117,6 +118,26 @@ For BLAS operations (GEMM, etc.), row-major data is handled via argument swappin
 C = A × B  (row-major)
 ⟺ C^T = B^T × A^T  (column-major)
 ```
+
+## Complex Return Style
+
+Fortran complex functions (`cdotu`, `cdotc`, `zdotu`, `zdotc`) have two calling conventions:
+
+- **ReturnValue (0)**: Complex returned via register (OpenBLAS, MKL intel, BLIS)
+- **HiddenArgument (1)**: Complex written to first pointer argument (gfortran default, MKL gf)
+
+Set the convention **before** registering complex dot product functions:
+
+```rust
+use cblas_runtime::{set_complex_return_style, ComplexReturnStyle};
+
+unsafe {
+    set_complex_return_style(ComplexReturnStyle::ReturnValue);
+    register_zdotc(zdotc_ptr);
+}
+```
+
+See [examples/julia/zdotc_example.jl](examples/julia/zdotc_example.jl) and [examples/python/zdotc_example.py](examples/python/zdotc_example.py) for complete examples.
 
 ## Supported Functions
 
