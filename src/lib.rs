@@ -38,6 +38,7 @@
 
 mod backend;
 mod types;
+mod xerbla;
 
 #[cfg(feature = "openblas")]
 mod autoregister;
@@ -101,3 +102,6 @@ pub use blas3::syr2k::{cblas_csyr2k, cblas_dsyr2k, cblas_ssyr2k, cblas_zsyr2k};
 pub use blas3::syrk::{cblas_csyrk, cblas_dsyrk, cblas_ssyrk, cblas_zsyrk};
 pub use blas3::trmm::{cblas_ctrmm, cblas_dtrmm, cblas_strmm, cblas_ztrmm};
 pub use blas3::trsm::{cblas_ctrsm, cblas_dtrsm, cblas_strsm, cblas_ztrsm};
+
+// Error handling
+pub use xerbla::cblas_xerbla;
