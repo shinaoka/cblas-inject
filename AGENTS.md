@@ -233,7 +233,7 @@ cargo test --test gemm  # GEMM-specific tests
 fn setup_function() {
     static INIT: std::sync::Once = std::sync::Once::new();
     INIT.call_once(|| unsafe {
-        cblas_runtime::register_function(fortran_function_);
+        cblas_inject::register_function(fortran_function_);
     });
 }
 
@@ -241,7 +241,7 @@ fn setup_function() {
 fn test_function_exhaustive() {
     setup_function();
     // Test parameter ranges from OpenBLAS input files (din3, sin3, etc.)
-    // Compare cblas_runtime vs OpenBLAS cblas_* results
+    // Compare cblas_inject vs OpenBLAS cblas_* results
 }
 ```
 

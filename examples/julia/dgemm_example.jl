@@ -1,10 +1,10 @@
 #!/usr/bin/env julia
 #
-# Example: Using cblas-runtime from Julia
+# Example: Using cblas-inject from Julia
 #
 # This demonstrates how to:
 # 1. Get Fortran BLAS function pointers from libblastrampoline
-# 2. Register them with cblas-runtime
+# 2. Register them with cblas-inject
 # 3. Call CBLAS-style functions
 #
 # Prerequisites:
@@ -20,8 +20,8 @@
 using LinearAlgebra
 using Libdl
 
-# Path to compiled cblas-runtime library
-const CBLAS_LIB = joinpath(@__DIR__, "../../target/release/libcblas_runtime")
+# Path to compiled cblas-inject library
+const CBLAS_LIB = joinpath(@__DIR__, "../../target/release/libcblas_inject")
 
 # CBLAS constants
 const CblasColMajor = 102
@@ -48,7 +48,7 @@ const USE_ILP64 = BLAS_INTERFACE == :ilp64
 function main()
     println("Detected BLAS interface: $BLAS_INTERFACE")
 
-    # Load cblas-runtime library
+    # Load cblas-inject library
     lib = if Sys.isapple()
         dlopen("$(CBLAS_LIB).dylib")
     elseif Sys.islinux()
@@ -59,7 +59,7 @@ function main()
         error("Unsupported platform")
     end
 
-    println("Loaded cblas-runtime library")
+    println("Loaded cblas-inject library")
 
     # Get Fortran BLAS function pointer from libblastrampoline
     dgemm_ptr = LinearAlgebra.BLAS.lbt_get_forward("dgemm_", BLAS_INTERFACE)
@@ -69,7 +69,7 @@ function main()
         error("Failed to get dgemm_ pointer. Make sure BLAS is properly configured.")
     end
 
-    # Register with cblas-runtime
+    # Register with cblas-inject
     register_dgemm = dlsym(lib, :register_dgemm)
     ccall(register_dgemm, Cvoid, (Ptr{Cvoid},), dgemm_ptr)
     println("Registered dgemm")

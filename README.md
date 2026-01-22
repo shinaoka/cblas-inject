@@ -1,4 +1,4 @@
-# cblas-runtime
+# cblas-inject
 
 CBLAS compatible interface backed by Fortran BLAS function pointers.
 
@@ -23,7 +23,7 @@ This crate provides CBLAS-style functions (with row-major support) that internal
 ### Basic Usage
 
 ```rust
-use cblas_runtime::{
+use cblas_inject::{
     register_dgemm, cblas_dgemm,
     CblasRowMajor, CblasNoTrans,
 };
@@ -69,12 +69,12 @@ See [examples/julia/dgemm_example.jl](examples/julia/dgemm_example.jl) for a com
 using LinearAlgebra, Libdl
 
 # Build with ILP64 for modern Julia: cargo build --release --features ilp64
-lib = dlopen("path/to/libcblas_runtime.dylib")
+lib = dlopen("path/to/libcblas_inject.dylib")
 
 # Get dgemm_ pointer from libblastrampoline
 dgemm_ptr = LinearAlgebra.BLAS.lbt_get_forward("dgemm_", :ilp64)
 
-# Register with cblas-runtime
+# Register with cblas-inject
 register_dgemm = dlsym(lib, :register_dgemm)
 ccall(register_dgemm, Cvoid, (Ptr{Cvoid},), dgemm_ptr)
 
@@ -92,7 +92,7 @@ import ctypes
 import scipy.linalg.cython_blas as blas
 
 # Build: cargo build --release
-lib = ctypes.CDLL("path/to/libcblas_runtime.dylib")
+lib = ctypes.CDLL("path/to/libcblas_inject.dylib")
 
 # Extract dgemm pointer from scipy's PyCapsule
 capsule = blas.__pyx_capi__['dgemm']
@@ -103,7 +103,7 @@ ctypes.pythonapi.PyCapsule_GetPointer.restype = ctypes.c_void_p
 ctypes.pythonapi.PyCapsule_GetPointer.argtypes = [ctypes.py_object, ctypes.c_char_p]
 dgemm_ptr = ctypes.pythonapi.PyCapsule_GetPointer(capsule, capsule_name)
 
-# Register with cblas-runtime
+# Register with cblas-inject
 lib.register_dgemm(dgemm_ptr)
 
 # Now use cblas_dgemm
@@ -129,7 +129,7 @@ Fortran complex functions (`cdotu`, `cdotc`, `zdotu`, `zdotc`) have two calling 
 Set the convention **before** registering complex dot product functions:
 
 ```rust
-use cblas_runtime::{set_complex_return_style, ComplexReturnStyle};
+use cblas_inject::{set_complex_return_style, ComplexReturnStyle};
 
 unsafe {
     set_complex_return_style(ComplexReturnStyle::ReturnValue);

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Example: Using cblas-runtime from Python (scipy)
+Example: Using cblas-inject from Python (scipy)
 
 This demonstrates how to:
 1. Get Fortran BLAS function pointers from scipy
-2. Register them with cblas-runtime
+2. Register them with cblas-inject
 3. Call CBLAS-style functions
 
 Prerequisites:
@@ -43,23 +43,23 @@ def main():
     lib_dir = os.path.join(script_dir, "../../target/release")
 
     if sys.platform == "darwin":
-        lib_path = os.path.join(lib_dir, "libcblas_runtime.dylib")
+        lib_path = os.path.join(lib_dir, "libcblas_inject.dylib")
     elif sys.platform == "linux":
-        lib_path = os.path.join(lib_dir, "libcblas_runtime.so")
+        lib_path = os.path.join(lib_dir, "libcblas_inject.so")
     elif sys.platform == "win32":
-        lib_path = os.path.join(lib_dir, "cblas_runtime.dll")
+        lib_path = os.path.join(lib_dir, "cblas_inject.dll")
     else:
         raise RuntimeError(f"Unsupported platform: {sys.platform}")
 
-    # Load cblas-runtime library
+    # Load cblas-inject library
     lib = ctypes.CDLL(lib_path)
-    print(f"Loaded cblas-runtime library from {lib_path}")
+    print(f"Loaded cblas-inject library from {lib_path}")
 
     # Get Fortran BLAS function pointer from scipy
     dgemm_ptr = get_blas_func_ptr("dgemm")
     print(f"Got dgemm pointer: {hex(dgemm_ptr)}")
 
-    # Register with cblas-runtime
+    # Register with cblas-inject
     lib.register_dgemm.argtypes = [ctypes.c_void_p]
     lib.register_dgemm.restype = None
     lib.register_dgemm(dgemm_ptr)

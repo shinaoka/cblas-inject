@@ -46,17 +46,17 @@ def main():
     lib_dir = os.path.join(script_dir, "../../target/release")
 
     if sys.platform == "darwin":
-        lib_path = os.path.join(lib_dir, "libcblas_runtime.dylib")
+        lib_path = os.path.join(lib_dir, "libcblas_inject.dylib")
     elif sys.platform == "linux":
-        lib_path = os.path.join(lib_dir, "libcblas_runtime.so")
+        lib_path = os.path.join(lib_dir, "libcblas_inject.so")
     elif sys.platform == "win32":
-        lib_path = os.path.join(lib_dir, "cblas_runtime.dll")
+        lib_path = os.path.join(lib_dir, "cblas_inject.dll")
     else:
         raise RuntimeError(f"Unsupported platform: {sys.platform}")
 
-    # Load cblas-runtime library
+    # Load cblas-inject library
     lib = ctypes.CDLL(lib_path)
-    print(f"Loaded cblas-runtime library from {lib_path}")
+    print(f"Loaded cblas-inject library from {lib_path}")
 
     # Get zdotc function pointer from scipy
     zdotc_ptr = get_blas_func_ptr("zdotc")

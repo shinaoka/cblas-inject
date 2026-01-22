@@ -1,15 +1,15 @@
 [package]
-name = "cblas-runtime"
+name = "cblas-inject"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "CBLAS compatible interface backed by runtime-registered Fortran BLAS function pointers"
-repository = "https://github.com/shinaoka/cblas-runtime"
+repository = "https://github.com/shinaoka/cblas-inject"
 keywords = ["blas", "cblas", "ffi", "linear-algebra", "runtime"]
 categories = ["science", "mathematics", "external-ffi-bindings"]
 
 [lib]
-name = "cblas_runtime"
+name = "cblas_inject"
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]

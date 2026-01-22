@@ -18,8 +18,8 @@
 using LinearAlgebra
 using Libdl
 
-# Path to compiled cblas-runtime library
-const CBLAS_LIB = joinpath(@__DIR__, "../../target/release/libcblas_runtime")
+# Path to compiled cblas-inject library
+const CBLAS_LIB = joinpath(@__DIR__, "../../target/release/libcblas_inject")
 
 # Complex return style constants (must match Rust enum)
 const ComplexReturnStyle_ReturnValue = Int32(0)
@@ -46,7 +46,7 @@ function main()
     interface = detect_blas_interface()
     println("Detected BLAS interface: $interface")
 
-    # Load cblas-runtime library
+    # Load cblas-inject library
     lib = if Sys.isapple()
         dlopen("$(CBLAS_LIB).dylib")
     elseif Sys.islinux()
@@ -57,7 +57,7 @@ function main()
         error("Unsupported platform")
     end
 
-    println("Loaded cblas-runtime library")
+    println("Loaded cblas-inject library")
 
     # Get function pointers from libblastrampoline
     zdotc_ptr = LinearAlgebra.BLAS.lbt_get_forward("zdotc_", interface)

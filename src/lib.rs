@@ -1,4 +1,4 @@
-//! # cblas-runtime
+//! # cblas-inject
 //!
 //! CBLAS/LAPACKE compatible interface backed by Fortran BLAS/LAPACK function pointers.
 //!
@@ -10,7 +10,7 @@
 //! ## Usage
 //!
 //! ```ignore
-//! use cblas_runtime::{register_dgemm, cblas_dgemm, CblasRowMajor, CblasNoTrans};
+//! use cblas_inject::{register_dgemm, cblas_dgemm, CblasRowMajor, CblasNoTrans};
 //!
 //! // Register Fortran dgemm pointer (e.g., from scipy or Julia)
 //! unsafe {

@@ -7,10 +7,10 @@ VPATH = $(OPENBLAS_CTEST)
 CC = cc
 CFLAGS = -DADD_ -DCBLAS -I. -I$(OPENBLAS_CTEST)
 
-# Link cblas-runtime first (provides cblas_* symbols)
+# Link cblas-inject first (provides cblas_* symbols)
 # Then OpenBLAS for Fortran BLAS (drot_, etc.) reference
-RUNTIME_LIB = ../target/release/libcblas_runtime.dylib
-LDFLAGS = -L../target/release -lcblas_runtime -L/opt/homebrew/opt/openblas/lib -lopenblas
+RUNTIME_LIB = ../target/release/libcblas_inject.dylib
+LDFLAGS = -L../target/release -lcblas_inject -L/opt/homebrew/opt/openblas/lib -lopenblas
 
 # BLAS Level 1 test objects
 stestl1o = c_sblas1.o
