@@ -1,9 +1,9 @@
 //! # cblas-inject
 //!
-//! CBLAS/LAPACKE compatible interface backed by Fortran BLAS/LAPACK function pointers.
+//! CBLAS compatible interface backed by Fortran BLAS function pointers.
 //!
 //! This crate allows you to use CBLAS-style functions (with row-major support) while
-//! the actual computation is performed by Fortran BLAS/LAPACK functions provided at runtime.
+//! the actual computation is performed by Fortran BLAS functions provided at runtime.
 //! This is useful for integrating with Python (scipy) or Julia (libblastrampoline) where
 //! Fortran BLAS pointers are available.
 //!
@@ -31,10 +31,6 @@
 //! For BLAS operations (GEMM, etc.), row-major data is handled via argument swapping
 //! without memory copy, following the same approach as OpenBLAS:
 //! <https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c#L489-L537>
-//!
-//! For LAPACK operations (SVD, etc.), explicit transpose copies are required,
-//! following LAPACKE's approach:
-//! <https://github.com/OpenMathLib/OpenBLAS/blob/develop/lapack-netlib/LAPACKE/src/lapacke_dgesvd_work.c#L49-L127>
 
 mod backend;
 mod types;
