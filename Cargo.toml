@@ -20,3 +20,7 @@ openblas-src = { version = "0.10", features = ["system"] }
 [features]
 default = []
 ilp64 = []
+
+[[bench]]
+name = "blas1_overhead"
+harness = false

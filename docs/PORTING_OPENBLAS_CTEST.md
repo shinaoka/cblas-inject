@@ -5,6 +5,104 @@
 This document describes the plan to port OpenBLAS's CBLAS test suite to validate
 cblas-trampoline's CBLAS implementation.
 
+## Implementation Scope
+
+**cblas-trampoline covers the same CBLAS functions as cblas-sys (crates.io/crates/cblas-sys).**
+
+This ensures API compatibility - users can switch from cblas-sys to cblas-trampoline
+by changing imports while keeping the same function signatures.
+
+### Function Count Summary
+
+| Level | Functions | Notes |
+|-------|-----------|-------|
+| BLAS Level 1 | 38 | dot, nrm2, asum, amax, swap, copy, axpy, scal, rot, rotg, rotm, rotmg |
+| BLAS Level 2 | 52 | gemv, gbmv, trmv, tbmv, tpmv, trsv, tbsv, tpsv, symv, sbmv, spmv, ger, syr, spr, syr2, spr2, hemv, hbmv, hpmv, geru, gerc, her, hpr, her2, hpr2 |
+| BLAS Level 3 | 22 | gemm, symm, syrk, syr2k, trmm, trsm, hemm, herk, her2k |
+| **Total** | **112** | All s/d/c/z variants |
+
+### Complete Function List
+
+#### BLAS Level 1 (38 functions)
+
+**Dot products:**
+- `cblas_sdot`, `cblas_ddot` - real dot product
+- `cblas_cdotu_sub`, `cblas_zdotu_sub` - complex dot product (unconjugated)
+- `cblas_cdotc_sub`, `cblas_zdotc_sub` - complex dot product (conjugated)
+- `cblas_sdsdot`, `cblas_dsdot` - extended precision dot product
+
+**Norms and sums:**
+- `cblas_snrm2`, `cblas_dnrm2`, `cblas_scnrm2`, `cblas_dznrm2` - Euclidean norm
+- `cblas_sasum`, `cblas_dasum`, `cblas_scasum`, `cblas_dzasum` - sum of absolute values
+
+**Index of max:**
+- `cblas_isamax`, `cblas_idamax`, `cblas_icamax`, `cblas_izamax`
+
+**Vector operations:**
+- `cblas_sswap`, `cblas_dswap`, `cblas_cswap`, `cblas_zswap` - swap vectors
+- `cblas_scopy`, `cblas_dcopy`, `cblas_ccopy`, `cblas_zcopy` - copy vectors
+- `cblas_saxpy`, `cblas_daxpy`, `cblas_caxpy`, `cblas_zaxpy` - y = αx + y
+- `cblas_sscal`, `cblas_dscal`, `cblas_cscal`, `cblas_zscal` - scale vector
+- `cblas_csscal`, `cblas_zdscal` - scale complex by real
+
+**Rotations (real only):**
+- `cblas_srot`, `cblas_drot` - apply Givens rotation
+- `cblas_srotg`, `cblas_drotg` - generate Givens rotation
+- `cblas_srotm`, `cblas_drotm` - apply modified Givens rotation
+- `cblas_srotmg`, `cblas_drotmg` - generate modified Givens rotation
+
+**Auxiliary:**
+- `cblas_dcabs1`, `cblas_scabs1` - absolute value of complex
+
+#### BLAS Level 2 (52 functions)
+
+**General matrix-vector (4 precisions each):**
+- `cblas_{s,d,c,z}gemv` - general matrix-vector multiply
+- `cblas_{s,d,c,z}gbmv` - general banded matrix-vector multiply
+- `cblas_{s,d,c,z}trmv` - triangular matrix-vector multiply
+- `cblas_{s,d,c,z}tbmv` - triangular banded matrix-vector multiply
+- `cblas_{s,d,c,z}tpmv` - triangular packed matrix-vector multiply
+- `cblas_{s,d,c,z}trsv` - triangular solve
+- `cblas_{s,d,c,z}tbsv` - triangular banded solve
+- `cblas_{s,d,c,z}tpsv` - triangular packed solve
+
+**Symmetric matrix-vector (real only):**
+- `cblas_{s,d}symv` - symmetric matrix-vector multiply
+- `cblas_{s,d}sbmv` - symmetric banded matrix-vector multiply
+- `cblas_{s,d}spmv` - symmetric packed matrix-vector multiply
+
+**Hermitian matrix-vector (complex only):**
+- `cblas_{c,z}hemv` - Hermitian matrix-vector multiply
+- `cblas_{c,z}hbmv` - Hermitian banded matrix-vector multiply
+- `cblas_{c,z}hpmv` - Hermitian packed matrix-vector multiply
+
+**Rank-1/2 updates:**
+- `cblas_{s,d}ger` - real rank-1 update
+- `cblas_{c,z}geru`, `cblas_{c,z}gerc` - complex rank-1 update
+- `cblas_{s,d}syr`, `cblas_{s,d}spr` - symmetric rank-1 update
+- `cblas_{s,d}syr2`, `cblas_{s,d}spr2` - symmetric rank-2 update
+- `cblas_{c,z}her`, `cblas_{c,z}hpr` - Hermitian rank-1 update
+- `cblas_{c,z}her2`, `cblas_{c,z}hpr2` - Hermitian rank-2 update
+
+#### BLAS Level 3 (22 functions)
+
+**All precisions (s/d/c/z):**
+- `cblas_{s,d,c,z}gemm` - general matrix multiply ✅ implemented
+- `cblas_{s,d,c,z}symm` - symmetric matrix multiply (dsymm ✅)
+- `cblas_{s,d,c,z}syrk` - symmetric rank-k update (dsyrk ✅)
+- `cblas_{s,d,c,z}syr2k` - symmetric rank-2k update (dsyr2k ✅)
+- `cblas_{s,d,c,z}trmm` - triangular matrix multiply (dtrmm ✅)
+- `cblas_{s,d,c,z}trsm` - triangular solve (dtrsm ✅)
+
+**Complex only (c/z):**
+- `cblas_{c,z}hemm` - Hermitian matrix multiply
+- `cblas_{c,z}herk` - Hermitian rank-k update
+- `cblas_{c,z}her2k` - Hermitian rank-2k update
+
+#### Auxiliary
+
+- `cblas_xerbla` - error handler
+
 ## Row-Major to Column-Major Conversion
 
 CBLAS supports row-major layout, but Fortran BLAS is column-major only.
@@ -263,14 +361,40 @@ Complex variants add:
 
 Track which CBLAS functions are implemented in cblas-trampoline:
 
-| Level | Precision | Status | Notes |
-|-------|-----------|--------|-------|
-| BLAS3 | D (double) | ✅ gemm | Need: symm, trmm, trsm, syrk, syr2k |
-| BLAS3 | S (single) | ✅ gemm | Need: symm, trmm, trsm, syrk, syr2k |
-| BLAS3 | Z (complex double) | ✅ gemm | Need: symm, trmm, trsm, syrk, syr2k, hemm, herk, her2k |
-| BLAS3 | C (complex single) | ✅ gemm | Need: same as Z |
-| BLAS2 | All | ❌ | Not started |
-| BLAS1 | All | ❌ | Not started |
+### BLAS Level 3 (22 functions)
+
+| Function | s | d | c | z | Notes |
+|----------|---|---|---|---|-------|
+| gemm | ✅ | ✅ | ✅ | ✅ | All precisions done |
+| symm | ❌ | ✅ | ❌ | ❌ | Only dsymm |
+| syrk | ❌ | ✅ | ❌ | ❌ | Only dsyrk |
+| syr2k | ❌ | ✅ | ❌ | ❌ | Only dsyr2k |
+| trmm | ❌ | ✅ | ❌ | ❌ | Only dtrmm |
+| trsm | ❌ | ✅ | ❌ | ❌ | Only dtrsm |
+| hemm | - | - | ❌ | ❌ | Complex only |
+| herk | - | - | ❌ | ❌ | Complex only |
+| her2k | - | - | ❌ | ❌ | Complex only |
+
+### BLAS Level 2 (52 functions)
+
+| Status | Notes |
+|--------|-------|
+| ❌ | Not started |
+
+### BLAS Level 1 (38 functions)
+
+| Status | Notes |
+|--------|-------|
+| ❌ | Not started |
+
+### Summary
+
+| Level | Total | Implemented | Remaining |
+|-------|-------|-------------|-----------|
+| BLAS3 | 22 | 10 | 12 |
+| BLAS2 | 52 | 0 | 52 |
+| BLAS1 | 38 | 0 | 38 |
+| **Total** | **112** | **10** | **102** |
 
 ## ILP64 vs LP64 Support
 
