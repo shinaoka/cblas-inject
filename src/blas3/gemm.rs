@@ -25,8 +25,9 @@ use crate::types::{
 /// - All pointers must be valid and properly aligned
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - dgemm must be registered via `register_dgemm`
+#[no_mangle]
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_dgemm(
+pub unsafe extern "C" fn cblas_dgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
@@ -98,8 +99,9 @@ pub unsafe fn cblas_dgemm(
 /// - All pointers must be valid and properly aligned
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - sgemm must be registered via `register_sgemm`
+#[no_mangle]
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_sgemm(
+pub unsafe extern "C" fn cblas_sgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
@@ -168,8 +170,9 @@ pub unsafe fn cblas_sgemm(
 /// - All pointers must be valid and properly aligned
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - zgemm must be registered via `register_zgemm`
+#[no_mangle]
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_zgemm(
+pub unsafe extern "C" fn cblas_zgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
@@ -238,8 +241,9 @@ pub unsafe fn cblas_zgemm(
 /// - All pointers must be valid and properly aligned
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - cgemm must be registered via `register_cgemm`
+#[no_mangle]
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_cgemm(
+pub unsafe extern "C" fn cblas_cgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,

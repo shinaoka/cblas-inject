@@ -1,2 +1,6 @@
 /target
 Cargo.lock
+
+# ctest build artifacts
+ctest/*.o
+ctest/x*blat*

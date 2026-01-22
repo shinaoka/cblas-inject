@@ -1,68 +1,59 @@
 # Makefile for cblas-trampoline ctest
-#
-# This builds the OpenBLAS-derived CBLAS test suite against cblas-trampoline.
-#
-# Usage:
-#   make           # Build LP64 test binaries
-#   make test      # Run LP64 tests
-#   make ILP64=1   # Build ILP64 test binaries
-#   make clean     # Remove built files
+# Uses test files from extern/OpenBLAS/ctest/
 
-CC ?= cc
-CFLAGS = -O2 -Wall
+OPENBLAS_CTEST = ../extern/OpenBLAS/ctest
+VPATH = $(OPENBLAS_CTEST)
 
-# Fortran symbol naming convention (trailing underscore)
-CFLAGS += -DADD_
+CC = cc
+CFLAGS = -DADD_ -DCBLAS -I. -I$(OPENBLAS_CTEST)
 
-# ILP64 support
-ifdef ILP64
-CFLAGS += -DUSE64BITINT
-SUFFIX = _64
-else
-SUFFIX =
-endif
+# Link cblas-trampoline first (provides cblas_* symbols)
+# Then OpenBLAS for Fortran BLAS (drot_, etc.) reference
+TRAMPOLINE_LIB = ../target/release/libcblas_trampoline.dylib
+LDFLAGS = -L../target/release -lcblas_trampoline -L/opt/homebrew/opt/openblas/lib -lopenblas
 
-# Include paths
-CFLAGS += -I.
+# BLAS Level 1 test objects
+stestl1o = c_sblas1.o
+dtestl1o = c_dblas1.o
+ctestl1o = c_cblas1.o
+ztestl1o = c_zblas1.o
 
-# Library paths
-# cblas-trampoline is linked dynamically or we use the Rust test harness
-# For standalone testing, link against OpenBLAS for the Fortran BLAS backend
-LDFLAGS = -L/usr/local/lib -lopenblas -lm
+# Test drivers
+stestl1_driver = c_sblat1c.o
+dtestl1_driver = c_dblat1c.o
+ctestl1_driver = c_cblat1c.o
+ztestl1_driver = c_zblat1c.o
 
-# Source files
-COMMON_SRCS = auxiliary.c c_xerbla.c constant.c
-DBLAT3_SRCS = c_dblat3c.c c_dblas3.c c_d3chke.c
+.PHONY: all clean test test1 build-trampoline
 
-# Object files
-COMMON_OBJS = $(COMMON_SRCS:.c=.o)
-DBLAT3_OBJS = $(DBLAT3_SRCS:.c=.o)
+all: build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1
 
-# Targets
-.PHONY: all clean test test-dblat3
+build-trampoline:
+	cd .. && cargo build --release --features openblas
 
-all: xdcblat3$(SUFFIX)
-
-xdcblat3$(SUFFIX): $(DBLAT3_OBJS) $(COMMON_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-# Pattern rule for object files
+# Compile sources
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Test targets
-test: test-dblat3
+# BLAS Level 1 test executables
+xscblat1: $(stestl1_driver) $(stestl1o)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
-test-dblat3: xdcblat3$(SUFFIX)
-	./xdcblat3$(SUFFIX) < din3
+xdcblat1: $(dtestl1_driver) $(dtestl1o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+xccblat1: $(ctestl1_driver) $(ctestl1o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+xzcblat1: $(ztestl1_driver) $(ztestl1o)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+test1: all
+	DYLD_LIBRARY_PATH=../target/release ./xscblat1
+	DYLD_LIBRARY_PATH=../target/release ./xdcblat1
+	DYLD_LIBRARY_PATH=../target/release ./xccblat1
+	DYLD_LIBRARY_PATH=../target/release ./xzcblat1
 
 clean:
-	rm -f *.o xdcblat3 xdcblat3_64
-
-# Dependencies
-auxiliary.o: common.h cblas_test.h cblas.h
-c_xerbla.o: common.h cblas_test.h cblas.h
-constant.o: cblas_test.h cblas.h
-c_dblat3c.o: common.h
-c_dblas3.o: common.h cblas_test.h cblas.h
-c_d3chke.o: common.h cblas_test.h cblas.h
+	rm -f xscblat1 xdcblat1 xccblat1 xzcblat1
+	rm -f *.o

@@ -39,12 +39,34 @@
 mod backend;
 mod types;
 
+#[cfg(feature = "openblas")]
+mod autoregister;
+
+pub mod blas1;
 pub mod blas3;
 
 pub use backend::*;
 pub use types::*;
 
 // Re-export commonly used functions at crate root
+// BLAS Level 1
+pub use blas1::dot::{
+    cblas_cdotc_sub, cblas_cdotu_sub, cblas_dasum, cblas_ddot, cblas_dnrm2, cblas_dsdot,
+    cblas_dzasum, cblas_dznrm2, cblas_icamax, cblas_idamax, cblas_isamax, cblas_izamax,
+    cblas_sasum, cblas_scasum, cblas_scnrm2, cblas_sdot, cblas_sdsdot, cblas_snrm2,
+    cblas_zdotc_sub, cblas_zdotu_sub,
+};
+pub use blas1::rot::{
+    cblas_dcabs1, cblas_drot, cblas_drotg, cblas_drotm, cblas_drotmg, cblas_scabs1, cblas_srot,
+    cblas_srotg, cblas_srotm, cblas_srotmg,
+};
+pub use blas1::vector::{
+    cblas_caxpy, cblas_ccopy, cblas_cscal, cblas_csscal, cblas_cswap, cblas_daxpy, cblas_dcopy,
+    cblas_dscal, cblas_dswap, cblas_saxpy, cblas_scopy, cblas_sscal, cblas_sswap, cblas_zaxpy,
+    cblas_zcopy, cblas_zdscal, cblas_zscal, cblas_zswap,
+};
+
+// BLAS Level 3
 pub use blas3::gemm::{cblas_cgemm, cblas_dgemm, cblas_sgemm, cblas_zgemm};
 pub use blas3::symm::cblas_dsymm;
 pub use blas3::syr2k::cblas_dsyr2k;

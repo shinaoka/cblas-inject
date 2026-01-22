@@ -35,14 +35,7 @@ extern "C" {
     fn dscal_(n: *const i32, alpha: *const f64, x: *mut f64, incx: *const i32);
 
     // CBLAS (for comparison)
-    fn cblas_daxpy(
-        n: i32,
-        alpha: f64,
-        x: *const f64,
-        incx: i32,
-        y: *mut f64,
-        incy: i32,
-    );
+    fn cblas_daxpy(n: i32, alpha: f64, x: *const f64, incx: i32, y: *mut f64, incy: i32);
 
     fn cblas_ddot(n: i32, x: *const f64, incx: i32, y: *const f64, incy: i32) -> f64;
 

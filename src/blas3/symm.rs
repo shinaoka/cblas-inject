@@ -22,7 +22,8 @@ use crate::types::{
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - dsymm must be registered via `register_dsymm`
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_dsymm(
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dsymm(
     order: CBLAS_ORDER,
     side: CBLAS_SIDE,
     uplo: CBLAS_UPLO,
@@ -61,18 +62,9 @@ pub unsafe fn cblas_dsymm(
             let side_char = side_to_char(new_side);
             let uplo_char = uplo_to_char(new_uplo);
             dsymm(
-                &side_char,
-                &uplo_char,
-                &n, // swapped
+                &side_char, &uplo_char, &n, // swapped
                 &m, // swapped
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-                &beta,
-                c,
-                &ldc,
+                &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
             );
         }
     }

@@ -22,7 +22,8 @@ use crate::types::{
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - dsyr2k must be registered via `register_dsyr2k`
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_dsyr2k(
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dsyr2k(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
@@ -44,7 +45,18 @@ pub unsafe fn cblas_dsyr2k(
             let uplo_char = uplo_to_char(uplo);
             let trans_char = transpose_to_char(trans);
             dsyr2k(
-                &uplo_char, &trans_char, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
+                &uplo_char,
+                &trans_char,
+                &n,
+                &k,
+                &alpha,
+                a,
+                &lda,
+                b,
+                &ldb,
+                &beta,
+                c,
+                &ldc,
             );
         }
         CblasRowMajor => {
@@ -62,7 +74,18 @@ pub unsafe fn cblas_dsyr2k(
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
             dsyr2k(
-                &uplo_char, &trans_char, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
+                &uplo_char,
+                &trans_char,
+                &n,
+                &k,
+                &alpha,
+                a,
+                &lda,
+                b,
+                &ldb,
+                &beta,
+                c,
+                &ldc,
             );
         }
     }

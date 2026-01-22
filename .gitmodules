@@ -1,0 +1,6 @@
+[submodule "extern/OpenBLAS"]
+	path = extern/OpenBLAS
+	url = https://github.com/OpenMathLib/OpenBLAS.git
+[submodule "extern/libblastrampoline"]
+	path = extern/libblastrampoline
+	url = https://github.com/JuliaLinearAlgebra/libblastrampoline.git

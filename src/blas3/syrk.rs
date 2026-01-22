@@ -22,7 +22,8 @@ use crate::types::{
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - dsyrk must be registered via `register_dsyrk`
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_dsyrk(
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dsyrk(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
@@ -42,7 +43,16 @@ pub unsafe fn cblas_dsyrk(
             let uplo_char = uplo_to_char(uplo);
             let trans_char = transpose_to_char(trans);
             dsyrk(
-                &uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc,
+                &uplo_char,
+                &trans_char,
+                &n,
+                &k,
+                &alpha,
+                a,
+                &lda,
+                &beta,
+                c,
+                &ldc,
             );
         }
         CblasRowMajor => {
@@ -61,7 +71,16 @@ pub unsafe fn cblas_dsyrk(
             let uplo_char = uplo_to_char(new_uplo);
             let trans_char = transpose_to_char(new_trans);
             dsyrk(
-                &uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc,
+                &uplo_char,
+                &trans_char,
+                &n,
+                &k,
+                &alpha,
+                a,
+                &lda,
+                &beta,
+                c,
+                &ldc,
             );
         }
     }

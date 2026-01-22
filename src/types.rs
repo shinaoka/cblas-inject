@@ -122,3 +122,20 @@ pub(crate) fn side_to_char(side: CBLAS_SIDE) -> c_char {
         CblasRight => b'R' as c_char,
     }
 }
+
+/// Complex return value ABI convention for Fortran BLAS functions.
+///
+/// Fortran complex function return values have two ABIs:
+/// - **ReturnValue**: Complex returned via register (OpenBLAS, MKL intel, BLIS)
+/// - **HiddenArgument**: Complex written to first pointer argument (gfortran default, MKL gf)
+///
+/// Only 4 BLAS functions are affected: `cdotu`, `cdotc`, `zdotu`, `zdotc`
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ComplexReturnStyle {
+    /// Complex returned via register (OpenBLAS, MKL intel, BLIS)
+    #[default]
+    ReturnValue = 0,
+    /// Complex written to first pointer argument (gfortran default, MKL gf)
+    HiddenArgument = 1,
+}

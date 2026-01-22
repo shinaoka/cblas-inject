@@ -10,9 +10,9 @@
 
 use crate::backend::get_dtrmm;
 use crate::types::{
-    blasint, diag_to_char, side_to_char, transpose_to_char, uplo_to_char, CblasColMajor,
-    CblasLeft, CblasLower, CblasRight, CblasRowMajor, CblasUpper, CBLAS_DIAG, CBLAS_ORDER,
-    CBLAS_SIDE, CBLAS_TRANSPOSE, CBLAS_UPLO,
+    blasint, diag_to_char, side_to_char, transpose_to_char, uplo_to_char, CblasColMajor, CblasLeft,
+    CblasLower, CblasRight, CblasRowMajor, CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_SIDE,
+    CBLAS_TRANSPOSE, CBLAS_UPLO,
 };
 
 /// Double precision triangular matrix multiply.
@@ -23,7 +23,8 @@ use crate::types::{
 /// - Matrix dimensions and leading dimensions must be consistent
 /// - dtrmm must be registered via `register_dtrmm`
 #[allow(clippy::too_many_arguments)]
-pub unsafe fn cblas_dtrmm(
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dtrmm(
     order: CBLAS_ORDER,
     side: CBLAS_SIDE,
     uplo: CBLAS_UPLO,
@@ -46,7 +47,17 @@ pub unsafe fn cblas_dtrmm(
             let trans_char = transpose_to_char(trans);
             let diag_char = diag_to_char(diag);
             dtrmm(
-                &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b, &ldb,
+                &side_char,
+                &uplo_char,
+                &trans_char,
+                &diag_char,
+                &m,
+                &n,
+                &alpha,
+                a,
+                &lda,
+                b,
+                &ldb,
             );
         }
         CblasRowMajor => {
