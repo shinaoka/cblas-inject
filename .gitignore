@@ -1,0 +1,9 @@
+/target
+Cargo.lock
+
+# ctest build artifacts
+ctest/*.o
+ctest/x*blat*
+
+# External dependencies (cloned on demand or local dev symlinks)
+/extern/
