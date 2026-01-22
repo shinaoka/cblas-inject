@@ -177,7 +177,8 @@ All functions from [cblas-sys](https://crates.io/crates/cblas-sys) are implement
 
 ## License
 
-MIT OR Apache-2.0
+MIT OR Apache-2.0. This project also includes portions derived from OpenBLAS
+under the BSD-3-Clause license. See `THIRD_PARTY_NOTICES.md`.
 
 ## Acknowledgments
 
