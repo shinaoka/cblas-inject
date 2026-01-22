@@ -68,12 +68,25 @@ pub use blas1::vector::{
 };
 
 // BLAS Level 2
+pub use blas2::gbmv::{cblas_cgbmv, cblas_dgbmv, cblas_sgbmv, cblas_zgbmv};
 pub use blas2::gemv::{cblas_cgemv, cblas_dgemv, cblas_sgemv, cblas_zgemv};
 pub use blas2::ger::{cblas_cgerc, cblas_cgeru, cblas_dger, cblas_sger, cblas_zgerc, cblas_zgeru};
+pub use blas2::sbmv::{cblas_chbmv, cblas_dsbmv, cblas_ssbmv, cblas_zhbmv};
 pub use blas2::symv::{cblas_chemv, cblas_dsymv, cblas_ssymv, cblas_zhemv};
 pub use blas2::syr::{
     cblas_cher, cblas_cher2, cblas_dsyr, cblas_dsyr2, cblas_ssyr, cblas_ssyr2, cblas_zher,
     cblas_zher2,
+};
+pub use blas2::spmv::{cblas_chpmv, cblas_dspmv, cblas_sspmv, cblas_zhpmv};
+pub use blas2::spr::{
+    cblas_chpr, cblas_chpr2, cblas_dspr, cblas_dspr2, cblas_sspr, cblas_sspr2, cblas_zhpr,
+    cblas_zhpr2,
+};
+pub use blas2::tbmv::{cblas_ctbmv, cblas_dtbmv, cblas_stbmv, cblas_ztbmv};
+pub use blas2::tbsv::{cblas_ctbsv, cblas_dtbsv, cblas_stbsv, cblas_ztbsv};
+pub use blas2::tpmv::{
+    cblas_ctpmv, cblas_ctpsv, cblas_dtpmv, cblas_dtpsv, cblas_stpmv, cblas_stpsv, cblas_ztpmv,
+    cblas_ztpsv,
 };
 pub use blas2::trmv::{cblas_ctrmv, cblas_dtrmv, cblas_strmv, cblas_ztrmv};
 pub use blas2::trsv::{cblas_ctrsv, cblas_dtrsv, cblas_strsv, cblas_ztrsv};

@@ -19,10 +19,10 @@ ctestl1o = c_cblas1.o
 ztestl1o = c_zblas1.o
 
 # BLAS Level 2 test objects
-stestl2o = c_sblas2.o c_s2chke.o auxiliary.o c_xerbla.o
-dtestl2o = c_dblas2.o c_d2chke.o auxiliary.o c_xerbla.o
-ctestl2o = c_cblas2.o c_c2chke.o auxiliary.o c_xerbla.o
-ztestl2o = c_zblas2.o c_z2chke.o auxiliary.o c_xerbla.o
+stestl2o = c_sblas2.o c_s2chke.o auxiliary.o c_xerbla.o constant.o
+dtestl2o = c_dblas2.o c_d2chke.o auxiliary.o c_xerbla.o constant.o
+ctestl2o = c_cblas2.o c_c2chke.o auxiliary.o c_xerbla.o constant.o
+ztestl2o = c_zblas2.o c_z2chke.o auxiliary.o c_xerbla.o constant.o
 
 # Test drivers
 stestl1_driver = c_sblat1c.o

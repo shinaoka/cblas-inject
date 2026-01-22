@@ -357,6 +357,68 @@ extern "C" {
         incy: *const i32,
     );
 
+    // BLAS Level 2 - General band matrix-vector multiply
+    fn sgbmv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        kl: *const i32,
+        ku: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        beta: *const f32,
+        y: *mut f32,
+        incy: *const i32,
+    );
+    fn dgbmv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        kl: *const i32,
+        ku: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        x: *const f64,
+        incx: *const i32,
+        beta: *const f64,
+        y: *mut f64,
+        incy: *const i32,
+    );
+    fn cgbmv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        kl: *const i32,
+        ku: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+    fn zgbmv_(
+        trans: *const i8,
+        m: *const i32,
+        n: *const i32,
+        kl: *const i32,
+        ku: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+
     // BLAS Level 2 - Symmetric/Hermitian matrix-vector
     fn ssymv_(
         uplo: *const i8,
@@ -397,6 +459,60 @@ extern "C" {
     fn zhemv_(
         uplo: *const i8,
         n: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian band matrix-vector
+    fn ssbmv_(
+        uplo: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f32,
+        a: *const f32,
+        lda: *const i32,
+        x: *const f32,
+        incx: *const i32,
+        beta: *const f32,
+        y: *mut f32,
+        incy: *const i32,
+    );
+    fn dsbmv_(
+        uplo: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const f64,
+        a: *const f64,
+        lda: *const i32,
+        x: *const f64,
+        incx: *const i32,
+        beta: *const f64,
+        y: *mut f64,
+        incy: *const i32,
+    );
+    fn chbmv_(
+        uplo: *const i8,
+        n: *const i32,
+        k: *const i32,
+        alpha: *const (),
+        a: *const (),
+        lda: *const i32,
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+    fn zhbmv_(
+        uplo: *const i8,
+        n: *const i32,
+        k: *const i32,
         alpha: *const (),
         a: *const (),
         lda: *const i32,
@@ -485,6 +601,98 @@ extern "C" {
         trans: *const i8,
         diag: *const i8,
         n: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular band matrix-vector multiply
+    fn stbmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const f32,
+        lda: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtbmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const f64,
+        lda: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctbmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztbmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular band solve
+    fn stbsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const f32,
+        lda: *const i32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtbsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const f64,
+        lda: *const i32,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctbsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
+        a: *const (),
+        lda: *const i32,
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztbsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        k: *const i32,
         a: *const (),
         lda: *const i32,
         x: *mut (),
@@ -642,6 +850,204 @@ extern "C" {
         a: *mut (),
         lda: *const i32,
     );
+
+    // BLAS Level 2 - Symmetric/Hermitian packed matrix-vector multiply
+    fn sspmv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        ap: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        beta: *const f32,
+        y: *mut f32,
+        incy: *const i32,
+    );
+    fn dspmv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        ap: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        beta: *const f64,
+        y: *mut f64,
+        incy: *const i32,
+    );
+    fn chpmv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        ap: *const (),
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+    fn zhpmv_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        ap: *const (),
+        x: *const (),
+        incx: *const i32,
+        beta: *const (),
+        y: *mut (),
+        incy: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular packed matrix-vector multiply
+    fn stpmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const f32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtpmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const f64,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctpmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const (),
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztpmv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const (),
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Triangular packed solve
+    fn stpsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const f32,
+        x: *mut f32,
+        incx: *const i32,
+    );
+    fn dtpsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const f64,
+        x: *mut f64,
+        incx: *const i32,
+    );
+    fn ctpsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const (),
+        x: *mut (),
+        incx: *const i32,
+    );
+    fn ztpsv_(
+        uplo: *const i8,
+        trans: *const i8,
+        diag: *const i8,
+        n: *const i32,
+        ap: *const (),
+        x: *mut (),
+        incx: *const i32,
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian packed rank-1 update
+    fn sspr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        ap: *mut f32,
+    );
+    fn dspr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        ap: *mut f64,
+    );
+    fn chpr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const (),
+        incx: *const i32,
+        ap: *mut (),
+    );
+    fn zhpr_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const (),
+        incx: *const i32,
+        ap: *mut (),
+    );
+
+    // BLAS Level 2 - Symmetric/Hermitian packed rank-2 update
+    fn sspr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f32,
+        x: *const f32,
+        incx: *const i32,
+        y: *const f32,
+        incy: *const i32,
+        ap: *mut f32,
+    );
+    fn dspr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const f64,
+        x: *const f64,
+        incx: *const i32,
+        y: *const f64,
+        incy: *const i32,
+        ap: *mut f64,
+    );
+    fn chpr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        ap: *mut (),
+    );
+    fn zhpr2_(
+        uplo: *const i8,
+        n: *const i32,
+        alpha: *const (),
+        x: *const (),
+        incx: *const i32,
+        y: *const (),
+        incy: *const i32,
+        ap: *mut (),
+    );
 }
 
 #[ctor::ctor]
@@ -710,11 +1116,23 @@ fn register_all_blas() {
         register_cgemv(std::mem::transmute(cgemv_ as *const ()));
         register_zgemv(std::mem::transmute(zgemv_ as *const ()));
 
+        // BLAS Level 2 - GBMV
+        register_sgbmv(std::mem::transmute(sgbmv_ as *const ()));
+        register_dgbmv(std::mem::transmute(dgbmv_ as *const ()));
+        register_cgbmv(std::mem::transmute(cgbmv_ as *const ()));
+        register_zgbmv(std::mem::transmute(zgbmv_ as *const ()));
+
         // BLAS Level 2 - SYMV/HEMV
         register_ssymv(std::mem::transmute(ssymv_ as *const ()));
         register_dsymv(std::mem::transmute(dsymv_ as *const ()));
         register_chemv(std::mem::transmute(chemv_ as *const ()));
         register_zhemv(std::mem::transmute(zhemv_ as *const ()));
+
+        // BLAS Level 2 - SBMV/HBMV (symmetric/hermitian band matrix-vector)
+        register_ssbmv(std::mem::transmute(ssbmv_ as *const ()));
+        register_dsbmv(std::mem::transmute(dsbmv_ as *const ()));
+        register_chbmv(std::mem::transmute(chbmv_ as *const ()));
+        register_zhbmv(std::mem::transmute(zhbmv_ as *const ()));
 
         // BLAS Level 2 - TRMV
         register_strmv(std::mem::transmute(strmv_ as *const ()));
@@ -727,6 +1145,18 @@ fn register_all_blas() {
         register_dtrsv(std::mem::transmute(dtrsv_ as *const ()));
         register_ctrsv(std::mem::transmute(ctrsv_ as *const ()));
         register_ztrsv(std::mem::transmute(ztrsv_ as *const ()));
+
+        // BLAS Level 2 - TBMV (triangular band matrix-vector multiply)
+        register_stbmv(std::mem::transmute(stbmv_ as *const ()));
+        register_dtbmv(std::mem::transmute(dtbmv_ as *const ()));
+        register_ctbmv(std::mem::transmute(ctbmv_ as *const ()));
+        register_ztbmv(std::mem::transmute(ztbmv_ as *const ()));
+
+        // BLAS Level 2 - TBSV (triangular band solve)
+        register_stbsv(std::mem::transmute(stbsv_ as *const ()));
+        register_dtbsv(std::mem::transmute(dtbsv_ as *const ()));
+        register_ctbsv(std::mem::transmute(ctbsv_ as *const ()));
+        register_ztbsv(std::mem::transmute(ztbsv_ as *const ()));
 
         // BLAS Level 2 - GER (rank-1 update)
         register_sger(std::mem::transmute(sger_ as *const ()));
@@ -747,6 +1177,36 @@ fn register_all_blas() {
         register_dsyr2(std::mem::transmute(dsyr2_ as *const ()));
         register_cher2(std::mem::transmute(cher2_ as *const ()));
         register_zher2(std::mem::transmute(zher2_ as *const ()));
+
+        // BLAS Level 2 - SPMV/HPMV (symmetric/hermitian packed matrix-vector multiply)
+        register_sspmv(std::mem::transmute(sspmv_ as *const ()));
+        register_dspmv(std::mem::transmute(dspmv_ as *const ()));
+        register_chpmv(std::mem::transmute(chpmv_ as *const ()));
+        register_zhpmv(std::mem::transmute(zhpmv_ as *const ()));
+
+        // BLAS Level 2 - TPMV (triangular packed matrix-vector multiply)
+        register_stpmv(std::mem::transmute(stpmv_ as *const ()));
+        register_dtpmv(std::mem::transmute(dtpmv_ as *const ()));
+        register_ctpmv(std::mem::transmute(ctpmv_ as *const ()));
+        register_ztpmv(std::mem::transmute(ztpmv_ as *const ()));
+
+        // BLAS Level 2 - TPSV (triangular packed solve)
+        register_stpsv(std::mem::transmute(stpsv_ as *const ()));
+        register_dtpsv(std::mem::transmute(dtpsv_ as *const ()));
+        register_ctpsv(std::mem::transmute(ctpsv_ as *const ()));
+        register_ztpsv(std::mem::transmute(ztpsv_ as *const ()));
+
+        // BLAS Level 2 - SPR/HPR (symmetric/hermitian packed rank-1 update)
+        register_sspr(std::mem::transmute(sspr_ as *const ()));
+        register_dspr(std::mem::transmute(dspr_ as *const ()));
+        register_chpr(std::mem::transmute(chpr_ as *const ()));
+        register_zhpr(std::mem::transmute(zhpr_ as *const ()));
+
+        // BLAS Level 2 - SPR2/HPR2 (symmetric/hermitian packed rank-2 update)
+        register_sspr2(std::mem::transmute(sspr2_ as *const ()));
+        register_dspr2(std::mem::transmute(dspr2_ as *const ()));
+        register_chpr2(std::mem::transmute(chpr2_ as *const ()));
+        register_zhpr2(std::mem::transmute(zhpr2_ as *const ()));
 
         // BLAS Level 3
         register_sgemm(std::mem::transmute(sgemm_ as *const ()));
