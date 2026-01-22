@@ -35,14 +35,23 @@ jobs:
       - name: Run BLAS Level 1 tests
         working-directory: ctest
         run: make test1
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/target/release
+          DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/release
 
       - name: Run BLAS Level 2 tests
         working-directory: ctest
         run: make test2
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/target/release
+          DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/release
 
       - name: Run BLAS Level 3 tests
         working-directory: ctest
         run: make test3
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/target/release
+          DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/release
 
   julia-openblas:
     name: Julia + OpenBLAS
