@@ -11,7 +11,7 @@ This crate provides CBLAS-style functions (with row-major support) that internal
 
 ## Features
 
-- **cblas-sys compatible**: All 120 functions from cblas-sys are implemented
+- **cblas-sys compatible**: All 120 functions from cblas-sys are implemented. Can serve as a drop-in CBLAS provider for crates that depend on cblas-sys (see [below](#use-with-cblas-sys))
 - **Row-major support**: Handles row-major (C-style) data without memory copy for BLAS operations
 - **Partial registration**: Only register the functions you need
 - **Zero runtime overhead**: Uses `OnceLock` for minimal overhead (~0.5ns per call)
@@ -109,6 +109,47 @@ lib.register_dgemm(dgemm_ptr)
 # Now use cblas_dgemm
 # ... call lib.cblas_dgemm with ctypes
 ```
+
+### Use with cblas-sys
+
+cblas-inject can serve as the CBLAS implementation for crates that depend on
+[cblas-sys](https://crates.io/crates/cblas-sys). Since cblas-inject exports
+all CBLAS functions as `#[no_mangle] pub extern "C"` symbols, the linker
+resolves cblas-sys's `extern "C"` declarations to cblas-inject's implementations
+automatically.
+
+```toml
+[dependencies]
+cblas-sys = "0.1"
+cblas-inject = "0.1"
+```
+
+```rust
+use cblas_inject::register_dgemm;
+
+// Register Fortran BLAS pointer (from Python/Julia/etc.)
+unsafe { register_dgemm(dgemm_ptr); }
+
+// Now cblas_sys::cblas_dgemm calls cblas-inject's implementation
+unsafe {
+    cblas_sys::cblas_dgemm(
+        cblas_sys::CblasRowMajor,
+        cblas_sys::CblasNoTrans,
+        cblas_sys::CblasNoTrans,
+        m, n, k, alpha,
+        a.as_ptr(), lda,
+        b.as_ptr(), ldb,
+        beta,
+        c.as_mut_ptr(), ldc,
+    );
+}
+```
+
+This is useful when a third-party crate depends on cblas-sys and you want
+cblas-inject to provide the underlying CBLAS implementation.
+
+**Note:** Do not link another native CBLAS library (e.g., via `openblas-src`)
+at the same time, as this would cause duplicate symbol errors.
 
 ## Row-Major Handling
 
