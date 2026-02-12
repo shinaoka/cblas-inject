@@ -27,6 +27,11 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install openblas
 
+      - name: cblas-sys compatibility test
+        run: cargo test --test cblas_sys_compat
+        env:
+          LIBRARY_PATH: /opt/homebrew/opt/openblas/lib:/usr/local/opt/openblas/lib
+
       - name: Run Rust tests
         run: cargo test --release
         env:
