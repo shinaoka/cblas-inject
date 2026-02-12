@@ -61,7 +61,8 @@ dtestl3_driver = c_dblat3c.o
 ctestl3_driver = c_cblat3c.o
 ztestl3_driver = c_zblat3c.o
 
-.PHONY: all clean test test1 test2 test3 build-trampoline clone-openblas
+.PHONY: all clean test test1 test2 test3 build-trampoline clone-openblas \
+       _run-test1 _run-test2 _run-test3
 
 all: $(OPENBLAS_DIR) build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1 xscblat2 xdcblat2 xccblat2 xzcblat2 xscblat3 xdcblat3 xccblat3 xzcblat3
 
@@ -113,19 +114,31 @@ xccblat3: $(ctestl3_driver) $(ctestl3o)
 xzcblat3: $(ztestl3_driver) $(ztestl3o)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-test1: build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1
+# Use recursive make so that VPATH can find .c files after OpenBLAS is cloned.
+# Make resolves the full dependency graph before executing any commands, so
+# VPATH directories must exist at parse time for pattern rules to work.
+test1: $(OPENBLAS_DIR) build-trampoline
+	$(MAKE) _run-test1
+
+_run-test1: xscblat1 xdcblat1 xccblat1 xzcblat1
 	./xscblat1
 	./xdcblat1
 	./xccblat1
 	./xzcblat1
 
-test2: build-trampoline xscblat2 xdcblat2 xccblat2 xzcblat2
+test2: $(OPENBLAS_DIR) build-trampoline
+	$(MAKE) _run-test2
+
+_run-test2: xscblat2 xdcblat2 xccblat2 xzcblat2
 	./xscblat2 < $(OPENBLAS_CTEST)/sin2
 	./xdcblat2 < $(OPENBLAS_CTEST)/din2
 	./xccblat2 < $(OPENBLAS_CTEST)/cin2
 	./xzcblat2 < $(OPENBLAS_CTEST)/zin2
 
-test3: build-trampoline xscblat3 xdcblat3 xccblat3 xzcblat3
+test3: $(OPENBLAS_DIR) build-trampoline
+	$(MAKE) _run-test3
+
+_run-test3: xscblat3 xdcblat3 xccblat3 xzcblat3
 	./xscblat3 < $(OPENBLAS_CTEST)/sin3
 	./xdcblat3 < $(OPENBLAS_CTEST)/din3
 	./xccblat3 < $(OPENBLAS_CTEST)/cin3
