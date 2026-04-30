@@ -95,7 +95,9 @@ pub use blas2::trmv::{cblas_ctrmv, cblas_dtrmv, cblas_strmv, cblas_ztrmv};
 pub use blas2::trsv::{cblas_ctrsv, cblas_dtrsv, cblas_strsv, cblas_ztrsv};
 
 // BLAS Level 3
-pub use blas3::gemm::{cblas_cgemm, cblas_dgemm, cblas_sgemm, cblas_zgemm};
+pub use blas3::gemm::{
+    cblas_cgemm, cblas_dgemm, cblas_dgemm_64, cblas_sgemm, cblas_zgemm, cblas_zgemm_64,
+};
 pub use blas3::hemm::{cblas_chemm, cblas_zhemm};
 pub use blas3::her2k::{cblas_cher2k, cblas_zher2k};
 pub use blas3::herk::{cblas_cherk, cblas_zherk};

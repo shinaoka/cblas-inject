@@ -4587,6 +4587,20 @@ pub(crate) fn get_dgemm_for_current_cblas() -> DgemmProvider {
 }
 
 #[inline]
+pub(crate) fn get_dgemm_for_ilp64_cblas() -> DgemmProvider {
+    if let Some(f) = DGEMM_ILP64.get() {
+        DgemmProvider::Ilp64(*f)
+    } else if let Some(f) = DGEMM_LP64.get() {
+        DgemmProvider::Lp64(*f)
+    } else {
+        panic!(
+            "dgemm not registered for ILP64 CBLAS ABI: call register_dgemm(), \
+             cblas_inject_register_dgemm_ilp64(), or cblas_inject_register_dgemm_lp64() first"
+        );
+    }
+}
+
+#[inline]
 pub(crate) fn get_sgemm() -> SgemmFnPtr {
     *SGEMM
         .get()
@@ -4626,6 +4640,20 @@ pub(crate) fn get_zgemm_for_current_cblas() -> ZgemmProvider {
     } else {
         panic!(
             "zgemm not registered for current CBLAS ABI: call register_zgemm(), \
+             cblas_inject_register_zgemm_ilp64(), or cblas_inject_register_zgemm_lp64() first"
+        );
+    }
+}
+
+#[inline]
+pub(crate) fn get_zgemm_for_ilp64_cblas() -> ZgemmProvider {
+    if let Some(f) = ZGEMM_ILP64.get() {
+        ZgemmProvider::Ilp64(*f)
+    } else if let Some(f) = ZGEMM_LP64.get() {
+        ZgemmProvider::Lp64(*f)
+    } else {
+        panic!(
+            "zgemm not registered for ILP64 CBLAS ABI: call register_zgemm(), \
              cblas_inject_register_zgemm_ilp64(), or cblas_inject_register_zgemm_lp64() first"
         );
     }

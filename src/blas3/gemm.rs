@@ -14,17 +14,19 @@ use std::ffi::c_char;
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_cgemm, get_dgemm_for_current_cblas, get_sgemm, get_zgemm_for_current_cblas, BlasInt32,
-    BlasInt64, DgemmProvider, ZgemmProvider,
+    get_cgemm, get_dgemm_for_current_cblas, get_dgemm_for_ilp64_cblas, get_sgemm,
+    get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, DgemmProvider,
+    ZgemmProvider,
 };
 use crate::types::{
     blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
-#[cfg(feature = "ilp64")]
 use crate::xerbla::cblas_xerbla;
 
 const CBLAS_DGEMM_ROUTINE: &[u8] = b"cblas_dgemm\0";
 const CBLAS_ZGEMM_ROUTINE: &[u8] = b"cblas_zgemm\0";
+const CBLAS_DGEMM_64_ROUTINE: &[u8] = b"cblas_dgemm_64\0";
+const CBLAS_ZGEMM_64_ROUTINE: &[u8] = b"cblas_zgemm_64\0";
 
 #[cfg(not(feature = "ilp64"))]
 #[inline]
@@ -56,6 +58,43 @@ fn to_ilp64(value: blasint) -> BlasInt64 {
 #[inline]
 fn to_ilp64(value: blasint) -> BlasInt64 {
     BlasInt64::from(value)
+}
+
+#[inline]
+fn to_lp64_i64(routine: &[u8], param: blasint, value: i64) -> Option<BlasInt32> {
+    match BlasInt32::try_from(value) {
+        Ok(value) => Some(value),
+        Err(_) => {
+            unsafe {
+                cblas_xerbla(param, routine.as_ptr().cast(), std::ptr::null());
+            }
+            None
+        }
+    }
+}
+
+#[inline]
+fn check_lp64_gemm_i64(
+    routine: &[u8],
+    m: i64,
+    n: i64,
+    k: i64,
+    lda: i64,
+    ldb: i64,
+    ldc: i64,
+) -> bool {
+    to_lp64_i64(routine, 4, m).is_some()
+        && to_lp64_i64(routine, 5, n).is_some()
+        && to_lp64_i64(routine, 6, k).is_some()
+        && to_lp64_i64(routine, 9, lda).is_some()
+        && to_lp64_i64(routine, 11, ldb).is_some()
+        && to_lp64_i64(routine, 14, ldc).is_some()
+}
+
+#[inline]
+fn unchecked_lp64_i64(value: i64) -> BlasInt32 {
+    debug_assert!(BlasInt32::try_from(value).is_ok());
+    value as BlasInt32
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -180,6 +219,84 @@ unsafe fn call_zgemm_provider(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+unsafe fn call_dgemm_provider_i64(
+    provider: DgemmProvider,
+    transa: c_char,
+    transb: c_char,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: f64,
+    a: *const f64,
+    lda: i64,
+    b: *const f64,
+    ldb: i64,
+    beta: f64,
+    c: *mut f64,
+    ldc: i64,
+) {
+    match provider {
+        DgemmProvider::Lp64(dgemm) => {
+            let m = unchecked_lp64_i64(m);
+            let n = unchecked_lp64_i64(n);
+            let k = unchecked_lp64_i64(k);
+            let lda = unchecked_lp64_i64(lda);
+            let ldb = unchecked_lp64_i64(ldb);
+            let ldc = unchecked_lp64_i64(ldc);
+            unsafe {
+                dgemm(
+                    &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
+                );
+            }
+        }
+        DgemmProvider::Ilp64(dgemm) => unsafe {
+            dgemm(
+                &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
+            );
+        },
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+unsafe fn call_zgemm_provider_i64(
+    provider: ZgemmProvider,
+    transa: c_char,
+    transb: c_char,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: i64,
+    b: *const Complex64,
+    ldb: i64,
+    beta: *const Complex64,
+    c: *mut Complex64,
+    ldc: i64,
+) {
+    match provider {
+        ZgemmProvider::Lp64(zgemm) => {
+            let m = unchecked_lp64_i64(m);
+            let n = unchecked_lp64_i64(n);
+            let k = unchecked_lp64_i64(k);
+            let lda = unchecked_lp64_i64(lda);
+            let ldb = unchecked_lp64_i64(ldb);
+            let ldc = unchecked_lp64_i64(ldc);
+            unsafe {
+                zgemm(
+                    &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
+                );
+            }
+        }
+        ZgemmProvider::Ilp64(zgemm) => unsafe {
+            zgemm(
+                &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
+            );
+        },
+    }
+}
+
 /// Double precision general matrix multiply.
 ///
 /// Computes: C = alpha * op(A) * op(B) + beta * C
@@ -248,6 +365,86 @@ pub unsafe extern "C" fn cblas_dgemm(
                 ldb, // swapped: lda -> ldb
                 a,   // swapped: b -> a
                 lda, // swapped: ldb -> lda
+                beta,
+                c,
+                ldc,
+            );
+        }
+    }
+}
+
+/// Double precision general matrix multiply with ILP64 CBLAS integer ABI.
+///
+/// This symbol always accepts 64-bit BLAS integer arguments, independent of the
+/// crate's `ilp64` feature.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - dgemm must be registered via `register_dgemm` or the C registration API
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_dgemm_64(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: f64,
+    a: *const f64,
+    lda: i64,
+    b: *const f64,
+    ldb: i64,
+    beta: f64,
+    c: *mut f64,
+    ldc: i64,
+) {
+    let dgemm = get_dgemm_for_ilp64_cblas();
+
+    if matches!(dgemm, DgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_DGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
+    match order {
+        CblasColMajor => {
+            let transa_char = transpose_to_char(transa);
+            let transb_char = transpose_to_char(transb);
+            call_dgemm_provider_i64(
+                dgemm,
+                transa_char,
+                transb_char,
+                m,
+                n,
+                k,
+                alpha,
+                a,
+                lda,
+                b,
+                ldb,
+                beta,
+                c,
+                ldc,
+            );
+        }
+        CblasRowMajor => {
+            let transa_char = transpose_to_char(transb);
+            let transb_char = transpose_to_char(transa);
+            call_dgemm_provider_i64(
+                dgemm,
+                transa_char,
+                transb_char,
+                n,
+                m,
+                k,
+                alpha,
+                b,
+                ldb,
+                a,
+                lda,
                 beta,
                 c,
                 ldc,
@@ -381,6 +578,87 @@ pub unsafe extern "C" fn cblas_zgemm(
             let transa_char = transpose_to_char(transb);
             let transb_char = transpose_to_char(transa);
             call_zgemm_provider(
+                zgemm,
+                transa_char,
+                transb_char,
+                n,
+                m,
+                k,
+                alpha,
+                b,
+                ldb,
+                a,
+                lda,
+                beta,
+                c,
+                ldc,
+            );
+        }
+    }
+}
+
+/// Double precision complex general matrix multiply with ILP64 CBLAS integer ABI.
+///
+/// This symbol always accepts 64-bit BLAS integer arguments, independent of the
+/// crate's `ilp64` feature. Complex scalar parameters follow CBLAS and remain
+/// pointer arguments.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - zgemm must be registered via `register_zgemm` or the C registration API
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_zgemm_64(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: i64,
+    b: *const Complex64,
+    ldb: i64,
+    beta: *const Complex64,
+    c: *mut Complex64,
+    ldc: i64,
+) {
+    let zgemm = get_zgemm_for_ilp64_cblas();
+
+    if matches!(zgemm, ZgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_ZGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
+    match order {
+        CblasColMajor => {
+            let transa_char = transpose_to_char(transa);
+            let transb_char = transpose_to_char(transb);
+            call_zgemm_provider_i64(
+                zgemm,
+                transa_char,
+                transb_char,
+                m,
+                n,
+                k,
+                alpha,
+                a,
+                lda,
+                b,
+                ldb,
+                beta,
+                c,
+                ldc,
+            );
+        }
+        CblasRowMajor => {
+            let transa_char = transpose_to_char(transb);
+            let transb_char = transpose_to_char(transa);
+            call_zgemm_provider_i64(
                 zgemm,
                 transa_char,
                 transb_char,
