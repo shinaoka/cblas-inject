@@ -8,11 +8,8 @@
 # 3. Call CBLAS-style functions
 #
 # Prerequisites:
-#   # For LP64 (32-bit integers):
+#   # Recommended default build:
 #   cargo build --release
-#
-#   # For ILP64 (64-bit integers, typical on modern Julia):
-#   cargo build --release --features ilp64
 #
 # Usage:
 #   julia examples/julia/dgemm_example.jl
@@ -28,22 +25,26 @@ const CblasColMajor = 102
 const CblasNoTrans = 111
 
 """
-Detect whether the loaded BLAS uses ILP64 (64-bit integers) or LP64 (32-bit integers).
+Detect whether Julia's BLAS provider uses ILP64 (64-bit integers) or LP64 (32-bit integers).
 """
 function detect_blas_interface()
-    config = LinearAlgebra.BLAS.lbt_get_config()
-    # Check if any loaded library uses ILP64
-    for lib in config.loaded_libs
-        if lib.interface == :ilp64
-            return :ilp64
-        end
-    end
-    return :lp64
+    return LinearAlgebra.BLAS.USE_BLAS64 ? :ilp64 : :lp64
 end
 
 # Determine BLAS interface at load time
 const BLAS_INTERFACE = detect_blas_interface()
-const USE_ILP64 = BLAS_INTERFACE == :ilp64
+
+function register_dgemm(lib, dgemm_ptr, interface)
+    register_name = if interface == :ilp64
+        :cblas_inject_register_dgemm_ilp64
+    else
+        :cblas_inject_register_dgemm_lp64
+    end
+
+    register_fn = dlsym(lib, register_name)
+    status = ccall(register_fn, Cint, (Ptr{Cvoid},), dgemm_ptr)
+    status == 0 || error("cblas-inject registration failed: $status")
+end
 
 function main()
     println("Detected BLAS interface: $BLAS_INTERFACE")
@@ -69,13 +70,13 @@ function main()
         error("Failed to get dgemm_ pointer. Make sure BLAS is properly configured.")
     end
 
-    # Register with cblas-inject
-    register_dgemm = dlsym(lib, :register_dgemm)
-    ccall(register_dgemm, Cvoid, (Ptr{Cvoid},), dgemm_ptr)
+    # Register with the API matching Julia's BLAS provider ABI
+    register_dgemm(lib, dgemm_ptr, BLAS_INTERFACE)
     println("Registered dgemm")
 
     # Get cblas_dgemm symbol
     cblas_dgemm = dlsym(lib, :cblas_dgemm)
+    cblas_int_width = ccall(dlsym(lib, :cblas_inject_blas_int_width), Cint, ())
 
     # Matrix dimensions
     alpha = 1.0
@@ -89,17 +90,17 @@ function main()
 
     # Call cblas_dgemm with column-major layout
     # For column-major: lda >= m, ldb >= k, ldc >= m
-    if USE_ILP64
+    if cblas_int_width == 64
         ccall(
             cblas_dgemm, Cvoid,
-            (Int64, Int64, Int64,        # Order, TransA, TransB
+            (Cint, Cint, Cint,           # Order, TransA, TransB
              Int64, Int64, Int64,        # M, N, K
              Float64,                    # alpha
              Ptr{Float64}, Int64,        # A, lda
              Ptr{Float64}, Int64,        # B, ldb
              Float64,                    # beta
              Ptr{Float64}, Int64),       # C, ldc
-            Int64(CblasColMajor), Int64(CblasNoTrans), Int64(CblasNoTrans),
+            Cint(CblasColMajor), Cint(CblasNoTrans), Cint(CblasNoTrans),
             Int64(3), Int64(4), Int64(2),
             alpha,
             pointer(A), Int64(3),  # lda = m for column-major NoTrans
@@ -107,17 +108,17 @@ function main()
             beta,
             pointer(C), Int64(3)   # ldc = m for column-major
         )
-    else
+    elseif cblas_int_width == 32
         ccall(
             cblas_dgemm, Cvoid,
-            (Int32, Int32, Int32,        # Order, TransA, TransB
+            (Cint, Cint, Cint,           # Order, TransA, TransB
              Int32, Int32, Int32,        # M, N, K
              Float64,                    # alpha
              Ptr{Float64}, Int32,        # A, lda
              Ptr{Float64}, Int32,        # B, ldb
              Float64,                    # beta
              Ptr{Float64}, Int32),       # C, ldc
-            Int32(CblasColMajor), Int32(CblasNoTrans), Int32(CblasNoTrans),
+            Cint(CblasColMajor), Cint(CblasNoTrans), Cint(CblasNoTrans),
             Int32(3), Int32(4), Int32(2),
             alpha,
             pointer(A), Int32(3),  # lda = m for column-major NoTrans
@@ -125,6 +126,8 @@ function main()
             beta,
             pointer(C), Int32(3)   # ldc = m for column-major
         )
+    else
+        error("Unsupported cblas-inject integer width: $cblas_int_width")
     end
 
     println("\nResult C = A × B:")

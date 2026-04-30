@@ -59,10 +59,12 @@ def main():
     dgemm_ptr = get_blas_func_ptr("dgemm")
     print(f"Got dgemm pointer: {hex(dgemm_ptr)}")
 
-    # Register with cblas-inject
-    lib.register_dgemm.argtypes = [ctypes.c_void_p]
-    lib.register_dgemm.restype = None
-    lib.register_dgemm(dgemm_ptr)
+    # Register with cblas-inject. SciPy wheels commonly expose LP64 BLAS.
+    lib.cblas_inject_register_dgemm_lp64.argtypes = [ctypes.c_void_p]
+    lib.cblas_inject_register_dgemm_lp64.restype = ctypes.c_int
+    status = lib.cblas_inject_register_dgemm_lp64(dgemm_ptr)
+    if status != 0:
+        raise RuntimeError(f"cblas-inject registration failed: {status}")
     print("Registered dgemm")
 
     # Define cblas_dgemm signature
