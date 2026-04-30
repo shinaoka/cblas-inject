@@ -9,7 +9,7 @@
 //! For row-major layout, we swap A↔B, m↔n, lda↔ldb, TransA↔TransB.
 //! The transpose flags are NOT inverted, just swapped.
 
-use std::ffi::c_char;
+use std::ffi::{c_char, c_int};
 
 use num_complex::{Complex32, Complex64};
 
@@ -41,7 +41,7 @@ fn to_lp64(routine: &[u8], param: blasint, value: blasint) -> Option<BlasInt32> 
         Ok(value) => Some(value),
         Err(_) => {
             unsafe {
-                cblas_xerbla(param, routine.as_ptr().cast(), std::ptr::null());
+                cblas_xerbla(param as c_int, routine.as_ptr().cast(), std::ptr::null());
             }
             None
         }
@@ -61,7 +61,7 @@ fn to_ilp64(value: blasint) -> BlasInt64 {
 }
 
 #[inline]
-fn to_lp64_i64(routine: &[u8], param: blasint, value: i64) -> Option<BlasInt32> {
+fn to_lp64_i64(routine: &[u8], param: c_int, value: i64) -> Option<BlasInt32> {
     match BlasInt32::try_from(value) {
         Ok(value) => Some(value),
         Err(_) => {
