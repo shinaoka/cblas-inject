@@ -1,11 +1,15 @@
-use std::ffi::{c_char, c_void};
+#[cfg(not(feature = "openblas"))]
+use std::ffi::c_char;
+use std::ffi::c_void;
 use std::ptr;
 
 use cblas_inject::{
-    blasint, register_dgemm, register_zgemm, BlasInt32, BlasInt64,
-    CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_NULL_POINTER,
+    blasint, CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_NULL_POINTER,
     CBLAS_INJECT_STATUS_OK,
 };
+#[cfg(not(feature = "openblas"))]
+use cblas_inject::{register_dgemm, register_zgemm, BlasInt32, BlasInt64};
+#[cfg(not(feature = "openblas"))]
 use num_complex::Complex64;
 
 extern "C" {
@@ -18,6 +22,7 @@ extern "C" {
     fn cblas_inject_supports_ilp64_registration() -> i32;
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_dgemm_current(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -35,6 +40,7 @@ unsafe extern "C" fn mock_dgemm_current(
 ) {
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_zgemm_current(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -52,6 +58,7 @@ unsafe extern "C" fn mock_zgemm_current(
 ) {
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_dgemm_lp64(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -69,6 +76,7 @@ unsafe extern "C" fn mock_dgemm_lp64(
 ) {
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_dgemm_ilp64(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -86,6 +94,7 @@ unsafe extern "C" fn mock_dgemm_ilp64(
 ) {
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_zgemm_lp64(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -103,6 +112,7 @@ unsafe extern "C" fn mock_zgemm_lp64(
 ) {
 }
 
+#[cfg(not(feature = "openblas"))]
 unsafe extern "C" fn mock_zgemm_ilp64(
     _transa: *const c_char,
     _transb: *const c_char,
@@ -121,7 +131,7 @@ unsafe extern "C" fn mock_zgemm_ilp64(
 }
 
 #[test]
-fn c_registration_api_reports_status_and_capabilities() {
+fn c_registration_api_reports_capabilities_and_rejects_null_pointers() {
     assert_eq!(CBLAS_INJECT_STATUS_OK, 0);
     assert_eq!(CBLAS_INJECT_STATUS_NULL_POINTER, 1);
     assert_eq!(CBLAS_INJECT_STATUS_ALREADY_REGISTERED, 2);
@@ -152,7 +162,11 @@ fn c_registration_api_reports_status_and_capabilities() {
             CBLAS_INJECT_STATUS_NULL_POINTER
         );
     }
+}
 
+#[cfg(not(feature = "openblas"))]
+#[test]
+fn c_registration_api_reports_duplicate_for_legacy_current_width() {
     unsafe {
         register_dgemm(mock_dgemm_current);
         register_zgemm(mock_zgemm_current);
