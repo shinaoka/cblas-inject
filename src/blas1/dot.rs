@@ -7,22 +7,26 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_cdotc_ptr, get_cdotu_ptr, get_complex_return_style, get_dasum_for_ilp64_cblas,
-    get_dasum_for_lp64_cblas, get_ddot_for_ilp64_cblas, get_ddot_for_lp64_cblas,
-    get_dnrm2_for_ilp64_cblas, get_dnrm2_for_lp64_cblas, get_dsdot_for_ilp64_cblas,
-    get_dsdot_for_lp64_cblas, get_dzasum_for_ilp64_cblas, get_dzasum_for_lp64_cblas,
-    get_dznrm2_for_ilp64_cblas, get_dznrm2_for_lp64_cblas, get_icamax_for_ilp64_cblas,
-    get_icamax_for_lp64_cblas, get_idamax_for_ilp64_cblas, get_idamax_for_lp64_cblas,
-    get_isamax_for_ilp64_cblas, get_isamax_for_lp64_cblas, get_izamax_for_ilp64_cblas,
-    get_izamax_for_lp64_cblas, get_sasum_for_ilp64_cblas, get_sasum_for_lp64_cblas,
-    get_scasum_for_ilp64_cblas, get_scasum_for_lp64_cblas, get_scnrm2_for_ilp64_cblas,
-    get_scnrm2_for_lp64_cblas, get_sdot_for_ilp64_cblas, get_sdot_for_lp64_cblas,
-    get_sdsdot_for_ilp64_cblas, get_sdsdot_for_lp64_cblas, get_snrm2_for_ilp64_cblas,
-    get_snrm2_for_lp64_cblas, get_zdotc_ptr, get_zdotu_ptr, CdotcFnPtr, CdotcHiddenFnPtr,
-    CdotuFnPtr, CdotuHiddenFnPtr, DasumProvider, DdotProvider, Dnrm2Provider, DsdotProvider,
-    DzasumProvider, Dznrm2Provider, IcamaxProvider, IdamaxProvider, IsamaxProvider,
-    IzamaxProvider, SasumProvider, ScasumProvider, Scnrm2Provider, SdotProvider, SdsdotProvider,
-    Snrm2Provider, ZdotcFnPtr, ZdotcHiddenFnPtr, ZdotuFnPtr, ZdotuHiddenFnPtr,
+    get_cdotc_ilp64_ptr, get_cdotc_lp64_ptr, get_cdotu_ilp64_ptr, get_cdotu_lp64_ptr,
+    get_complex_return_style, get_dasum_for_ilp64_cblas, get_dasum_for_lp64_cblas,
+    get_ddot_for_ilp64_cblas, get_ddot_for_lp64_cblas, get_dnrm2_for_ilp64_cblas,
+    get_dnrm2_for_lp64_cblas, get_dsdot_for_ilp64_cblas, get_dsdot_for_lp64_cblas,
+    get_dzasum_for_ilp64_cblas, get_dzasum_for_lp64_cblas, get_dznrm2_for_ilp64_cblas,
+    get_dznrm2_for_lp64_cblas, get_icamax_for_ilp64_cblas, get_icamax_for_lp64_cblas,
+    get_idamax_for_ilp64_cblas, get_idamax_for_lp64_cblas, get_isamax_for_ilp64_cblas,
+    get_isamax_for_lp64_cblas, get_izamax_for_ilp64_cblas, get_izamax_for_lp64_cblas,
+    get_sasum_for_ilp64_cblas, get_sasum_for_lp64_cblas, get_scasum_for_ilp64_cblas,
+    get_scasum_for_lp64_cblas, get_scnrm2_for_ilp64_cblas, get_scnrm2_for_lp64_cblas,
+    get_sdot_for_ilp64_cblas, get_sdot_for_lp64_cblas, get_sdsdot_for_ilp64_cblas,
+    get_sdsdot_for_lp64_cblas, get_snrm2_for_ilp64_cblas, get_snrm2_for_lp64_cblas,
+    get_zdotc_ilp64_ptr, get_zdotc_lp64_ptr, get_zdotu_ilp64_ptr, get_zdotu_lp64_ptr,
+    DasumProvider, DdotProvider, Dnrm2Provider, DsdotProvider, DzasumProvider, Dznrm2Provider,
+    IcamaxProvider, IdamaxProvider, IsamaxProvider, IzamaxProvider, SasumProvider, ScasumProvider,
+    Scnrm2Provider, SdotProvider, SdsdotProvider, Snrm2Provider, CdotcHiddenIlp64FnPtr,
+    CdotcHiddenLp64FnPtr, CdotcIlp64FnPtr, CdotcLp64FnPtr, CdotuHiddenIlp64FnPtr,
+    CdotuHiddenLp64FnPtr, CdotuIlp64FnPtr, CdotuLp64FnPtr, ZdotcHiddenIlp64FnPtr,
+    ZdotcHiddenLp64FnPtr, ZdotcIlp64FnPtr, ZdotcLp64FnPtr, ZdotuHiddenIlp64FnPtr,
+    ZdotuHiddenLp64FnPtr, ZdotuIlp64FnPtr, ZdotuLp64FnPtr,
 };
 use crate::types::{blasint, ComplexReturnStyle};
 
@@ -121,21 +125,44 @@ pub unsafe extern "C" fn cblas_ddot_64(
 /// - cdotu must be registered via `register_cdotu`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_cdotu_sub(
-    n: blasint,
+    n: i32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     y: *const Complex32,
-    incy: blasint,
+    incy: i32,
     dotu: *mut Complex32,
 ) {
-    let ptr = get_cdotu_ptr();
+    let ptr = get_cdotu_lp64_ptr();
     match get_complex_return_style() {
         ComplexReturnStyle::ReturnValue => {
-            let f: CdotuFnPtr = std::mem::transmute(ptr);
+            let f: CdotuLp64FnPtr = std::mem::transmute(ptr);
             *dotu = f(&n, x, &incx, y, &incy);
         }
         ComplexReturnStyle::HiddenArgument => {
-            let f: CdotuHiddenFnPtr = std::mem::transmute(ptr);
+            let f: CdotuHiddenLp64FnPtr = std::mem::transmute(ptr);
+            f(dotu, &n, x, &incx, y, &incy);
+        }
+    }
+}
+
+/// Complex single precision dot product (unconjugated) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cdotu_sub_64(
+    n: i64,
+    x: *const Complex32,
+    incx: i64,
+    y: *const Complex32,
+    incy: i64,
+    dotu: *mut Complex32,
+) {
+    let ptr = get_cdotu_ilp64_ptr();
+    match get_complex_return_style() {
+        ComplexReturnStyle::ReturnValue => {
+            let f: CdotuIlp64FnPtr = std::mem::transmute(ptr);
+            *dotu = f(&n, x, &incx, y, &incy);
+        }
+        ComplexReturnStyle::HiddenArgument => {
+            let f: CdotuHiddenIlp64FnPtr = std::mem::transmute(ptr);
             f(dotu, &n, x, &incx, y, &incy);
         }
     }
@@ -152,21 +179,44 @@ pub unsafe extern "C" fn cblas_cdotu_sub(
 /// - zdotu must be registered via `register_zdotu`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_zdotu_sub(
-    n: blasint,
+    n: i32,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     y: *const Complex64,
-    incy: blasint,
+    incy: i32,
     dotu: *mut Complex64,
 ) {
-    let ptr = get_zdotu_ptr();
+    let ptr = get_zdotu_lp64_ptr();
     match get_complex_return_style() {
         ComplexReturnStyle::ReturnValue => {
-            let f: ZdotuFnPtr = std::mem::transmute(ptr);
+            let f: ZdotuLp64FnPtr = std::mem::transmute(ptr);
             *dotu = f(&n, x, &incx, y, &incy);
         }
         ComplexReturnStyle::HiddenArgument => {
-            let f: ZdotuHiddenFnPtr = std::mem::transmute(ptr);
+            let f: ZdotuHiddenLp64FnPtr = std::mem::transmute(ptr);
+            f(dotu, &n, x, &incx, y, &incy);
+        }
+    }
+}
+
+/// Complex double precision dot product (unconjugated) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zdotu_sub_64(
+    n: i64,
+    x: *const Complex64,
+    incx: i64,
+    y: *const Complex64,
+    incy: i64,
+    dotu: *mut Complex64,
+) {
+    let ptr = get_zdotu_ilp64_ptr();
+    match get_complex_return_style() {
+        ComplexReturnStyle::ReturnValue => {
+            let f: ZdotuIlp64FnPtr = std::mem::transmute(ptr);
+            *dotu = f(&n, x, &incx, y, &incy);
+        }
+        ComplexReturnStyle::HiddenArgument => {
+            let f: ZdotuHiddenIlp64FnPtr = std::mem::transmute(ptr);
             f(dotu, &n, x, &incx, y, &incy);
         }
     }
@@ -183,21 +233,21 @@ pub unsafe extern "C" fn cblas_zdotu_sub(
 /// - cdotc must be registered via `register_cdotc`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_cdotc_sub(
-    n: blasint,
+    n: i32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     y: *const Complex32,
-    incy: blasint,
+    incy: i32,
     dotc: *mut Complex32,
 ) {
-    let ptr = get_cdotc_ptr();
+    let ptr = get_cdotc_lp64_ptr();
     match get_complex_return_style() {
         ComplexReturnStyle::ReturnValue => {
-            let f: CdotcFnPtr = std::mem::transmute(ptr);
+            let f: CdotcLp64FnPtr = std::mem::transmute(ptr);
             *dotc = f(&n, x, &incx, y, &incy);
         }
         ComplexReturnStyle::HiddenArgument => {
-            let f: CdotcHiddenFnPtr = std::mem::transmute(ptr);
+            let f: CdotcHiddenLp64FnPtr = std::mem::transmute(ptr);
             f(dotc, &n, x, &incx, y, &incy);
         }
     }
@@ -214,21 +264,67 @@ pub unsafe extern "C" fn cblas_cdotc_sub(
 /// - zdotc must be registered via `register_zdotc`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_zdotc_sub(
-    n: blasint,
+    n: i32,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     y: *const Complex64,
-    incy: blasint,
+    incy: i32,
     dotc: *mut Complex64,
 ) {
-    let ptr = get_zdotc_ptr();
+    let ptr = get_zdotc_lp64_ptr();
     match get_complex_return_style() {
         ComplexReturnStyle::ReturnValue => {
-            let f: ZdotcFnPtr = std::mem::transmute(ptr);
+            let f: ZdotcLp64FnPtr = std::mem::transmute(ptr);
             *dotc = f(&n, x, &incx, y, &incy);
         }
         ComplexReturnStyle::HiddenArgument => {
-            let f: ZdotcHiddenFnPtr = std::mem::transmute(ptr);
+            let f: ZdotcHiddenLp64FnPtr = std::mem::transmute(ptr);
+            f(dotc, &n, x, &incx, y, &incy);
+        }
+    }
+}
+
+/// Complex single precision dot product (conjugated) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cdotc_sub_64(
+    n: i64,
+    x: *const Complex32,
+    incx: i64,
+    y: *const Complex32,
+    incy: i64,
+    dotc: *mut Complex32,
+) {
+    let ptr = get_cdotc_ilp64_ptr();
+    match get_complex_return_style() {
+        ComplexReturnStyle::ReturnValue => {
+            let f: CdotcIlp64FnPtr = std::mem::transmute(ptr);
+            *dotc = f(&n, x, &incx, y, &incy);
+        }
+        ComplexReturnStyle::HiddenArgument => {
+            let f: CdotcHiddenIlp64FnPtr = std::mem::transmute(ptr);
+            f(dotc, &n, x, &incx, y, &incy);
+        }
+    }
+}
+
+/// Complex double precision dot product (conjugated) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zdotc_sub_64(
+    n: i64,
+    x: *const Complex64,
+    incx: i64,
+    y: *const Complex64,
+    incy: i64,
+    dotc: *mut Complex64,
+) {
+    let ptr = get_zdotc_ilp64_ptr();
+    match get_complex_return_style() {
+        ComplexReturnStyle::ReturnValue => {
+            let f: ZdotcIlp64FnPtr = std::mem::transmute(ptr);
+            *dotc = f(&n, x, &incx, y, &incy);
+        }
+        ComplexReturnStyle::HiddenArgument => {
+            let f: ZdotcHiddenIlp64FnPtr = std::mem::transmute(ptr);
             f(dotc, &n, x, &incx, y, &incy);
         }
     }

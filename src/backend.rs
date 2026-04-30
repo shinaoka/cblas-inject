@@ -789,6 +789,24 @@ pub type CdotuHiddenFnPtr = unsafe extern "C" fn(
     incy: *const blasint,
 );
 
+pub type CdotuHiddenLp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex32,
+    n: *const BlasInt32,
+    x: *const Complex32,
+    incx: *const BlasInt32,
+    y: *const Complex32,
+    incy: *const BlasInt32,
+);
+
+pub type CdotuHiddenIlp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex32,
+    n: *const BlasInt64,
+    x: *const Complex32,
+    incx: *const BlasInt64,
+    y: *const Complex32,
+    incy: *const BlasInt64,
+);
+
 /// Fortran zdotu function pointer type (complex double precision dot product, unconjugated)
 /// Return value convention: complex returned via register (OpenBLAS, MKL intel, BLIS)
 pub type ZdotuFnPtr = unsafe extern "C" fn(
@@ -825,6 +843,24 @@ pub type ZdotuHiddenFnPtr = unsafe extern "C" fn(
     incx: *const blasint,
     y: *const Complex64,
     incy: *const blasint,
+);
+
+pub type ZdotuHiddenLp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex64,
+    n: *const BlasInt32,
+    x: *const Complex64,
+    incx: *const BlasInt32,
+    y: *const Complex64,
+    incy: *const BlasInt32,
+);
+
+pub type ZdotuHiddenIlp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex64,
+    n: *const BlasInt64,
+    x: *const Complex64,
+    incx: *const BlasInt64,
+    y: *const Complex64,
+    incy: *const BlasInt64,
 );
 
 /// Fortran cdotc function pointer type (complex single precision dot product, conjugated)
@@ -865,6 +901,24 @@ pub type CdotcHiddenFnPtr = unsafe extern "C" fn(
     incy: *const blasint,
 );
 
+pub type CdotcHiddenLp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex32,
+    n: *const BlasInt32,
+    x: *const Complex32,
+    incx: *const BlasInt32,
+    y: *const Complex32,
+    incy: *const BlasInt32,
+);
+
+pub type CdotcHiddenIlp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex32,
+    n: *const BlasInt64,
+    x: *const Complex32,
+    incx: *const BlasInt64,
+    y: *const Complex32,
+    incy: *const BlasInt64,
+);
+
 /// Fortran zdotc function pointer type (complex double precision dot product, conjugated)
 /// Return value convention: complex returned via register (OpenBLAS, MKL intel, BLIS)
 pub type ZdotcFnPtr = unsafe extern "C" fn(
@@ -901,6 +955,24 @@ pub type ZdotcHiddenFnPtr = unsafe extern "C" fn(
     incx: *const blasint,
     y: *const Complex64,
     incy: *const blasint,
+);
+
+pub type ZdotcHiddenLp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex64,
+    n: *const BlasInt32,
+    x: *const Complex64,
+    incx: *const BlasInt32,
+    y: *const Complex64,
+    incy: *const BlasInt32,
+);
+
+pub type ZdotcHiddenIlp64FnPtr = unsafe extern "C" fn(
+    ret: *mut Complex64,
+    n: *const BlasInt64,
+    x: *const Complex64,
+    incx: *const BlasInt64,
+    y: *const Complex64,
+    incy: *const BlasInt64,
 );
 
 /// Fortran sdsdot function pointer type (single precision dot product with double precision accumulation)
@@ -5045,10 +5117,14 @@ struct FnPtrWrapper(*const ());
 unsafe impl Sync for FnPtrWrapper {}
 unsafe impl Send for FnPtrWrapper {}
 
-static CDOTU_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
-static ZDOTU_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
-static CDOTC_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
-static ZDOTC_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static CDOTU_LP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static CDOTU_ILP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static ZDOTU_LP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static ZDOTU_ILP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static CDOTC_LP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static CDOTC_ILP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static ZDOTC_LP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
+static ZDOTC_ILP64_PTR: OnceLock<FnPtrWrapper> = OnceLock::new();
 static SDSDOT: OnceLock<SdsdotFnPtr> = OnceLock::new();
 static DSDOT: OnceLock<DsdotFnPtr> = OnceLock::new();
 static SNRM2: OnceLock<Snrm2FnPtr> = OnceLock::new();
@@ -6595,119 +6671,116 @@ pub unsafe extern "C" fn register_cgemm(f: CgemmFnPtr) {
     }
 }
 
-/// Register the Fortran cdotu function pointer (return value convention).
+/// Register the Fortran cdotu function pointer (return value convention, LP64).
 ///
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cdotu implementation
-/// using the return value convention.
+/// using the return value convention, accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_cdotu(f: CdotuFnPtr) {
-    CDOTU_PTR
+    CDOTU_LP64_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("cdotu already registered (can only be set once)");
 }
 
-/// Register a raw cdotu function pointer.
+/// Register a raw cdotu function pointer (LP64).
 ///
 /// # Safety
 ///
-/// The function pointer must be a valid Fortran cdotu implementation.
-/// The calling convention must match the currently set `ComplexReturnStyle`.
+/// The function pointer must be a valid Fortran cdotu implementation
+/// accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_cdotu_raw(ptr: *const ()) {
-    CDOTU_PTR
+    CDOTU_LP64_PTR
         .set(FnPtrWrapper(ptr))
         .expect("cdotu already registered (can only be set once)");
 }
 
-/// Register the Fortran zdotu function pointer (return value convention).
+/// Register the Fortran zdotu function pointer (return value convention, LP64).
 ///
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zdotu implementation
-/// using the return value convention.
+/// using the return value convention, accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_zdotu(f: ZdotuFnPtr) {
-    ZDOTU_PTR
+    ZDOTU_LP64_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("zdotu already registered (can only be set once)");
 }
 
-/// Register a raw zdotu function pointer.
+/// Register a raw zdotu function pointer (LP64).
 ///
 /// # Safety
 ///
-/// The function pointer must be a valid Fortran zdotu implementation.
-/// The calling convention must match the currently set `ComplexReturnStyle`.
+/// The function pointer must be a valid Fortran zdotu implementation
+/// accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_zdotu_raw(ptr: *const ()) {
-    ZDOTU_PTR
+    ZDOTU_LP64_PTR
         .set(FnPtrWrapper(ptr))
         .expect("zdotu already registered (can only be set once)");
 }
 
-/// Register the Fortran cdotc function pointer (return value convention).
+/// Register the Fortran cdotc function pointer (return value convention, LP64).
 ///
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran cdotc implementation
-/// using the return value convention.
+/// using the return value convention, accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_cdotc(f: CdotcFnPtr) {
-    CDOTC_PTR
+    CDOTC_LP64_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("cdotc already registered (can only be set once)");
 }
 
-/// Register a raw cdotc function pointer.
+/// Register a raw cdotc function pointer (LP64).
 ///
 /// # Safety
 ///
-/// The function pointer must be a valid Fortran cdotc implementation.
-/// The calling convention must match the currently set `ComplexReturnStyle`.
+/// The function pointer must be a valid Fortran cdotc implementation
+/// accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_cdotc_raw(ptr: *const ()) {
-    CDOTC_PTR
+    CDOTC_LP64_PTR
         .set(FnPtrWrapper(ptr))
         .expect("cdotc already registered (can only be set once)");
 }
 
-/// Register the Fortran zdotc function pointer (return value convention).
+/// Register the Fortran zdotc function pointer (return value convention, LP64).
 ///
 /// # Safety
 ///
 /// The function pointer must be a valid Fortran zdotc implementation
-/// using the return value convention.
+/// using the return value convention, accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_zdotc(f: ZdotcFnPtr) {
-    ZDOTC_PTR
+    ZDOTC_LP64_PTR
         .set(FnPtrWrapper(f as *const ()))
         .expect("zdotc already registered (can only be set once)");
 }
 
-/// Register a raw zdotc function pointer.
+/// Register a raw zdotc function pointer (LP64).
 ///
 /// # Safety
 ///
-/// The function pointer must be a valid Fortran zdotc implementation.
-/// The calling convention must match the currently set `ComplexReturnStyle`.
+/// The function pointer must be a valid Fortran zdotc implementation
+/// accepting i32 blasint parameters.
 #[no_mangle]
 pub unsafe extern "C" fn register_zdotc_raw(ptr: *const ()) {
-    ZDOTC_PTR
+    ZDOTC_LP64_PTR
         .set(FnPtrWrapper(ptr))
         .expect("zdotc already registered (can only be set once)");
 }
-
-
-
 
 // Complex dot LP64/ILP64 raw-pointer C API registration
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotu_lp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match CDOTU_PTR.set(FnPtrWrapper(f as *const ())) {
+    match CDOTU_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6716,7 +6789,7 @@ pub unsafe extern "C" fn cblas_inject_register_cdotu_lp64(f: *const std::ffi::c_
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotu_ilp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match CDOTU_PTR.set(FnPtrWrapper(f as *const ())) {
+    match CDOTU_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6725,7 +6798,7 @@ pub unsafe extern "C" fn cblas_inject_register_cdotu_ilp64(f: *const std::ffi::c
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotu_lp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match ZDOTU_PTR.set(FnPtrWrapper(f as *const ())) {
+    match ZDOTU_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6734,7 +6807,7 @@ pub unsafe extern "C" fn cblas_inject_register_zdotu_lp64(f: *const std::ffi::c_
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotu_ilp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match ZDOTU_PTR.set(FnPtrWrapper(f as *const ())) {
+    match ZDOTU_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6743,7 +6816,7 @@ pub unsafe extern "C" fn cblas_inject_register_zdotu_ilp64(f: *const std::ffi::c
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotc_lp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match CDOTC_PTR.set(FnPtrWrapper(f as *const ())) {
+    match CDOTC_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6752,7 +6825,7 @@ pub unsafe extern "C" fn cblas_inject_register_cdotc_lp64(f: *const std::ffi::c_
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotc_ilp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match CDOTC_PTR.set(FnPtrWrapper(f as *const ())) {
+    match CDOTC_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6761,7 +6834,7 @@ pub unsafe extern "C" fn cblas_inject_register_cdotc_ilp64(f: *const std::ffi::c
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotc_lp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match ZDOTC_PTR.set(FnPtrWrapper(f as *const ())) {
+    match ZDOTC_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
@@ -6770,10 +6843,68 @@ pub unsafe extern "C" fn cblas_inject_register_zdotc_lp64(f: *const std::ffi::c_
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotc_ilp64(f: *const std::ffi::c_void) -> i32 {
     if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    match ZDOTC_PTR.set(FnPtrWrapper(f as *const ())) {
+    match ZDOTC_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
+}
+
+// Complex dot getters (LP64-first with ILP64 fallback)
+
+pub(crate) fn get_cdotu_lp64_ptr() -> *const () {
+    if let Some(p) = CDOTU_LP64_PTR.get() {
+        return p.0;
+    }
+    CDOTU_ILP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
+}
+
+pub(crate) fn get_cdotu_ilp64_ptr() -> *const () {
+    if let Some(p) = CDOTU_ILP64_PTR.get() {
+        return p.0;
+    }
+    CDOTU_LP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
+}
+
+pub(crate) fn get_zdotu_lp64_ptr() -> *const () {
+    if let Some(p) = ZDOTU_LP64_PTR.get() {
+        return p.0;
+    }
+    ZDOTU_ILP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
+}
+
+pub(crate) fn get_zdotu_ilp64_ptr() -> *const () {
+    if let Some(p) = ZDOTU_ILP64_PTR.get() {
+        return p.0;
+    }
+    ZDOTU_LP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
+}
+
+pub(crate) fn get_cdotc_lp64_ptr() -> *const () {
+    if let Some(p) = CDOTC_LP64_PTR.get() {
+        return p.0;
+    }
+    CDOTC_ILP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
+}
+
+pub(crate) fn get_cdotc_ilp64_ptr() -> *const () {
+    if let Some(p) = CDOTC_ILP64_PTR.get() {
+        return p.0;
+    }
+    CDOTC_LP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
+}
+
+pub(crate) fn get_zdotc_lp64_ptr() -> *const () {
+    if let Some(p) = ZDOTC_LP64_PTR.get() {
+        return p.0;
+    }
+    ZDOTC_ILP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
+}
+
+pub(crate) fn get_zdotc_ilp64_ptr() -> *const () {
+    if let Some(p) = ZDOTC_ILP64_PTR.get() {
+        return p.0;
+    }
+    ZDOTC_LP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
 }
 
 // Internal getters (used by blas2/gemv.rs, blas3/gemm.rs etc.)
@@ -7839,34 +7970,22 @@ pub(crate) fn get_ddot() -> DdotFnPtr {
 
 #[inline]
 pub(crate) fn get_cdotu_ptr() -> *const () {
-    CDOTU_PTR
-        .get()
-        .expect("cdotu not registered: call register_cdotu() first")
-        .0
+    get_cdotu_lp64_ptr()
 }
 
 #[inline]
 pub(crate) fn get_zdotu_ptr() -> *const () {
-    ZDOTU_PTR
-        .get()
-        .expect("zdotu not registered: call register_zdotu() first")
-        .0
+    get_zdotu_lp64_ptr()
 }
 
 #[inline]
 pub(crate) fn get_cdotc_ptr() -> *const () {
-    CDOTC_PTR
-        .get()
-        .expect("cdotc not registered: call register_cdotc() first")
-        .0
+    get_cdotc_lp64_ptr()
 }
 
 #[inline]
 pub(crate) fn get_zdotc_ptr() -> *const () {
-    ZDOTC_PTR
-        .get()
-        .expect("zdotc not registered: call register_zdotc() first")
-        .0
+    get_zdotc_lp64_ptr()
 }
 
 #[inline]

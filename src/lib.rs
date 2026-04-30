@@ -55,12 +55,13 @@ pub use types::*;
 // Re-export commonly used functions at crate root
 // BLAS Level 1
 pub use blas1::dot::{
-    cblas_cdotc_sub, cblas_cdotu_sub, cblas_dasum, cblas_dasum_64, cblas_ddot, cblas_ddot_64,
-    cblas_dnrm2, cblas_dnrm2_64, cblas_dsdot, cblas_dsdot_64, cblas_dzasum, cblas_dzasum_64,
-    cblas_dznrm2, cblas_dznrm2_64, cblas_icamax, cblas_icamax_64, cblas_idamax, cblas_idamax_64,
-    cblas_isamax, cblas_isamax_64, cblas_izamax, cblas_izamax_64, cblas_sasum, cblas_sasum_64,
-    cblas_scasum, cblas_scasum_64, cblas_scnrm2, cblas_scnrm2_64, cblas_sdot, cblas_sdot_64,
-    cblas_sdsdot, cblas_sdsdot_64, cblas_snrm2, cblas_snrm2_64, cblas_zdotc_sub, cblas_zdotu_sub,
+    cblas_cdotc_sub, cblas_cdotc_sub_64, cblas_cdotu_sub, cblas_cdotu_sub_64, cblas_dasum,
+    cblas_dasum_64, cblas_ddot, cblas_ddot_64, cblas_dnrm2, cblas_dnrm2_64, cblas_dsdot,
+    cblas_dsdot_64, cblas_dzasum, cblas_dzasum_64, cblas_dznrm2, cblas_dznrm2_64, cblas_icamax,
+    cblas_icamax_64, cblas_idamax, cblas_idamax_64, cblas_isamax, cblas_isamax_64, cblas_izamax,
+    cblas_izamax_64, cblas_sasum, cblas_sasum_64, cblas_scasum, cblas_scasum_64, cblas_scnrm2,
+    cblas_scnrm2_64, cblas_sdot, cblas_sdot_64, cblas_sdsdot, cblas_sdsdot_64, cblas_snrm2,
+    cblas_snrm2_64, cblas_zdotc_sub, cblas_zdotc_sub_64, cblas_zdotu_sub, cblas_zdotu_sub_64,
 };
 pub use blas1::rot::{
     cblas_dcabs1, cblas_drot, cblas_drot_64, cblas_drotg, cblas_drotm, cblas_drotm_64,
