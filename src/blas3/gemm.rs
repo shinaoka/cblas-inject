@@ -14,9 +14,10 @@ use std::ffi::{c_char, c_int};
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_cgemm, get_dgemm_for_current_cblas, get_dgemm_for_ilp64_cblas, get_sgemm,
-    get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, DgemmProvider,
-    ZgemmProvider,
+    get_cgemm_for_current_cblas, get_cgemm_for_ilp64_cblas, get_dgemm_for_current_cblas,
+    get_dgemm_for_ilp64_cblas, get_sgemm_for_current_cblas, get_sgemm_for_ilp64_cblas,
+    get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, CgemmProvider,
+    DgemmProvider, SgemmProvider, ZgemmProvider,
 };
 use crate::types::{
     blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
@@ -468,58 +469,99 @@ pub unsafe extern "C" fn cblas_sgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: f32,
     a: *const f32,
-    lda: blasint,
+    lda: i32,
     b: *const f32,
-    ldb: blasint,
+    ldb: i32,
     beta: f32,
     c: *mut f32,
-    ldc: blasint,
+    ldc: i32,
 ) {
-    let sgemm = get_sgemm();
-
+    let p = get_sgemm_for_current_cblas();
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            sgemm(
-                &transa_char,
-                &transb_char,
-                &m,
-                &n,
-                &k,
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-                &beta,
-                c,
-                &ldc,
-            );
+            match p {
+                SgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c,
+                    &ldc,
+                ),
+                SgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &(m as i64), &(n as i64), &(k as i64), &alpha, a,
+                    &(lda as i64), b, &(ldb as i64), &beta, c, &(ldc as i64),
+                ),
+            }
         }
         CblasRowMajor => {
             let transa_char = transpose_to_char(transb);
             let transb_char = transpose_to_char(transa);
-            sgemm(
-                &transa_char,
-                &transb_char,
-                &n,
-                &m,
-                &k,
-                &alpha,
-                b,
-                &ldb,
-                a,
-                &lda,
-                &beta,
-                c,
-                &ldc,
-            );
+            match p {
+                SgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &n, &m, &k, &alpha, b, &ldb, a, &lda, &beta, c,
+                    &ldc,
+                ),
+                SgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &(n as i64), &(m as i64), &(k as i64), &alpha, b,
+                    &(ldb as i64), a, &(lda as i64), &beta, c, &(ldc as i64),
+                ),
+            }
+        }
+    }
+}
+
+/// Single precision general matrix multiply with ILP64 CBLAS integer ABI.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_sgemm_64(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: f32,
+    a: *const f32,
+    lda: i64,
+    b: *const f32,
+    ldb: i64,
+    beta: f32,
+    c: *mut f32,
+    ldc: i64,
+) {
+    let p = get_sgemm_for_ilp64_cblas();
+    match order {
+        CblasColMajor => {
+            let transa_char = transpose_to_char(transa);
+            let transb_char = transpose_to_char(transb);
+            match p {
+                SgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c,
+                    &ldc,
+                ),
+                SgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &(m as i32), &(n as i32), &(k as i32), &alpha, a,
+                    &(lda as i32), b, &(ldb as i32), &beta, c, &(ldc as i32),
+                ),
+            }
+        }
+        CblasRowMajor => {
+            let transa_char = transpose_to_char(transb);
+            let transb_char = transpose_to_char(transa);
+            match p {
+                SgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &n, &m, &k, &alpha, b, &ldb, a, &lda, &beta, c,
+                    &ldc,
+                ),
+                SgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &(n as i32), &(m as i32), &(k as i32), &alpha, b,
+                    &(ldb as i32), a, &(lda as i32), &beta, c, &(ldc as i32),
+                ),
+            }
         }
     }
 }
@@ -693,58 +735,99 @@ pub unsafe extern "C" fn cblas_cgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: *const Complex32,
     a: *const Complex32,
-    lda: blasint,
+    lda: i32,
     b: *const Complex32,
-    ldb: blasint,
+    ldb: i32,
     beta: *const Complex32,
     c: *mut Complex32,
-    ldc: blasint,
+    ldc: i32,
 ) {
-    let cgemm = get_cgemm();
-
+    let p = get_cgemm_for_current_cblas();
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            cgemm(
-                &transa_char,
-                &transb_char,
-                &m,
-                &n,
-                &k,
-                alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-                beta,
-                c,
-                &ldc,
-            );
+            match p {
+                CgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c,
+                    &ldc,
+                ),
+                CgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &(m as i64), &(n as i64), &(k as i64), alpha, a,
+                    &(lda as i64), b, &(ldb as i64), beta, c, &(ldc as i64),
+                ),
+            }
         }
         CblasRowMajor => {
             let transa_char = transpose_to_char(transb);
             let transb_char = transpose_to_char(transa);
-            cgemm(
-                &transa_char,
-                &transb_char,
-                &n,
-                &m,
-                &k,
-                alpha,
-                b,
-                &ldb,
-                a,
-                &lda,
-                beta,
-                c,
-                &ldc,
-            );
+            match p {
+                CgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &n, &m, &k, alpha, b, &ldb, a, &lda, beta, c,
+                    &ldc,
+                ),
+                CgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &(n as i64), &(m as i64), &(k as i64), alpha, b,
+                    &(ldb as i64), a, &(lda as i64), beta, c, &(ldc as i64),
+                ),
+            }
+        }
+    }
+}
+
+/// Single precision complex general matrix multiply with ILP64 CBLAS integer ABI.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_cgemm_64(
+    order: CBLAS_ORDER,
+    transa: CBLAS_TRANSPOSE,
+    transb: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    k: i64,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: i64,
+    b: *const Complex32,
+    ldb: i64,
+    beta: *const Complex32,
+    c: *mut Complex32,
+    ldc: i64,
+) {
+    let p = get_cgemm_for_ilp64_cblas();
+    match order {
+        CblasColMajor => {
+            let transa_char = transpose_to_char(transa);
+            let transb_char = transpose_to_char(transb);
+            match p {
+                CgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c,
+                    &ldc,
+                ),
+                CgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &(m as i32), &(n as i32), &(k as i32), alpha, a,
+                    &(lda as i32), b, &(ldb as i32), beta, c, &(ldc as i32),
+                ),
+            }
+        }
+        CblasRowMajor => {
+            let transa_char = transpose_to_char(transb);
+            let transb_char = transpose_to_char(transa);
+            match p {
+                CgemmProvider::Ilp64(f) => f(
+                    &transa_char, &transb_char, &n, &m, &k, alpha, b, &ldb, a, &lda, beta, c,
+                    &ldc,
+                ),
+                CgemmProvider::Lp64(f) => f(
+                    &transa_char, &transb_char, &(n as i32), &(m as i32), &(k as i32), alpha, b,
+                    &(ldb as i32), a, &(lda as i32), beta, c, &(ldc as i32),
+                ),
+            }
         }
     }
 }

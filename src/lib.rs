@@ -135,7 +135,8 @@ pub use blas2::trsv::{
 
 // BLAS Level 3
 pub use blas3::gemm::{
-    cblas_cgemm, cblas_dgemm, cblas_dgemm_64, cblas_sgemm, cblas_zgemm, cblas_zgemm_64,
+    cblas_cgemm, cblas_cgemm_64, cblas_dgemm, cblas_dgemm_64, cblas_sgemm, cblas_sgemm_64,
+    cblas_zgemm, cblas_zgemm_64,
 };
 pub use blas3::hemm::{cblas_chemm, cblas_chemm_64, cblas_zhemm, cblas_zhemm_64};
 pub use blas3::her2k::{cblas_cher2k, cblas_cher2k_64, cblas_zher2k, cblas_zher2k_64};

@@ -3779,9 +3779,21 @@ pub(crate) enum DgemmProvider {
 }
 
 #[derive(Clone, Copy)]
+pub(crate) enum SgemmProvider {
+    Lp64(SgemmLp64FnPtr),
+    Ilp64(SgemmIlp64FnPtr),
+}
+
+#[derive(Clone, Copy)]
 pub(crate) enum ZgemmProvider {
     Lp64(ZgemmLp64FnPtr),
     Ilp64(ZgemmIlp64FnPtr),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum CgemmProvider {
+    Lp64(CgemmLp64FnPtr),
+    Ilp64(CgemmIlp64FnPtr),
 }
 
 /// Fortran ssymm function pointer type (single precision symmetric matrix multiply)
@@ -5127,10 +5139,14 @@ static DGEMM: OnceLock<DgemmFnPtr> = OnceLock::new();
 static DGEMM_LP64: OnceLock<DgemmLp64FnPtr> = OnceLock::new();
 static DGEMM_ILP64: OnceLock<DgemmIlp64FnPtr> = OnceLock::new();
 static SGEMM: OnceLock<SgemmFnPtr> = OnceLock::new();
+static SGEMM_LP64: OnceLock<SgemmLp64FnPtr> = OnceLock::new();
+static SGEMM_ILP64: OnceLock<SgemmIlp64FnPtr> = OnceLock::new();
 static ZGEMM: OnceLock<ZgemmFnPtr> = OnceLock::new();
 static ZGEMM_LP64: OnceLock<ZgemmLp64FnPtr> = OnceLock::new();
 static ZGEMM_ILP64: OnceLock<ZgemmIlp64FnPtr> = OnceLock::new();
 static CGEMM: OnceLock<CgemmFnPtr> = OnceLock::new();
+static CGEMM_LP64: OnceLock<CgemmLp64FnPtr> = OnceLock::new();
+static CGEMM_ILP64: OnceLock<CgemmIlp64FnPtr> = OnceLock::new();
 static SSYMM: OnceLock<SsymmFnPtr> = OnceLock::new();
 static DSYMM: OnceLock<DsymmFnPtr> = OnceLock::new();
 static CSYMM: OnceLock<CsymmFnPtr> = OnceLock::new();
@@ -5467,6 +5483,46 @@ pub unsafe extern "C" fn cblas_inject_register_zgemm_lp64(f: *const c_void) -> i
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> i32 {
     unsafe { register_zgemm_ilp64_ptr(f) }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_inject_register_sgemm_lp64(f: *const c_void) -> i32 {
+    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    let f: SgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
+    match SGEMM_LP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> i32 {
+    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    let f: SgemmIlp64FnPtr = unsafe { std::mem::transmute(f) };
+    match SGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_inject_register_cgemm_lp64(f: *const c_void) -> i32 {
+    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    let f: CgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
+    match CGEMM_LP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_inject_register_cgemm_ilp64(f: *const c_void) -> i32 {
+    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    let f: CgemmIlp64FnPtr = unsafe { std::mem::transmute(f) };
+    match CGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
 }
 
 /// Return the BLAS integer width used by unprefixed CBLAS symbols in this build.
@@ -6493,6 +6549,10 @@ pub unsafe extern "C" fn register_sgemm(f: SgemmFnPtr) {
     SGEMM
         .set(f)
         .expect("sgemm already registered (can only be set once)");
+    #[cfg(not(feature = "ilp64"))]
+    {
+        let _ = SGEMM_LP64.set(f);
+    }
 }
 
 #[no_mangle]
@@ -6529,6 +6589,10 @@ pub unsafe extern "C" fn register_cgemm(f: CgemmFnPtr) {
     CGEMM
         .set(f)
         .expect("cgemm already registered (can only be set once)");
+    #[cfg(not(feature = "ilp64"))]
+    {
+        let _ = CGEMM_LP64.set(f);
+    }
 }
 
 /// Register the Fortran cdotu function pointer (return value convention).
@@ -7186,6 +7250,45 @@ pub(crate) fn get_sgemm() -> SgemmFnPtr {
         .expect("sgemm not registered: call register_sgemm() first")
 }
 
+#[cfg(not(feature = "ilp64"))]
+#[inline]
+pub(crate) fn get_sgemm_for_current_cblas() -> SgemmProvider {
+    if let Some(f) = SGEMM_LP64.get() {
+        SgemmProvider::Lp64(*f)
+    } else if let Some(f) = SGEMM_ILP64.get() {
+        SgemmProvider::Ilp64(*f)
+    } else {
+        panic!(
+            "sgemm not registered: call register_sgemm() or cblas_inject_register_sgemm_lp64()"
+        );
+    }
+}
+
+#[cfg(feature = "ilp64")]
+#[inline]
+pub(crate) fn get_sgemm_for_current_cblas() -> SgemmProvider {
+    if let Some(f) = SGEMM_ILP64.get() {
+        SgemmProvider::Ilp64(*f)
+    } else if let Some(f) = SGEMM_LP64.get() {
+        SgemmProvider::Lp64(*f)
+    } else {
+        panic!(
+            "sgemm not registered: call register_sgemm() or cblas_inject_register_sgemm_ilp64()"
+        );
+    }
+}
+
+#[inline]
+pub(crate) fn get_sgemm_for_ilp64_cblas() -> SgemmProvider {
+    if let Some(f) = SGEMM_ILP64.get() {
+        SgemmProvider::Ilp64(*f)
+    } else if let Some(f) = SGEMM_LP64.get() {
+        SgemmProvider::Lp64(*f)
+    } else {
+        panic!("sgemm not registered for ILP64 CBLAS ABI");
+    }
+}
+
 #[inline]
 #[allow(dead_code)]
 pub(crate) fn get_zgemm() -> ZgemmFnPtr {
@@ -7243,6 +7346,45 @@ pub(crate) fn get_cgemm() -> CgemmFnPtr {
     *CGEMM
         .get()
         .expect("cgemm not registered: call register_cgemm() first")
+}
+
+#[cfg(not(feature = "ilp64"))]
+#[inline]
+pub(crate) fn get_cgemm_for_current_cblas() -> CgemmProvider {
+    if let Some(f) = CGEMM_LP64.get() {
+        CgemmProvider::Lp64(*f)
+    } else if let Some(f) = CGEMM_ILP64.get() {
+        CgemmProvider::Ilp64(*f)
+    } else {
+        panic!(
+            "cgemm not registered: call register_cgemm() or cblas_inject_register_cgemm_lp64()"
+        );
+    }
+}
+
+#[cfg(feature = "ilp64")]
+#[inline]
+pub(crate) fn get_cgemm_for_current_cblas() -> CgemmProvider {
+    if let Some(f) = CGEMM_ILP64.get() {
+        CgemmProvider::Ilp64(*f)
+    } else if let Some(f) = CGEMM_LP64.get() {
+        CgemmProvider::Lp64(*f)
+    } else {
+        panic!(
+            "cgemm not registered: call register_cgemm() or cblas_inject_register_cgemm_ilp64()"
+        );
+    }
+}
+
+#[inline]
+pub(crate) fn get_cgemm_for_ilp64_cblas() -> CgemmProvider {
+    if let Some(f) = CGEMM_ILP64.get() {
+        CgemmProvider::Ilp64(*f)
+    } else if let Some(f) = CGEMM_LP64.get() {
+        CgemmProvider::Lp64(*f)
+    } else {
+        panic!("cgemm not registered for ILP64 CBLAS ABI");
+    }
 }
 
 #[inline]
