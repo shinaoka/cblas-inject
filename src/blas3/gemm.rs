@@ -214,7 +214,7 @@ pub unsafe extern "C" fn cblas_dgemm(
             // Column-major: call Fortran directly
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            if !call_dgemm_provider(
+            call_dgemm_provider(
                 dgemm,
                 transa_char,
                 transb_char,
@@ -229,16 +229,14 @@ pub unsafe extern "C" fn cblas_dgemm(
                 beta,
                 c,
                 ldc,
-            ) {
-                return;
-            }
+            );
         }
         CblasRowMajor => {
             // Row-major: swap A↔B, m↔n, lda↔ldb, TransA↔TransB
             // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c#L489-L537
             let transa_char = transpose_to_char(transb); // TransB becomes transa
             let transb_char = transpose_to_char(transa); // TransA becomes transb
-            if !call_dgemm_provider(
+            call_dgemm_provider(
                 dgemm,
                 transa_char,
                 transb_char,
@@ -253,9 +251,7 @@ pub unsafe extern "C" fn cblas_dgemm(
                 beta,
                 c,
                 ldc,
-            ) {
-                return;
-            }
+            );
         }
     }
 }
@@ -364,7 +360,7 @@ pub unsafe extern "C" fn cblas_zgemm(
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            if !call_zgemm_provider(
+            call_zgemm_provider(
                 zgemm,
                 transa_char,
                 transb_char,
@@ -379,14 +375,12 @@ pub unsafe extern "C" fn cblas_zgemm(
                 beta,
                 c,
                 ldc,
-            ) {
-                return;
-            }
+            );
         }
         CblasRowMajor => {
             let transa_char = transpose_to_char(transb);
             let transb_char = transpose_to_char(transa);
-            if !call_zgemm_provider(
+            call_zgemm_provider(
                 zgemm,
                 transa_char,
                 transb_char,
@@ -401,9 +395,7 @@ pub unsafe extern "C" fn cblas_zgemm(
                 beta,
                 c,
                 ldc,
-            ) {
-                return;
-            }
+            );
         }
     }
 }
