@@ -261,26 +261,46 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
 
 fn find_cdylib() -> PathBuf {
     let candidates = cdylib_candidates();
-    candidates
-        .iter()
-        .filter(|path| path.is_file())
-        .max_by_key(|path| {
-            path.metadata()
-                .and_then(|metadata| metadata.modified())
-                .ok()
-        })
-        .cloned()
-        .unwrap_or_else(|| {
-            panic!(
-                "could not find built libcblas_inject cdylib; run `cargo build` before \
-                 `cargo test --test dynamic_c_api`. Searched: {}",
-                candidates
-                    .iter()
-                    .map(|path| path.display().to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-        })
+    first_existing_cdylib(&candidates).unwrap_or_else(|| {
+        panic!(
+            "could not find built libcblas_inject cdylib; run `cargo build` before \
+             `cargo test --test dynamic_c_api`. Searched: {}",
+            candidates
+                .iter()
+                .map(|path| path.display().to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    })
+}
+
+fn first_existing_cdylib(candidates: &[PathBuf]) -> Option<PathBuf> {
+    candidates.iter().find(|path| path.is_file()).cloned()
+}
+
+#[test]
+fn cdylib_selection_prefers_ordered_profile_candidates_over_newer_fallbacks() {
+    let base =
+        std::env::temp_dir().join(format!("cblas-inject-dynamic-c-api-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(base.join("profile")).expect("create profile temp dir");
+    std::fs::create_dir_all(base.join("fallback")).expect("create fallback temp dir");
+
+    let profile_candidate = base.join("profile").join(cdylib_file_name());
+    let fallback_candidate = base.join("fallback").join(cdylib_file_name());
+    std::fs::write(&profile_candidate, b"profile").expect("write profile candidate");
+    std::thread::sleep(std::time::Duration::from_millis(10));
+    std::fs::write(&fallback_candidate, b"fallback").expect("write fallback candidate");
+
+    let selected = first_existing_cdylib(&[
+        profile_candidate.clone(),
+        base.join("missing").join(cdylib_file_name()),
+        fallback_candidate,
+    ])
+    .expect("select existing cdylib");
+
+    assert_eq!(selected, profile_candidate);
+    let _ = std::fs::remove_dir_all(base);
 }
 
 fn cdylib_candidates() -> Vec<PathBuf> {
