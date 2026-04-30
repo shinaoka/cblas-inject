@@ -15,6 +15,7 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 num-complex = "0.4"
+paste = "1"
 ctor = { version = "0.2", optional = true }
 
 [dev-dependencies]
@@ -22,6 +23,7 @@ cblas-sys = "0.1"
 lapack-sys = "0.14"
 blas-src = { version = "0.10", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["system"] }
+libloading = "0.8"
 
 [features]
 default = []

@@ -9,7 +9,12 @@
 
 use num_complex::{Complex32, Complex64};
 
-use crate::backend::{get_ctbmv, get_dtbmv, get_stbmv, get_ztbmv};
+use crate::backend::{
+    get_ctbmv_for_lp64_cblas, get_ctbmv_for_ilp64_cblas, CtbmvProvider,
+    get_dtbmv_for_lp64_cblas, get_dtbmv_for_ilp64_cblas, DtbmvProvider,
+    get_stbmv_for_lp64_cblas, get_stbmv_for_ilp64_cblas, StbmvProvider,
+    get_ztbmv_for_lp64_cblas, get_ztbmv_for_ilp64_cblas, ZtbmvProvider,
+};
 use crate::types::{
     blasint, diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char, CblasColMajor,
     CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor, CblasTrans,
@@ -31,14 +36,16 @@ pub unsafe extern "C" fn cblas_stbmv(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    n: blasint,
-    k: blasint,
+    n: i32,
+    k: i32,
     a: *const f32,
-    lda: blasint,
+    lda: i32,
     x: *mut f32,
-    incx: blasint,
+    incx: i32,
 ) {
-    let stbmv = get_stbmv();
+    let p = get_stbmv_for_lp64_cblas();
+    match p {
+        StbmvProvider::Lp64(stbmv) => {
 
     match order {
         CblasColMajor => {
@@ -65,6 +72,112 @@ pub unsafe extern "C" fn cblas_stbmv(
             stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
         }
     }
+        }
+        StbmvProvider::Ilp64(stbmv) => {
+            let n = n as i64; let k = k as i64; let lda = lda as i64; let incx = incx as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/tbmv.c
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_stbmv_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    n: i64,
+    k: i64,
+    a: *const f32,
+    lda: i64,
+    x: *mut f32,
+    incx: i64,
+) {
+    let p = get_stbmv_for_ilp64_cblas();
+    match p {
+        StbmvProvider::Ilp64(stbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/tbmv.c
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+        StbmvProvider::Lp64(stbmv) => {
+            let n = n as i32; let k = k as i32; let lda = lda as i32; let incx = incx as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/tbmv.c
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            stbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision triangular band matrix-vector multiply.
@@ -82,14 +195,16 @@ pub unsafe extern "C" fn cblas_dtbmv(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    n: blasint,
-    k: blasint,
+    n: i32,
+    k: i32,
     a: *const f64,
-    lda: blasint,
+    lda: i32,
     x: *mut f64,
-    incx: blasint,
+    incx: i32,
 ) {
-    let dtbmv = get_dtbmv();
+    let p = get_dtbmv_for_lp64_cblas();
+    match p {
+        DtbmvProvider::Lp64(dtbmv) => {
 
     match order {
         CblasColMajor => {
@@ -115,6 +230,109 @@ pub unsafe extern "C" fn cblas_dtbmv(
             dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
         }
     }
+        }
+        DtbmvProvider::Ilp64(dtbmv) => {
+            let n = n as i64; let k = k as i64; let lda = lda as i64; let incx = incx as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dtbmv_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    n: i64,
+    k: i64,
+    a: *const f64,
+    lda: i64,
+    x: *mut f64,
+    incx: i64,
+) {
+    let p = get_dtbmv_for_ilp64_cblas();
+    match p {
+        DtbmvProvider::Ilp64(dtbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+        DtbmvProvider::Lp64(dtbmv) => {
+            let n = n as i32; let k = k as i32; let lda = lda as i32; let incx = incx as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match normalize_transpose_real(trans) {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                _ => unreachable!(),
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            dtbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
 }
 
 /// Single precision complex triangular band matrix-vector multiply.
@@ -132,14 +350,16 @@ pub unsafe extern "C" fn cblas_ctbmv(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    n: blasint,
-    k: blasint,
+    n: i32,
+    k: i32,
     a: *const Complex32,
-    lda: blasint,
+    lda: i32,
     x: *mut Complex32,
-    incx: blasint,
+    incx: i32,
 ) {
-    let ctbmv = get_ctbmv();
+    let p = get_ctbmv_for_lp64_cblas();
+    match p {
+        CtbmvProvider::Lp64(ctbmv) => {
 
     match order {
         CblasColMajor => {
@@ -167,6 +387,115 @@ pub unsafe extern "C" fn cblas_ctbmv(
             ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
         }
     }
+        }
+        CtbmvProvider::Ilp64(ctbmv) => {
+            let n = n as i64; let k = k as i64; let lda = lda as i64; let incx = incx as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ctbmv_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    n: i64,
+    k: i64,
+    a: *const Complex32,
+    lda: i64,
+    x: *mut Complex32,
+    incx: i64,
+) {
+    let p = get_ctbmv_for_ilp64_cblas();
+    match p {
+        CtbmvProvider::Ilp64(ctbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+        CtbmvProvider::Lp64(ctbmv) => {
+            let n = n as i32; let k = k as i32; let lda = lda as i32; let incx = incx as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ctbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision complex triangular band matrix-vector multiply.
@@ -184,14 +513,16 @@ pub unsafe extern "C" fn cblas_ztbmv(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    n: blasint,
-    k: blasint,
+    n: i32,
+    k: i32,
     a: *const Complex64,
-    lda: blasint,
+    lda: i32,
     x: *mut Complex64,
-    incx: blasint,
+    incx: i32,
 ) {
-    let ztbmv = get_ztbmv();
+    let p = get_ztbmv_for_lp64_cblas();
+    match p {
+        ZtbmvProvider::Lp64(ztbmv) => {
 
     match order {
         CblasColMajor => {
@@ -217,6 +548,115 @@ pub unsafe extern "C" fn cblas_ztbmv(
             let trans_char = transpose_to_char(new_trans);
             let diag_char = diag_to_char(diag);
             ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+        ZtbmvProvider::Ilp64(ztbmv) => {
+            let n = n as i64; let k = k as i64; let lda = lda as i64; let incx = incx as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ztbmv_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    n: i64,
+    k: i64,
+    a: *const Complex64,
+    lda: i64,
+    x: *mut Complex64,
+    incx: i64,
+) {
+    let p = get_ztbmv_for_ilp64_cblas();
+    match p {
+        ZtbmvProvider::Ilp64(ztbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
+        }
+        ZtbmvProvider::Lp64(ztbmv) => {
+            let n = n as i32; let k = k as i32; let lda = lda as i32; let incx = incx as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            let trans_char = transpose_to_char(trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo and trans
+            // For complex: flip transpose with conjugation preserved (OpenBLAS)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let new_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            let trans_char = transpose_to_char(new_trans);
+            let diag_char = diag_to_char(diag);
+            ztbmv(&uplo_char, &trans_char, &diag_char, &n, &k, a, &lda, x, &incx);
+        }
+    }
         }
     }
 }

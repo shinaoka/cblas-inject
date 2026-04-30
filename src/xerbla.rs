@@ -4,8 +4,7 @@
 //! C variadic functions. We provide a non-variadic version that handles the
 //! common case.
 
-use crate::types::blasint;
-use std::ffi::c_char;
+use std::ffi::{c_char, c_int};
 
 /// CBLAS error handler.
 ///
@@ -21,7 +20,7 @@ use std::ffi::c_char;
 /// - `rout` must be a valid null-terminated C string or null
 /// - `_form` is ignored in this implementation
 #[no_mangle]
-pub unsafe extern "C" fn cblas_xerbla(p: blasint, rout: *const c_char, _form: *const c_char) {
+pub unsafe extern "C" fn cblas_xerbla(p: c_int, rout: *const c_char, _form: *const c_char) {
     let routine = if rout.is_null() {
         "<unknown>"
     } else {

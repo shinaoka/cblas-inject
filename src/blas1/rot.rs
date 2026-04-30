@@ -3,10 +3,11 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_dcabs1, get_drot, get_drotg, get_drotm, get_drotmg, get_scabs1, get_srot, get_srotg,
-    get_srotm, get_srotmg,
+    get_dcabs1, get_drot_for_ilp64_cblas, get_drot_for_lp64_cblas, get_drotg, get_drotm_for_ilp64_cblas,
+    get_drotm_for_lp64_cblas, get_drotmg, get_scabs1, get_srot_for_ilp64_cblas,
+    get_srot_for_lp64_cblas, get_srotg, get_srotm_for_ilp64_cblas, get_srotm_for_lp64_cblas,
+    get_srotmg, DrotProvider, DrotmProvider, SrotProvider, SrotmProvider,
 };
-use crate::types::blasint;
 
 /// Apply Givens rotation (double precision).
 ///
@@ -23,16 +24,37 @@ use crate::types::blasint;
 /// - drot must be registered via `register_drot`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_drot(
-    n: blasint,
+    n: i32,
     x: *mut f64,
-    incx: blasint,
+    incx: i32,
     y: *mut f64,
-    incy: blasint,
+    incy: i32,
     c: f64,
     s: f64,
 ) {
-    let drot = get_drot();
-    drot(&n, x, &incx, y, &incy, &c, &s);
+    let p = get_drot_for_lp64_cblas();
+    match p {
+        DrotProvider::Lp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
+        DrotProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64), &c, &s),
+    }
+}
+
+/// Apply Givens rotation (double precision) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_drot_64(
+    n: i64,
+    x: *mut f64,
+    incx: i64,
+    y: *mut f64,
+    incy: i64,
+    c: f64,
+    s: f64,
+) {
+    let p = get_drot_for_ilp64_cblas();
+    match p {
+        DrotProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
+        DrotProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), &c, &s),
+    }
 }
 
 /// Apply Givens rotation (single precision).
@@ -50,16 +72,37 @@ pub unsafe extern "C" fn cblas_drot(
 /// - srot must be registered via `register_srot`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_srot(
-    n: blasint,
+    n: i32,
     x: *mut f32,
-    incx: blasint,
+    incx: i32,
     y: *mut f32,
-    incy: blasint,
+    incy: i32,
     c: f32,
     s: f32,
 ) {
-    let srot = get_srot();
-    srot(&n, x, &incx, y, &incy, &c, &s);
+    let p = get_srot_for_lp64_cblas();
+    match p {
+        SrotProvider::Lp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
+        SrotProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64), &c, &s),
+    }
+}
+
+/// Apply Givens rotation (single precision) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_srot_64(
+    n: i64,
+    x: *mut f32,
+    incx: i64,
+    y: *mut f32,
+    incy: i64,
+    c: f32,
+    s: f32,
+) {
+    let p = get_srot_for_ilp64_cblas();
+    match p {
+        SrotProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
+        SrotProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), &c, &s),
+    }
 }
 
 /// Generate Givens rotation (double precision).
@@ -118,15 +161,35 @@ pub unsafe extern "C" fn cblas_srotg(a: *mut f32, b: *mut f32, c: *mut f32, s: *
 /// - drotm must be registered via `register_drotm`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_drotm(
-    n: blasint,
+    n: i32,
     x: *mut f64,
-    incx: blasint,
+    incx: i32,
     y: *mut f64,
-    incy: blasint,
+    incy: i32,
     p: *const f64,
 ) {
-    let drotm = get_drotm();
-    drotm(&n, x, &incx, y, &incy, p);
+    let pv = get_drotm_for_lp64_cblas();
+    match pv {
+        DrotmProvider::Lp64(f) => f(&n, x, &incx, y, &incy, p),
+        DrotmProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64), p),
+    }
+}
+
+/// Apply modified Givens rotation (double precision) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_drotm_64(
+    n: i64,
+    x: *mut f64,
+    incx: i64,
+    y: *mut f64,
+    incy: i64,
+    p: *const f64,
+) {
+    let pv = get_drotm_for_ilp64_cblas();
+    match pv {
+        DrotmProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, p),
+        DrotmProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), p),
+    }
 }
 
 /// Apply modified Givens rotation (single precision).
@@ -143,15 +206,35 @@ pub unsafe extern "C" fn cblas_drotm(
 /// - srotm must be registered via `register_srotm`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_srotm(
-    n: blasint,
+    n: i32,
     x: *mut f32,
-    incx: blasint,
+    incx: i32,
     y: *mut f32,
-    incy: blasint,
+    incy: i32,
     p: *const f32,
 ) {
-    let srotm = get_srotm();
-    srotm(&n, x, &incx, y, &incy, p);
+    let pv = get_srotm_for_lp64_cblas();
+    match pv {
+        SrotmProvider::Lp64(f) => f(&n, x, &incx, y, &incy, p),
+        SrotmProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64), p),
+    }
+}
+
+/// Apply modified Givens rotation (single precision) with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_srotm_64(
+    n: i64,
+    x: *mut f32,
+    incx: i64,
+    y: *mut f32,
+    incy: i64,
+    p: *const f32,
+) {
+    let pv = get_srotm_for_ilp64_cblas();
+    match pv {
+        SrotmProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, p),
+        SrotmProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), p),
+    }
 }
 
 /// Generate modified Givens rotation (double precision).

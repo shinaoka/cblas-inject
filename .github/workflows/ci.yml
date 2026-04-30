@@ -10,6 +10,8 @@ jobs:
   rust-tests:
     name: Rust Integration Tests
     runs-on: ${{ matrix.os }}
+    env:
+      LIBRARY_PATH: /opt/homebrew/opt/openblas/lib:/usr/local/opt/openblas/lib
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -27,16 +29,14 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install openblas
 
+      - name: Check ILP64 build
+        run: cargo check --features ilp64 --all-targets
+
       - name: cblas-sys compatibility test
         run: cargo test --test cblas_sys_compat
-        env:
-          LIBRARY_PATH: /opt/homebrew/opt/openblas/lib:/usr/local/opt/openblas/lib
 
       - name: Run Rust tests
         run: cargo test --release
-        env:
-          # For linking OpenBLAS on macOS
-          LIBRARY_PATH: /opt/homebrew/opt/openblas/lib:/usr/local/opt/openblas/lib
 
   openblas-ctest:
     name: OpenBLAS ctest
