@@ -14,8 +14,8 @@ extern "C" {
     fn cblas_inject_register_zgemm_lp64(f: *const c_void) -> i32;
     fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> i32;
     fn cblas_inject_blas_int_width() -> i32;
-    fn cblas_inject_supports_lp64() -> i32;
-    fn cblas_inject_supports_ilp64() -> i32;
+    fn cblas_inject_supports_lp64_registration() -> i32;
+    fn cblas_inject_supports_ilp64_registration() -> i32;
 }
 
 unsafe extern "C" fn mock_dgemm_current(
@@ -130,8 +130,8 @@ fn c_registration_api_reports_status_and_capabilities() {
             cblas_inject_blas_int_width(),
             (std::mem::size_of::<blasint>() * 8) as i32
         );
-        assert_eq!(cblas_inject_supports_lp64(), 1);
-        assert_eq!(cblas_inject_supports_ilp64(), 1);
+        assert_eq!(cblas_inject_supports_lp64_registration(), 1);
+        assert_eq!(cblas_inject_supports_ilp64_registration(), 1);
     }
 
     unsafe {

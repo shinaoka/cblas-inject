@@ -63,11 +63,14 @@ int cblas_inject_supports_lp64_registration(void);
 int cblas_inject_supports_ilp64_registration(void);
 ```
 
-`cblas_inject_blas_int_width()` reports the width of the legacy unprefixed
-`cblas_*` ABI. With this design it should report `32` for the stable
-`cblas-sys`-compatible ABI. ILP64 support is advertised separately because it is
-a provider-registration and optional `*_64` symbol capability, not a change to
-the legacy `cblas_*` signatures.
+`cblas_inject_blas_int_width()` reports the actual width of the loaded build's
+legacy unprefixed `cblas_*` ABI. In the default and recommended
+`cblas-sys`-compatible build this reports `32`. During the transition, the
+existing `--features ilp64` build still changes unprefixed `cblas_*` signatures
+to use `i64`, so that build reports `64` until/unless unprefixed symbols become
+feature-independent. ILP64 support is advertised separately because it is a
+provider-registration and optional `*_64` symbol capability, not inherently a
+change to the legacy `cblas_*` signatures.
 
 ## Symbol Strategy
 
@@ -179,12 +182,12 @@ Update `README.md` at the end of the implementation so it reflects the final
 API rather than an intermediate state. The README update should cover:
 
 - `cblas-sys` compatibility means the unprefixed `cblas_*` symbols use the LP64
-  CBLAS ABI.
+  CBLAS ABI in the default and recommended build.
 - Julia hosts should choose LP64 or ILP64 registration based on
   `LinearAlgebra.BLAS.USE_BLAS64`.
 - The stable C registration API is the prefixed
   `cblas_inject_register_*_{lp64,ilp64}` surface.
-- Existing `register_*` symbols are legacy LP64 aliases.
+- Existing `register_*` symbols are legacy aliases for the current build ABI.
 - True ILP64 CBLAS calls, if implemented, use separate `cblas_*_64` symbols.
 - Hosts must load/register against the same `libcblas_inject` instance that
   downstream Rust shared libraries use.

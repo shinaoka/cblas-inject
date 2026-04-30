@@ -2153,19 +2153,33 @@ pub extern "C" fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> i32 {
 /// Return the BLAS integer width used by unprefixed CBLAS symbols in this build.
 #[no_mangle]
 pub extern "C" fn cblas_inject_blas_int_width() -> i32 {
+    // Transitional behavior: the `ilp64` Cargo feature still changes the
+    // unprefixed `cblas_*` ABI, so report the actual loaded build.
     (std::mem::size_of::<blasint>() * 8) as i32
 }
 
 /// Return whether this build accepts LP64 explicit provider registration.
 #[no_mangle]
-pub extern "C" fn cblas_inject_supports_lp64() -> i32 {
+pub extern "C" fn cblas_inject_supports_lp64_registration() -> i32 {
     1
 }
 
 /// Return whether this build accepts ILP64 explicit provider registration.
 #[no_mangle]
-pub extern "C" fn cblas_inject_supports_ilp64() -> i32 {
+pub extern "C" fn cblas_inject_supports_ilp64_registration() -> i32 {
     1
+}
+
+/// Compatibility alias for LP64 explicit provider registration support.
+#[no_mangle]
+pub extern "C" fn cblas_inject_supports_lp64() -> i32 {
+    cblas_inject_supports_lp64_registration()
+}
+
+/// Compatibility alias for ILP64 explicit provider registration support.
+#[no_mangle]
+pub extern "C" fn cblas_inject_supports_ilp64() -> i32 {
+    cblas_inject_supports_ilp64_registration()
 }
 
 // BLAS Level 1 registration

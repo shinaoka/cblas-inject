@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add an explicit dual LP64/ILP64 C registration ABI while preserving `cblas-sys` LP64 compatibility.
+**Goal:** Add an explicit dual LP64/ILP64 C registration ABI while preserving `cblas-sys` LP64 compatibility in the default build.
 
-**Architecture:** Keep unprefixed `cblas_*` symbols LP64-compatible. Store LP64 and ILP64 GEMM provider pointers separately, expose prefixed C registration APIs for both widths, and dispatch LP64 CBLAS calls to either an LP64 provider directly or an ILP64 provider through widening. Add true `cblas_*_64` ILP64 entry points after the registration path is covered.
+**Architecture:** Keep unprefixed `cblas_*` symbols LP64-compatible for the default and recommended `cblas-sys` build. During the transition, the existing `--features ilp64` build still changes unprefixed `cblas_*` signatures to use `i64`, so capability queries must report the actual loaded build ABI. Store LP64 and ILP64 GEMM provider pointers separately, expose prefixed C registration APIs for both widths, and dispatch LP64 CBLAS calls to either an LP64 provider directly or an ILP64 provider through widening. Add true `cblas_*_64` ILP64 entry points after the registration path is covered.
 
 **Tech Stack:** Rust 2021, `OnceLock`, `#[no_mangle] extern "C"`, `num_complex`, GitHub Actions, C dynamic loading smoke tests through `dlopen`/`dlsym`.
 
@@ -233,7 +233,7 @@ Add:
 ```rust
 #[no_mangle]
 pub extern "C" fn cblas_inject_blas_int_width() -> i32 {
-    32
+    (std::mem::size_of::<blasint>() * 8) as i32
 }
 
 #[no_mangle]
@@ -246,6 +246,10 @@ pub extern "C" fn cblas_inject_supports_ilp64_registration() -> i32 {
     1
 }
 ```
+
+Default and recommended `cblas-sys`-compatible builds report `32`.
+`--features ilp64` reports `64` until/unless unprefixed `cblas_*` symbols are
+made feature-independent.
 
 **Step 6: Verify**
 
@@ -636,7 +640,7 @@ git commit -m "docs: add cblas-inject C header"
 Change the feature list so it says:
 
 ```markdown
-- **cblas-sys compatible**: Unprefixed `cblas_*` symbols use the LP64 CBLAS ABI expected by `cblas-sys`.
+- **cblas-sys compatible**: In the default build, unprefixed `cblas_*` symbols use the LP64 CBLAS ABI expected by `cblas-sys`.
 - **Dual provider registration**: Hosts can register LP64 or ILP64 Fortran BLAS provider pointers at runtime.
 ```
 
@@ -660,6 +664,8 @@ status == 0 || error("Failed to register dgemm provider: status=$status")
 Document:
 
 - `cblas_inject_blas_int_width()`
+- `cblas_inject_supports_lp64_registration()`
+- `cblas_inject_supports_ilp64_registration()`
 - `cblas_inject_register_dgemm_lp64`
 - `cblas_inject_register_dgemm_ilp64`
 - `cblas_inject_register_zgemm_lp64`
