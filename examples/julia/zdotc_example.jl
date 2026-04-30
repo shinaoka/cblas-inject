@@ -87,11 +87,12 @@ function main()
     y = ComplexF64[1-1im, 2-2im, 3-3im, 4-4im]
     result = Ref{ComplexF64}(0.0 + 0.0im)
 
-    # Call cblas_zdotc_sub
+    # Call cblas_zdotc_sub / cblas_zdotc_sub_64
     # zdotc computes: conj(x)' * y = sum(conj(x[i]) * y[i])
     if interface == :ilp64
+        cblas_zdotc_sub_64 = dlsym(lib, :cblas_zdotc_sub_64)
         ccall(
-            cblas_zdotc_sub, Cvoid,
+            cblas_zdotc_sub_64, Cvoid,
             (Int64, Ptr{ComplexF64}, Int64, Ptr{ComplexF64}, Int64, Ptr{ComplexF64}),
             Int64(n), pointer(x), Int64(1), pointer(y), Int64(1), result
         )

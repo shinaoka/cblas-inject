@@ -88,11 +88,12 @@ function main()
     B = Float64[1 2 3 4; 5 6 7 8]  # 2×4
     C = zeros(Float64, 3, 4)
 
-    # Call cblas_dgemm with column-major layout
+    # Call cblas_dgemm / cblas_dgemm_64 with column-major layout
     # For column-major: lda >= m, ldb >= k, ldc >= m
     if cblas_int_width == 64
+        cblas_dgemm_64 = dlsym(lib, :cblas_dgemm_64)
         ccall(
-            cblas_dgemm, Cvoid,
+            cblas_dgemm_64, Cvoid,
             (Cint, Cint, Cint,           # Order, TransA, TransB
              Int64, Int64, Int64,        # M, N, K
              Float64,                    # alpha
