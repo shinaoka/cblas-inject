@@ -11,6 +11,9 @@ use num_complex::{Complex32, Complex64};
 
 use crate::blasint;
 
+pub type BlasInt32 = i32;
+pub type BlasInt64 = i64;
+
 // =============================================================================
 // Fortran BLAS function pointer types
 // =============================================================================
@@ -1269,6 +1272,40 @@ pub type DgemmFnPtr = unsafe extern "C" fn(
     ldc: *const blasint,
 );
 
+/// Fortran dgemm LP64 function pointer type (double precision general matrix multiply)
+pub type DgemmLp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const f64,
+    a: *const f64,
+    lda: *const BlasInt32,
+    b: *const f64,
+    ldb: *const BlasInt32,
+    beta: *const f64,
+    c: *mut f64,
+    ldc: *const BlasInt32,
+);
+
+/// Fortran dgemm ILP64 function pointer type (double precision general matrix multiply)
+pub type DgemmIlp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt64,
+    n: *const BlasInt64,
+    k: *const BlasInt64,
+    alpha: *const f64,
+    a: *const f64,
+    lda: *const BlasInt64,
+    b: *const f64,
+    ldb: *const BlasInt64,
+    beta: *const f64,
+    c: *mut f64,
+    ldc: *const BlasInt64,
+);
+
 /// Fortran sgemm function pointer type (single precision general matrix multiply)
 pub type SgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
@@ -1284,6 +1321,40 @@ pub type SgemmFnPtr = unsafe extern "C" fn(
     beta: *const f32,
     c: *mut f32,
     ldc: *const blasint,
+);
+
+/// Fortran sgemm LP64 function pointer type (single precision general matrix multiply)
+pub type SgemmLp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const f32,
+    a: *const f32,
+    lda: *const BlasInt32,
+    b: *const f32,
+    ldb: *const BlasInt32,
+    beta: *const f32,
+    c: *mut f32,
+    ldc: *const BlasInt32,
+);
+
+/// Fortran sgemm ILP64 function pointer type (single precision general matrix multiply)
+pub type SgemmIlp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt64,
+    n: *const BlasInt64,
+    k: *const BlasInt64,
+    alpha: *const f32,
+    a: *const f32,
+    lda: *const BlasInt64,
+    b: *const f32,
+    ldb: *const BlasInt64,
+    beta: *const f32,
+    c: *mut f32,
+    ldc: *const BlasInt64,
 );
 
 /// Fortran zgemm function pointer type (double precision complex general matrix multiply)
@@ -1303,6 +1374,40 @@ pub type ZgemmFnPtr = unsafe extern "C" fn(
     ldc: *const blasint,
 );
 
+/// Fortran zgemm LP64 function pointer type (double precision complex general matrix multiply)
+pub type ZgemmLp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: *const BlasInt32,
+    b: *const Complex64,
+    ldb: *const BlasInt32,
+    beta: *const Complex64,
+    c: *mut Complex64,
+    ldc: *const BlasInt32,
+);
+
+/// Fortran zgemm ILP64 function pointer type (double precision complex general matrix multiply)
+pub type ZgemmIlp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt64,
+    n: *const BlasInt64,
+    k: *const BlasInt64,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: *const BlasInt64,
+    b: *const Complex64,
+    ldb: *const BlasInt64,
+    beta: *const Complex64,
+    c: *mut Complex64,
+    ldc: *const BlasInt64,
+);
+
 /// Fortran cgemm function pointer type (single precision complex general matrix multiply)
 pub type CgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
@@ -1318,6 +1423,40 @@ pub type CgemmFnPtr = unsafe extern "C" fn(
     beta: *const Complex32,
     c: *mut Complex32,
     ldc: *const blasint,
+);
+
+/// Fortran cgemm LP64 function pointer type (single precision complex general matrix multiply)
+pub type CgemmLp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: *const BlasInt32,
+    b: *const Complex32,
+    ldb: *const BlasInt32,
+    beta: *const Complex32,
+    c: *mut Complex32,
+    ldc: *const BlasInt32,
+);
+
+/// Fortran cgemm ILP64 function pointer type (single precision complex general matrix multiply)
+pub type CgemmIlp64FnPtr = unsafe extern "C" fn(
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt64,
+    n: *const BlasInt64,
+    k: *const BlasInt64,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: *const BlasInt64,
+    b: *const Complex32,
+    ldb: *const BlasInt64,
+    beta: *const Complex32,
+    c: *mut Complex32,
+    ldc: *const BlasInt64,
 );
 
 /// Fortran ssymm function pointer type (single precision symmetric matrix multiply)
