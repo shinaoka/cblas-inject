@@ -2101,8 +2101,7 @@ unsafe fn register_dgemm_lp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        let legacy = unsafe { std::mem::transmute::<DgemmLp64FnPtr, DgemmFnPtr>(f) };
-        if DGEMM.set(legacy).is_err() || DGEMM_LP64.set(f).is_err() {
+        if DGEMM.set(f).is_err() || DGEMM_LP64.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2131,8 +2130,7 @@ unsafe fn register_dgemm_ilp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        let legacy = unsafe { std::mem::transmute::<DgemmIlp64FnPtr, DgemmFnPtr>(f) };
-        if DGEMM.set(legacy).is_err() || DGEMM_ILP64.set(f).is_err() {
+        if DGEMM.set(f).is_err() || DGEMM_ILP64.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2161,8 +2159,7 @@ unsafe fn register_zgemm_lp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        let legacy = unsafe { std::mem::transmute::<ZgemmLp64FnPtr, ZgemmFnPtr>(f) };
-        if ZGEMM.set(legacy).is_err() || ZGEMM_LP64.set(f).is_err() {
+        if ZGEMM.set(f).is_err() || ZGEMM_LP64.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2191,8 +2188,7 @@ unsafe fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        let legacy = unsafe { std::mem::transmute::<ZgemmIlp64FnPtr, ZgemmFnPtr>(f) };
-        if ZGEMM.set(legacy).is_err() || ZGEMM_ILP64.set(f).is_err() {
+        if ZGEMM.set(f).is_err() || ZGEMM_ILP64.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -3220,14 +3216,12 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
         .expect("dgemm already registered (can only be set once)");
     #[cfg(not(feature = "ilp64"))]
     {
-        let f = unsafe { std::mem::transmute::<DgemmFnPtr, DgemmLp64FnPtr>(f) };
         DGEMM_LP64
             .set(f)
             .expect("dgemm already registered (can only be set once)");
     }
     #[cfg(feature = "ilp64")]
     {
-        let f = unsafe { std::mem::transmute::<DgemmFnPtr, DgemmIlp64FnPtr>(f) };
         DGEMM_ILP64
             .set(f)
             .expect("dgemm already registered (can only be set once)");
@@ -3276,14 +3270,12 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
         .expect("zgemm already registered (can only be set once)");
     #[cfg(not(feature = "ilp64"))]
     {
-        let f = unsafe { std::mem::transmute::<ZgemmFnPtr, ZgemmLp64FnPtr>(f) };
         ZGEMM_LP64
             .set(f)
             .expect("zgemm already registered (can only be set once)");
     }
     #[cfg(feature = "ilp64")]
     {
-        let f = unsafe { std::mem::transmute::<ZgemmFnPtr, ZgemmIlp64FnPtr>(f) };
         ZGEMM_ILP64
             .set(f)
             .expect("zgemm already registered (can only be set once)");
