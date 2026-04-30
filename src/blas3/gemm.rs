@@ -20,19 +20,30 @@ use crate::backend::{
 use crate::types::{
     blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
-
 #[cfg(feature = "ilp64")]
-#[inline]
-fn to_lp64(function: &str, name: &str, value: blasint) -> BlasInt32 {
-    BlasInt32::try_from(value).unwrap_or_else(|_| {
-        panic!("{function}: {name}={value} cannot be represented by an LP64 BLAS provider")
-    })
-}
+use crate::xerbla::cblas_xerbla;
+
+const CBLAS_DGEMM_ROUTINE: &[u8] = b"cblas_dgemm\0";
+const CBLAS_ZGEMM_ROUTINE: &[u8] = b"cblas_zgemm\0";
 
 #[cfg(not(feature = "ilp64"))]
 #[inline]
-fn to_lp64(_function: &str, _name: &str, value: blasint) -> BlasInt32 {
-    value
+fn to_lp64(_routine: &[u8], _param: blasint, value: blasint) -> Option<BlasInt32> {
+    Some(value)
+}
+
+#[cfg(feature = "ilp64")]
+#[inline]
+fn to_lp64(routine: &[u8], param: blasint, value: blasint) -> Option<BlasInt32> {
+    match BlasInt32::try_from(value) {
+        Ok(value) => Some(value),
+        Err(_) => {
+            unsafe {
+                cblas_xerbla(param, routine.as_ptr().cast(), std::ptr::null());
+            }
+            None
+        }
+    }
 }
 
 #[cfg(feature = "ilp64")]
@@ -63,20 +74,33 @@ unsafe fn call_dgemm_provider(
     beta: f64,
     c: *mut f64,
     ldc: blasint,
-) {
+) -> bool {
     match provider {
         DgemmProvider::Lp64(dgemm) => {
-            let m = to_lp64("cblas_dgemm", "m", m);
-            let n = to_lp64("cblas_dgemm", "n", n);
-            let k = to_lp64("cblas_dgemm", "k", k);
-            let lda = to_lp64("cblas_dgemm", "lda", lda);
-            let ldb = to_lp64("cblas_dgemm", "ldb", ldb);
-            let ldc = to_lp64("cblas_dgemm", "ldc", ldc);
+            let Some(m) = to_lp64(CBLAS_DGEMM_ROUTINE, 4, m) else {
+                return false;
+            };
+            let Some(n) = to_lp64(CBLAS_DGEMM_ROUTINE, 5, n) else {
+                return false;
+            };
+            let Some(k) = to_lp64(CBLAS_DGEMM_ROUTINE, 6, k) else {
+                return false;
+            };
+            let Some(lda) = to_lp64(CBLAS_DGEMM_ROUTINE, 9, lda) else {
+                return false;
+            };
+            let Some(ldb) = to_lp64(CBLAS_DGEMM_ROUTINE, 11, ldb) else {
+                return false;
+            };
+            let Some(ldc) = to_lp64(CBLAS_DGEMM_ROUTINE, 14, ldc) else {
+                return false;
+            };
             unsafe {
                 dgemm(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
                 );
             }
+            true
         }
         DgemmProvider::Ilp64(dgemm) => {
             let m = to_ilp64(m);
@@ -90,6 +114,7 @@ unsafe fn call_dgemm_provider(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
                 );
             }
+            true
         }
     }
 }
@@ -110,20 +135,33 @@ unsafe fn call_zgemm_provider(
     beta: *const Complex64,
     c: *mut Complex64,
     ldc: blasint,
-) {
+) -> bool {
     match provider {
         ZgemmProvider::Lp64(zgemm) => {
-            let m = to_lp64("cblas_zgemm", "m", m);
-            let n = to_lp64("cblas_zgemm", "n", n);
-            let k = to_lp64("cblas_zgemm", "k", k);
-            let lda = to_lp64("cblas_zgemm", "lda", lda);
-            let ldb = to_lp64("cblas_zgemm", "ldb", ldb);
-            let ldc = to_lp64("cblas_zgemm", "ldc", ldc);
+            let Some(m) = to_lp64(CBLAS_ZGEMM_ROUTINE, 4, m) else {
+                return false;
+            };
+            let Some(n) = to_lp64(CBLAS_ZGEMM_ROUTINE, 5, n) else {
+                return false;
+            };
+            let Some(k) = to_lp64(CBLAS_ZGEMM_ROUTINE, 6, k) else {
+                return false;
+            };
+            let Some(lda) = to_lp64(CBLAS_ZGEMM_ROUTINE, 9, lda) else {
+                return false;
+            };
+            let Some(ldb) = to_lp64(CBLAS_ZGEMM_ROUTINE, 11, ldb) else {
+                return false;
+            };
+            let Some(ldc) = to_lp64(CBLAS_ZGEMM_ROUTINE, 14, ldc) else {
+                return false;
+            };
             unsafe {
                 zgemm(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
                 );
             }
+            true
         }
         ZgemmProvider::Ilp64(zgemm) => {
             let m = to_ilp64(m);
@@ -137,6 +175,7 @@ unsafe fn call_zgemm_provider(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
                 );
             }
+            true
         }
     }
 }
@@ -175,7 +214,7 @@ pub unsafe extern "C" fn cblas_dgemm(
             // Column-major: call Fortran directly
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            call_dgemm_provider(
+            if !call_dgemm_provider(
                 dgemm,
                 transa_char,
                 transb_char,
@@ -190,14 +229,16 @@ pub unsafe extern "C" fn cblas_dgemm(
                 beta,
                 c,
                 ldc,
-            );
+            ) {
+                return;
+            }
         }
         CblasRowMajor => {
             // Row-major: swap A↔B, m↔n, lda↔ldb, TransA↔TransB
             // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c#L489-L537
             let transa_char = transpose_to_char(transb); // TransB becomes transa
             let transb_char = transpose_to_char(transa); // TransA becomes transb
-            call_dgemm_provider(
+            if !call_dgemm_provider(
                 dgemm,
                 transa_char,
                 transb_char,
@@ -212,7 +253,9 @@ pub unsafe extern "C" fn cblas_dgemm(
                 beta,
                 c,
                 ldc,
-            );
+            ) {
+                return;
+            }
         }
     }
 }
@@ -321,7 +364,7 @@ pub unsafe extern "C" fn cblas_zgemm(
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
-            call_zgemm_provider(
+            if !call_zgemm_provider(
                 zgemm,
                 transa_char,
                 transb_char,
@@ -336,12 +379,14 @@ pub unsafe extern "C" fn cblas_zgemm(
                 beta,
                 c,
                 ldc,
-            );
+            ) {
+                return;
+            }
         }
         CblasRowMajor => {
             let transa_char = transpose_to_char(transb);
             let transb_char = transpose_to_char(transa);
-            call_zgemm_provider(
+            if !call_zgemm_provider(
                 zgemm,
                 transa_char,
                 transb_char,
@@ -356,7 +401,9 @@ pub unsafe extern "C" fn cblas_zgemm(
                 beta,
                 c,
                 ldc,
-            );
+            ) {
+                return;
+            }
         }
     }
 }

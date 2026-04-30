@@ -2113,7 +2113,7 @@ unsafe fn register_dgemm_lp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        if DGEMM.set(f).is_err() || DGEMM_LP64.set(f).is_err() {
+        if DGEMM_LP64.set(f).is_err() || DGEMM.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2142,7 +2142,7 @@ unsafe fn register_dgemm_ilp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        if DGEMM.set(f).is_err() || DGEMM_ILP64.set(f).is_err() {
+        if DGEMM_ILP64.set(f).is_err() || DGEMM.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2171,7 +2171,7 @@ unsafe fn register_zgemm_lp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        if ZGEMM.set(f).is_err() || ZGEMM_LP64.set(f).is_err() {
+        if ZGEMM_LP64.set(f).is_err() || ZGEMM.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -2200,7 +2200,7 @@ unsafe fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
 
-        if ZGEMM.set(f).is_err() || ZGEMM_ILP64.set(f).is_err() {
+        if ZGEMM_ILP64.set(f).is_err() || ZGEMM.set(f).is_err() {
             return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
         }
         CBLAS_INJECT_STATUS_OK
@@ -3223,9 +3223,6 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
         panic!("dgemm already registered (can only be set once)");
     }
 
-    DGEMM
-        .set(f)
-        .expect("dgemm already registered (can only be set once)");
     #[cfg(not(feature = "ilp64"))]
     {
         DGEMM_LP64
@@ -3238,6 +3235,9 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
             .set(f)
             .expect("dgemm already registered (can only be set once)");
     }
+    DGEMM
+        .set(f)
+        .expect("dgemm already registered (can only be set once)");
 }
 
 /// Register the Fortran sgemm function pointer.
@@ -3277,9 +3277,6 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
         panic!("zgemm already registered (can only be set once)");
     }
 
-    ZGEMM
-        .set(f)
-        .expect("zgemm already registered (can only be set once)");
     #[cfg(not(feature = "ilp64"))]
     {
         ZGEMM_LP64
@@ -3292,6 +3289,9 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
             .set(f)
             .expect("zgemm already registered (can only be set once)");
     }
+    ZGEMM
+        .set(f)
+        .expect("zgemm already registered (can only be set once)");
 }
 
 /// Register the Fortran cgemm function pointer.

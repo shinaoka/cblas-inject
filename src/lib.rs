@@ -32,6 +32,12 @@
 //! without memory copy, following the same approach as OpenBLAS:
 //! <https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gemm.c#L489-L537>
 
+#[cfg(all(feature = "openblas", feature = "ilp64"))]
+compile_error!(
+    "the openblas feature auto-registers LP64 OpenBLAS symbols and cannot be used with ilp64; \
+     disable openblas and register ILP64 providers explicitly"
+);
+
 mod backend;
 mod types;
 mod xerbla;

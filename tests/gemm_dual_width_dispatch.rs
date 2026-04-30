@@ -1,7 +1,7 @@
 #![cfg(not(feature = "openblas"))]
 
 use std::ffi::{c_char, c_void};
-use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, AtomicUsize, Ordering};
 
 #[cfg(feature = "ilp64")]
 use cblas_inject::BlasInt32;
@@ -18,6 +18,7 @@ static DGEMM_K: AtomicI64 = AtomicI64::new(0);
 static DGEMM_LDA: AtomicI64 = AtomicI64::new(0);
 static DGEMM_LDB: AtomicI64 = AtomicI64::new(0);
 static DGEMM_LDC: AtomicI64 = AtomicI64::new(0);
+static DGEMM_CALLS: AtomicUsize = AtomicUsize::new(0);
 
 static ZGEMM_M: AtomicI64 = AtomicI64::new(0);
 static ZGEMM_N: AtomicI64 = AtomicI64::new(0);
@@ -25,6 +26,7 @@ static ZGEMM_K: AtomicI64 = AtomicI64::new(0);
 static ZGEMM_LDA: AtomicI64 = AtomicI64::new(0);
 static ZGEMM_LDB: AtomicI64 = AtomicI64::new(0);
 static ZGEMM_LDC: AtomicI64 = AtomicI64::new(0);
+static ZGEMM_CALLS: AtomicUsize = AtomicUsize::new(0);
 static ZGEMM_ALPHA_RE: AtomicU64 = AtomicU64::new(0);
 static ZGEMM_ALPHA_IM: AtomicU64 = AtomicU64::new(0);
 static ZGEMM_BETA_RE: AtomicU64 = AtomicU64::new(0);
@@ -46,6 +48,7 @@ unsafe extern "C" fn mock_dgemm_lp64(
     c: *mut f64,
     ldc: *const BlasInt32,
 ) {
+    DGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
     DGEMM_M.store(i64::from(unsafe { *m }), Ordering::SeqCst);
     DGEMM_N.store(i64::from(unsafe { *n }), Ordering::SeqCst);
     DGEMM_K.store(i64::from(unsafe { *k }), Ordering::SeqCst);
@@ -73,6 +76,7 @@ unsafe extern "C" fn mock_dgemm_ilp64(
     c: *mut f64,
     ldc: *const BlasInt64,
 ) {
+    DGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
     DGEMM_M.store(unsafe { *m }, Ordering::SeqCst);
     DGEMM_N.store(unsafe { *n }, Ordering::SeqCst);
     DGEMM_K.store(unsafe { *k }, Ordering::SeqCst);
@@ -100,6 +104,7 @@ unsafe extern "C" fn mock_zgemm_lp64(
     c: *mut Complex64,
     ldc: *const BlasInt32,
 ) {
+    ZGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
     ZGEMM_M.store(i64::from(unsafe { *m }), Ordering::SeqCst);
     ZGEMM_N.store(i64::from(unsafe { *n }), Ordering::SeqCst);
     ZGEMM_K.store(i64::from(unsafe { *k }), Ordering::SeqCst);
@@ -133,6 +138,7 @@ unsafe extern "C" fn mock_zgemm_ilp64(
     c: *mut Complex64,
     ldc: *const BlasInt64,
 ) {
+    ZGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
     ZGEMM_M.store(unsafe { *m }, Ordering::SeqCst);
     ZGEMM_N.store(unsafe { *n }, Ordering::SeqCst);
     ZGEMM_K.store(unsafe { *k }, Ordering::SeqCst);
@@ -268,6 +274,7 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
     }
 
     assert_eq!(c[0], 32.0);
+    assert_eq!(DGEMM_CALLS.load(Ordering::SeqCst), 1);
     assert_eq!(DGEMM_M.load(Ordering::SeqCst), 2);
     assert_eq!(DGEMM_N.load(Ordering::SeqCst), 3);
     assert_eq!(DGEMM_K.load(Ordering::SeqCst), 4);
@@ -310,4 +317,51 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
     assert_eq!(f64::from_bits(ZGEMM_ALPHA_IM.load(Ordering::SeqCst)), 3.0);
     assert_eq!(f64::from_bits(ZGEMM_BETA_RE.load(Ordering::SeqCst)), 5.0);
     assert_eq!(f64::from_bits(ZGEMM_BETA_IM.load(Ordering::SeqCst)), 7.0);
+    assert_eq!(ZGEMM_CALLS.load(Ordering::SeqCst), 1);
+
+    let dgemm_calls = DGEMM_CALLS.load(Ordering::SeqCst);
+    let mut overflow_c = [11.0; 1];
+    unsafe {
+        cblas_dgemm(
+            CblasColMajor,
+            CblasNoTrans,
+            CblasNoTrans,
+            i64::from(i32::MAX) + 1,
+            1,
+            1,
+            1.0,
+            a.as_ptr(),
+            1,
+            b.as_ptr(),
+            1,
+            0.0,
+            overflow_c.as_mut_ptr(),
+            1,
+        );
+    }
+    assert_eq!(DGEMM_CALLS.load(Ordering::SeqCst), dgemm_calls);
+    assert_eq!(overflow_c[0], 11.0);
+
+    let zgemm_calls = ZGEMM_CALLS.load(Ordering::SeqCst);
+    let mut overflow_zc = [Complex64::new(11.0, -11.0); 1];
+    unsafe {
+        cblas_zgemm(
+            CblasColMajor,
+            CblasNoTrans,
+            CblasNoTrans,
+            1,
+            i64::from(i32::MAX) + 1,
+            1,
+            &alpha,
+            za.as_ptr(),
+            1,
+            zb.as_ptr(),
+            1,
+            &beta,
+            overflow_zc.as_mut_ptr(),
+            1,
+        );
+    }
+    assert_eq!(ZGEMM_CALLS.load(Ordering::SeqCst), zgemm_calls);
+    assert_eq!(overflow_zc[0], Complex64::new(11.0, -11.0));
 }
