@@ -1,8 +1,13 @@
+#![cfg(all(not(feature = "ilp64"), not(feature = "openblas")))]
+
 //! Test that cblas-inject's `#[no_mangle]` symbols satisfy cblas-sys's `extern "C"` declarations.
 //!
 //! This test does NOT link any external BLAS library. Instead, it registers a
 //! hand-written Fortran dgemm_ with cblas-inject, then calls `cblas_sys::cblas_dgemm`
 //! to verify the linker resolves it to cblas-inject's implementation.
+//!
+//! cblas-sys is LP64-only, and the `openblas` feature auto-registers providers at
+//! load time, so this test only applies to the default manual-registration build.
 
 // NOTE: We intentionally do NOT use `extern crate blas_src;` here.
 // No native CBLAS library is linked — cblas-inject is the sole provider
