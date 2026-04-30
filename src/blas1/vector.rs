@@ -5,11 +5,22 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_caxpy, get_ccopy, get_cscal, get_csscal, get_cswap, get_daxpy, get_dcopy, get_dscal,
-    get_dswap, get_saxpy, get_scopy, get_sscal, get_sswap, get_zaxpy, get_zcopy, get_zdscal,
-    get_zscal, get_zswap,
+    get_caxpy_for_ilp64_cblas, get_caxpy_for_lp64_cblas, get_ccopy_for_ilp64_cblas,
+    get_ccopy_for_lp64_cblas, get_cscal_for_ilp64_cblas, get_cscal_for_lp64_cblas,
+    get_csscal_for_ilp64_cblas, get_csscal_for_lp64_cblas, get_cswap_for_ilp64_cblas,
+    get_cswap_for_lp64_cblas, get_daxpy_for_ilp64_cblas, get_daxpy_for_lp64_cblas,
+    get_dcopy_for_ilp64_cblas, get_dcopy_for_lp64_cblas, get_dscal_for_ilp64_cblas,
+    get_dscal_for_lp64_cblas, get_dswap_for_ilp64_cblas, get_dswap_for_lp64_cblas,
+    get_saxpy_for_ilp64_cblas, get_saxpy_for_lp64_cblas, get_scopy_for_ilp64_cblas,
+    get_scopy_for_lp64_cblas, get_sscal_for_ilp64_cblas, get_sscal_for_lp64_cblas,
+    get_sswap_for_ilp64_cblas, get_sswap_for_lp64_cblas, get_zaxpy_for_ilp64_cblas,
+    get_zaxpy_for_lp64_cblas, get_zcopy_for_ilp64_cblas, get_zcopy_for_lp64_cblas,
+    get_zdscal_for_ilp64_cblas, get_zdscal_for_lp64_cblas, get_zscal_for_ilp64_cblas,
+    get_zscal_for_lp64_cblas, get_zswap_for_ilp64_cblas, get_zswap_for_lp64_cblas, CaxpyProvider,
+    CcopyProvider, CscalProvider, CsscalProvider, CswapProvider, DaxpyProvider, DcopyProvider,
+    DscalProvider, DswapProvider, SaxpyProvider, ScopyProvider, SscalProvider, SswapProvider,
+    ZaxpyProvider, ZcopyProvider, ZdscalProvider, ZscalProvider, ZswapProvider,
 };
-use crate::types::blasint;
 
 // =============================================================================
 // Vector swap (exchange x and y)
@@ -24,15 +35,22 @@ use crate::types::blasint;
 /// - All pointers must be valid and properly aligned
 /// - sswap must be registered via `register_sswap`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_sswap(
-    n: blasint,
-    x: *mut f32,
-    incx: blasint,
-    y: *mut f32,
-    incy: blasint,
-) {
-    let sswap = get_sswap();
-    sswap(&n, x, &incx, y, &incy);
+pub unsafe extern "C" fn cblas_sswap(n: i32, x: *mut f32, incx: i32, y: *mut f32, incy: i32) {
+    let p = get_sswap_for_lp64_cblas();
+    match p {
+        SswapProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        SswapProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision vector swap with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_sswap_64(n: i64, x: *mut f32, incx: i64, y: *mut f32, incy: i64) {
+    let p = get_sswap_for_ilp64_cblas();
+    match p {
+        SswapProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        SswapProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision vector swap.
@@ -44,15 +62,22 @@ pub unsafe extern "C" fn cblas_sswap(
 /// - All pointers must be valid and properly aligned
 /// - dswap must be registered via `register_dswap`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_dswap(
-    n: blasint,
-    x: *mut f64,
-    incx: blasint,
-    y: *mut f64,
-    incy: blasint,
-) {
-    let dswap = get_dswap();
-    dswap(&n, x, &incx, y, &incy);
+pub unsafe extern "C" fn cblas_dswap(n: i32, x: *mut f64, incx: i32, y: *mut f64, incy: i32) {
+    let p = get_dswap_for_lp64_cblas();
+    match p {
+        DswapProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        DswapProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision vector swap with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dswap_64(n: i64, x: *mut f64, incx: i64, y: *mut f64, incy: i64) {
+    let p = get_dswap_for_ilp64_cblas();
+    match p {
+        DswapProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        DswapProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Single precision complex vector swap.
@@ -65,14 +90,33 @@ pub unsafe extern "C" fn cblas_dswap(
 /// - cswap must be registered via `register_cswap`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_cswap(
-    n: blasint,
+    n: i32,
     x: *mut Complex32,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let cswap = get_cswap();
-    cswap(&n, x, &incx, y, &incy);
+    let p = get_cswap_for_lp64_cblas();
+    match p {
+        CswapProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        CswapProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision complex vector swap with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cswap_64(
+    n: i64,
+    x: *mut Complex32,
+    incx: i64,
+    y: *mut Complex32,
+    incy: i64,
+) {
+    let p = get_cswap_for_ilp64_cblas();
+    match p {
+        CswapProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        CswapProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision complex vector swap.
@@ -85,14 +129,33 @@ pub unsafe extern "C" fn cblas_cswap(
 /// - zswap must be registered via `register_zswap`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_zswap(
-    n: blasint,
+    n: i32,
     x: *mut Complex64,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let zswap = get_zswap();
-    zswap(&n, x, &incx, y, &incy);
+    let p = get_zswap_for_lp64_cblas();
+    match p {
+        ZswapProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        ZswapProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision complex vector swap with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zswap_64(
+    n: i64,
+    x: *mut Complex64,
+    incx: i64,
+    y: *mut Complex64,
+    incy: i64,
+) {
+    let p = get_zswap_for_ilp64_cblas();
+    match p {
+        ZswapProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        ZswapProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 // =============================================================================
@@ -109,14 +172,33 @@ pub unsafe extern "C" fn cblas_zswap(
 /// - scopy must be registered via `register_scopy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_scopy(
-    n: blasint,
+    n: i32,
     x: *const f32,
-    incx: blasint,
+    incx: i32,
     y: *mut f32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let scopy = get_scopy();
-    scopy(&n, x, &incx, y, &incy);
+    let p = get_scopy_for_lp64_cblas();
+    match p {
+        ScopyProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        ScopyProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision vector copy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_scopy_64(
+    n: i64,
+    x: *const f32,
+    incx: i64,
+    y: *mut f32,
+    incy: i64,
+) {
+    let p = get_scopy_for_ilp64_cblas();
+    match p {
+        ScopyProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        ScopyProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision vector copy.
@@ -129,14 +211,33 @@ pub unsafe extern "C" fn cblas_scopy(
 /// - dcopy must be registered via `register_dcopy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_dcopy(
-    n: blasint,
+    n: i32,
     x: *const f64,
-    incx: blasint,
+    incx: i32,
     y: *mut f64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let dcopy = get_dcopy();
-    dcopy(&n, x, &incx, y, &incy);
+    let p = get_dcopy_for_lp64_cblas();
+    match p {
+        DcopyProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        DcopyProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision vector copy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dcopy_64(
+    n: i64,
+    x: *const f64,
+    incx: i64,
+    y: *mut f64,
+    incy: i64,
+) {
+    let p = get_dcopy_for_ilp64_cblas();
+    match p {
+        DcopyProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        DcopyProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Single precision complex vector copy.
@@ -149,14 +250,33 @@ pub unsafe extern "C" fn cblas_dcopy(
 /// - ccopy must be registered via `register_ccopy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_ccopy(
-    n: blasint,
+    n: i32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let ccopy = get_ccopy();
-    ccopy(&n, x, &incx, y, &incy);
+    let p = get_ccopy_for_lp64_cblas();
+    match p {
+        CcopyProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        CcopyProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision complex vector copy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ccopy_64(
+    n: i64,
+    x: *const Complex32,
+    incx: i64,
+    y: *mut Complex32,
+    incy: i64,
+) {
+    let p = get_ccopy_for_ilp64_cblas();
+    match p {
+        CcopyProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        CcopyProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision complex vector copy.
@@ -169,14 +289,33 @@ pub unsafe extern "C" fn cblas_ccopy(
 /// - zcopy must be registered via `register_zcopy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_zcopy(
-    n: blasint,
+    n: i32,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let zcopy = get_zcopy();
-    zcopy(&n, x, &incx, y, &incy);
+    let p = get_zcopy_for_lp64_cblas();
+    match p {
+        ZcopyProvider::Lp64(f) => f(&n, x, &incx, y, &incy),
+        ZcopyProvider::Ilp64(f) => f(&(n as i64), x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision complex vector copy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zcopy_64(
+    n: i64,
+    x: *const Complex64,
+    incx: i64,
+    y: *mut Complex64,
+    incy: i64,
+) {
+    let p = get_zcopy_for_ilp64_cblas();
+    match p {
+        ZcopyProvider::Ilp64(f) => f(&n, x, &incx, y, &incy),
+        ZcopyProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 // =============================================================================
@@ -191,15 +330,35 @@ pub unsafe extern "C" fn cblas_zcopy(
 /// - saxpy must be registered via `register_saxpy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_saxpy(
-    n: blasint,
+    n: i32,
     alpha: f32,
     x: *const f32,
-    incx: blasint,
+    incx: i32,
     y: *mut f32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let saxpy = get_saxpy();
-    saxpy(&n, &alpha, x, &incx, y, &incy);
+    let p = get_saxpy_for_lp64_cblas();
+    match p {
+        SaxpyProvider::Lp64(f) => f(&n, &alpha, x, &incx, y, &incy),
+        SaxpyProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision axpy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_saxpy_64(
+    n: i64,
+    alpha: f32,
+    x: *const f32,
+    incx: i64,
+    y: *mut f32,
+    incy: i64,
+) {
+    let p = get_saxpy_for_ilp64_cblas();
+    match p {
+        SaxpyProvider::Ilp64(f) => f(&n, &alpha, x, &incx, y, &incy),
+        SaxpyProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision axpy: y = alpha*x + y
@@ -210,15 +369,35 @@ pub unsafe extern "C" fn cblas_saxpy(
 /// - daxpy must be registered via `register_daxpy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_daxpy(
-    n: blasint,
+    n: i32,
     alpha: f64,
     x: *const f64,
-    incx: blasint,
+    incx: i32,
     y: *mut f64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let daxpy = get_daxpy();
-    daxpy(&n, &alpha, x, &incx, y, &incy);
+    let p = get_daxpy_for_lp64_cblas();
+    match p {
+        DaxpyProvider::Lp64(f) => f(&n, &alpha, x, &incx, y, &incy),
+        DaxpyProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision axpy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_daxpy_64(
+    n: i64,
+    alpha: f64,
+    x: *const f64,
+    incx: i64,
+    y: *mut f64,
+    incy: i64,
+) {
+    let p = get_daxpy_for_ilp64_cblas();
+    match p {
+        DaxpyProvider::Ilp64(f) => f(&n, &alpha, x, &incx, y, &incy),
+        DaxpyProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Single precision complex axpy: y = alpha*x + y
@@ -229,15 +408,35 @@ pub unsafe extern "C" fn cblas_daxpy(
 /// - caxpy must be registered via `register_caxpy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_caxpy(
-    n: blasint,
+    n: i32,
     alpha: *const Complex32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let caxpy = get_caxpy();
-    caxpy(&n, alpha, x, &incx, y, &incy);
+    let p = get_caxpy_for_lp64_cblas();
+    match p {
+        CaxpyProvider::Lp64(f) => f(&n, alpha, x, &incx, y, &incy),
+        CaxpyProvider::Ilp64(f) => f(&(n as i64), alpha, x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Single precision complex axpy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_caxpy_64(
+    n: i64,
+    alpha: *const Complex32,
+    x: *const Complex32,
+    incx: i64,
+    y: *mut Complex32,
+    incy: i64,
+) {
+    let p = get_caxpy_for_ilp64_cblas();
+    match p {
+        CaxpyProvider::Ilp64(f) => f(&n, alpha, x, &incx, y, &incy),
+        CaxpyProvider::Lp64(f) => f(&(n as i32), alpha, x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 /// Double precision complex axpy: y = alpha*x + y
@@ -248,15 +447,35 @@ pub unsafe extern "C" fn cblas_caxpy(
 /// - zaxpy must be registered via `register_zaxpy`
 #[no_mangle]
 pub unsafe extern "C" fn cblas_zaxpy(
-    n: blasint,
+    n: i32,
     alpha: *const Complex64,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     y: *mut Complex64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let zaxpy = get_zaxpy();
-    zaxpy(&n, alpha, x, &incx, y, &incy);
+    let p = get_zaxpy_for_lp64_cblas();
+    match p {
+        ZaxpyProvider::Lp64(f) => f(&n, alpha, x, &incx, y, &incy),
+        ZaxpyProvider::Ilp64(f) => f(&(n as i64), alpha, x, &(incx as i64), y, &(incy as i64)),
+    }
+}
+
+/// Double precision complex axpy with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zaxpy_64(
+    n: i64,
+    alpha: *const Complex64,
+    x: *const Complex64,
+    incx: i64,
+    y: *mut Complex64,
+    incy: i64,
+) {
+    let p = get_zaxpy_for_ilp64_cblas();
+    match p {
+        ZaxpyProvider::Ilp64(f) => f(&n, alpha, x, &incx, y, &incy),
+        ZaxpyProvider::Lp64(f) => f(&(n as i32), alpha, x, &(incx as i32), y, &(incy as i32)),
+    }
 }
 
 // =============================================================================
@@ -270,9 +489,22 @@ pub unsafe extern "C" fn cblas_zaxpy(
 /// - All pointers must be valid and properly aligned
 /// - sscal must be registered via `register_sscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_sscal(n: blasint, alpha: f32, x: *mut f32, incx: blasint) {
-    let sscal = get_sscal();
-    sscal(&n, &alpha, x, &incx);
+pub unsafe extern "C" fn cblas_sscal(n: i32, alpha: f32, x: *mut f32, incx: i32) {
+    let p = get_sscal_for_lp64_cblas();
+    match p {
+        SscalProvider::Lp64(f) => f(&n, &alpha, x, &incx),
+        SscalProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64)),
+    }
+}
+
+/// Single precision vector scaling with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_sscal_64(n: i64, alpha: f32, x: *mut f32, incx: i64) {
+    let p = get_sscal_for_ilp64_cblas();
+    match p {
+        SscalProvider::Ilp64(f) => f(&n, &alpha, x, &incx),
+        SscalProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32)),
+    }
 }
 
 /// Double precision vector scaling: x = alpha*x
@@ -282,9 +514,22 @@ pub unsafe extern "C" fn cblas_sscal(n: blasint, alpha: f32, x: *mut f32, incx: 
 /// - All pointers must be valid and properly aligned
 /// - dscal must be registered via `register_dscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_dscal(n: blasint, alpha: f64, x: *mut f64, incx: blasint) {
-    let dscal = get_dscal();
-    dscal(&n, &alpha, x, &incx);
+pub unsafe extern "C" fn cblas_dscal(n: i32, alpha: f64, x: *mut f64, incx: i32) {
+    let p = get_dscal_for_lp64_cblas();
+    match p {
+        DscalProvider::Lp64(f) => f(&n, &alpha, x, &incx),
+        DscalProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64)),
+    }
+}
+
+/// Double precision vector scaling with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dscal_64(n: i64, alpha: f64, x: *mut f64, incx: i64) {
+    let p = get_dscal_for_ilp64_cblas();
+    match p {
+        DscalProvider::Ilp64(f) => f(&n, &alpha, x, &incx),
+        DscalProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32)),
+    }
 }
 
 /// Single precision complex vector scaling: x = alpha*x
@@ -294,14 +539,27 @@ pub unsafe extern "C" fn cblas_dscal(n: blasint, alpha: f64, x: *mut f64, incx: 
 /// - All pointers must be valid and properly aligned
 /// - cscal must be registered via `register_cscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_cscal(
-    n: blasint,
+pub unsafe extern "C" fn cblas_cscal(n: i32, alpha: *const Complex32, x: *mut Complex32, incx: i32) {
+    let p = get_cscal_for_lp64_cblas();
+    match p {
+        CscalProvider::Lp64(f) => f(&n, alpha, x, &incx),
+        CscalProvider::Ilp64(f) => f(&(n as i64), alpha, x, &(incx as i64)),
+    }
+}
+
+/// Single precision complex vector scaling with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cscal_64(
+    n: i64,
     alpha: *const Complex32,
     x: *mut Complex32,
-    incx: blasint,
+    incx: i64,
 ) {
-    let cscal = get_cscal();
-    cscal(&n, alpha, x, &incx);
+    let p = get_cscal_for_ilp64_cblas();
+    match p {
+        CscalProvider::Ilp64(f) => f(&n, alpha, x, &incx),
+        CscalProvider::Lp64(f) => f(&(n as i32), alpha, x, &(incx as i32)),
+    }
 }
 
 /// Double precision complex vector scaling: x = alpha*x
@@ -311,14 +569,27 @@ pub unsafe extern "C" fn cblas_cscal(
 /// - All pointers must be valid and properly aligned
 /// - zscal must be registered via `register_zscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_zscal(
-    n: blasint,
+pub unsafe extern "C" fn cblas_zscal(n: i32, alpha: *const Complex64, x: *mut Complex64, incx: i32) {
+    let p = get_zscal_for_lp64_cblas();
+    match p {
+        ZscalProvider::Lp64(f) => f(&n, alpha, x, &incx),
+        ZscalProvider::Ilp64(f) => f(&(n as i64), alpha, x, &(incx as i64)),
+    }
+}
+
+/// Double precision complex vector scaling with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zscal_64(
+    n: i64,
     alpha: *const Complex64,
     x: *mut Complex64,
-    incx: blasint,
+    incx: i64,
 ) {
-    let zscal = get_zscal();
-    zscal(&n, alpha, x, &incx);
+    let p = get_zscal_for_ilp64_cblas();
+    match p {
+        ZscalProvider::Ilp64(f) => f(&n, alpha, x, &incx),
+        ZscalProvider::Lp64(f) => f(&(n as i32), alpha, x, &(incx as i32)),
+    }
 }
 
 /// Scale complex vector by real scalar: x = alpha*x (single precision)
@@ -328,9 +599,22 @@ pub unsafe extern "C" fn cblas_zscal(
 /// - All pointers must be valid and properly aligned
 /// - csscal must be registered via `register_csscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_csscal(n: blasint, alpha: f32, x: *mut Complex32, incx: blasint) {
-    let csscal = get_csscal();
-    csscal(&n, &alpha, x, &incx);
+pub unsafe extern "C" fn cblas_csscal(n: i32, alpha: f32, x: *mut Complex32, incx: i32) {
+    let p = get_csscal_for_lp64_cblas();
+    match p {
+        CsscalProvider::Lp64(f) => f(&n, &alpha, x, &incx),
+        CsscalProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64)),
+    }
+}
+
+/// Scale complex vector by real scalar with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_csscal_64(n: i64, alpha: f32, x: *mut Complex32, incx: i64) {
+    let p = get_csscal_for_ilp64_cblas();
+    match p {
+        CsscalProvider::Ilp64(f) => f(&n, &alpha, x, &incx),
+        CsscalProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32)),
+    }
 }
 
 /// Scale complex vector by real scalar: x = alpha*x (double precision)
@@ -340,7 +624,20 @@ pub unsafe extern "C" fn cblas_csscal(n: blasint, alpha: f32, x: *mut Complex32,
 /// - All pointers must be valid and properly aligned
 /// - zdscal must be registered via `register_zdscal`
 #[no_mangle]
-pub unsafe extern "C" fn cblas_zdscal(n: blasint, alpha: f64, x: *mut Complex64, incx: blasint) {
-    let zdscal = get_zdscal();
-    zdscal(&n, &alpha, x, &incx);
+pub unsafe extern "C" fn cblas_zdscal(n: i32, alpha: f64, x: *mut Complex64, incx: i32) {
+    let p = get_zdscal_for_lp64_cblas();
+    match p {
+        ZdscalProvider::Lp64(f) => f(&n, &alpha, x, &incx),
+        ZdscalProvider::Ilp64(f) => f(&(n as i64), &alpha, x, &(incx as i64)),
+    }
+}
+
+/// Scale complex vector by real scalar with ILP64 integer ABI.
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zdscal_64(n: i64, alpha: f64, x: *mut Complex64, incx: i64) {
+    let p = get_zdscal_for_ilp64_cblas();
+    match p {
+        ZdscalProvider::Ilp64(f) => f(&n, &alpha, x, &incx),
+        ZdscalProvider::Lp64(f) => f(&(n as i32), &alpha, x, &(incx as i32)),
+    }
 }

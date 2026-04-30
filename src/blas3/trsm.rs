@@ -10,9 +10,14 @@
 
 use num_complex::{Complex32, Complex64};
 
-use crate::backend::{get_ctrsm, get_dtrsm, get_strsm, get_ztrsm};
+use crate::backend::{
+    get_ctrsm_for_ilp64_cblas, get_ctrsm_for_lp64_cblas, get_dtrsm_for_ilp64_cblas,
+    get_dtrsm_for_lp64_cblas, get_strsm_for_ilp64_cblas, get_strsm_for_lp64_cblas,
+    get_ztrsm_for_ilp64_cblas, get_ztrsm_for_lp64_cblas, CtrsmProvider, DtrsmProvider, StrsmProvider,
+    ZtrsmProvider,
+};
 use crate::types::{
-    blasint, diag_to_char, side_to_char, transpose_to_char, uplo_to_char, CblasColMajor, CblasLeft,
+    diag_to_char, side_to_char, transpose_to_char, uplo_to_char, CblasColMajor, CblasLeft,
     CblasLower, CblasRight, CblasRowMajor, CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_SIDE,
     CBLAS_TRANSPOSE, CBLAS_UPLO,
 };
@@ -32,65 +37,175 @@ pub unsafe extern "C" fn cblas_dtrsm(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    m: blasint,
-    n: blasint,
+    m: i32,
+    n: i32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: i32,
     b: *mut f64,
-    ldb: blasint,
+    ldb: i32,
 ) {
-    let dtrsm = get_dtrsm();
-
-    match order {
-        CblasColMajor => {
-            let side_char = side_to_char(side);
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            dtrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &m,
-                &n,
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    let p = get_dtrsm_for_lp64_cblas();
+    match p {
+        DtrsmProvider::Lp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        DtrsmProvider::Ilp64(f) => {
+            let m = m as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let ldb = ldb as i64;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+            }
         }
-        CblasRowMajor => {
-            // Row-major: swap m↔n, invert side, invert uplo
-            // Trans is NOT inverted
-            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsm.c
-            let new_side = match side {
-                CblasLeft => CblasRight,
-                CblasRight => CblasLeft,
-            };
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let side_char = side_to_char(new_side);
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(trans); // NOT inverted
-            let diag_char = diag_to_char(diag);
-            dtrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &n, // swapped
-                &m, // swapped
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    }
+}
+
+/// Double precision triangular solve with ILP64 CBLAS integer ABI.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - dtrsm must be registered
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dtrsm_64(
+    order: CBLAS_ORDER,
+    side: CBLAS_SIDE,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    m: i64,
+    n: i64,
+    alpha: f64,
+    a: *const f64,
+    lda: i64,
+    b: *mut f64,
+    ldb: i64,
+) {
+    let p = get_dtrsm_for_ilp64_cblas();
+    match p {
+        DtrsmProvider::Ilp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        DtrsmProvider::Lp64(f) => {
+            let m = m as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let ldb = ldb as i32;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+            }
         }
     }
 }
@@ -110,64 +225,175 @@ pub unsafe extern "C" fn cblas_strsm(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    m: blasint,
-    n: blasint,
+    m: i32,
+    n: i32,
     alpha: f32,
     a: *const f32,
-    lda: blasint,
+    lda: i32,
     b: *mut f32,
-    ldb: blasint,
+    ldb: i32,
 ) {
-    let strsm = get_strsm();
-
-    match order {
-        CblasColMajor => {
-            let side_char = side_to_char(side);
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            strsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &m,
-                &n,
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    let p = get_strsm_for_lp64_cblas();
+    match p {
+        StrsmProvider::Lp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        StrsmProvider::Ilp64(f) => {
+            let m = m as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let ldb = ldb as i64;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+            }
         }
-        CblasRowMajor => {
-            // Row-major: swap m↔n, invert side, invert uplo
-            // Trans is NOT inverted
-            let new_side = match side {
-                CblasLeft => CblasRight,
-                CblasRight => CblasLeft,
-            };
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let side_char = side_to_char(new_side);
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(trans); // NOT inverted
-            let diag_char = diag_to_char(diag);
-            strsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &n, // swapped
-                &m, // swapped
-                &alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    }
+}
+
+/// Single precision triangular solve with ILP64 CBLAS integer ABI.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - strsm must be registered
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_strsm_64(
+    order: CBLAS_ORDER,
+    side: CBLAS_SIDE,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    m: i64,
+    n: i64,
+    alpha: f32,
+    a: *const f32,
+    lda: i64,
+    b: *mut f32,
+    ldb: i64,
+) {
+    let p = get_strsm_for_ilp64_cblas();
+    match p {
+        StrsmProvider::Ilp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        StrsmProvider::Lp64(f) => {
+            let m = m as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let ldb = ldb as i32;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
+                        b, &ldb,
+                    );
+                }
+            }
         }
     }
 }
@@ -187,64 +413,175 @@ pub unsafe extern "C" fn cblas_ctrsm(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    m: blasint,
-    n: blasint,
+    m: i32,
+    n: i32,
     alpha: *const Complex32,
     a: *const Complex32,
-    lda: blasint,
+    lda: i32,
     b: *mut Complex32,
-    ldb: blasint,
+    ldb: i32,
 ) {
-    let ctrsm = get_ctrsm();
-
-    match order {
-        CblasColMajor => {
-            let side_char = side_to_char(side);
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ctrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &m,
-                &n,
-                alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    let p = get_ctrsm_for_lp64_cblas();
+    match p {
+        CtrsmProvider::Lp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        CtrsmProvider::Ilp64(f) => {
+            let m = m as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let ldb = ldb as i64;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+            }
         }
-        CblasRowMajor => {
-            // Row-major: swap m↔n, invert side, invert uplo
-            // Trans is NOT inverted
-            let new_side = match side {
-                CblasLeft => CblasRight,
-                CblasRight => CblasLeft,
-            };
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let side_char = side_to_char(new_side);
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(trans); // NOT inverted
-            let diag_char = diag_to_char(diag);
-            ctrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &n, // swapped
-                &m, // swapped
-                alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    }
+}
+
+/// Single precision complex triangular solve with ILP64 CBLAS integer ABI.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - ctrsm must be registered
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ctrsm_64(
+    order: CBLAS_ORDER,
+    side: CBLAS_SIDE,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    m: i64,
+    n: i64,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: i64,
+    b: *mut Complex32,
+    ldb: i64,
+) {
+    let p = get_ctrsm_for_ilp64_cblas();
+    match p {
+        CtrsmProvider::Ilp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        CtrsmProvider::Lp64(f) => {
+            let m = m as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let ldb = ldb as i32;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+            }
         }
     }
 }
@@ -264,64 +601,175 @@ pub unsafe extern "C" fn cblas_ztrsm(
     uplo: CBLAS_UPLO,
     trans: CBLAS_TRANSPOSE,
     diag: CBLAS_DIAG,
-    m: blasint,
-    n: blasint,
+    m: i32,
+    n: i32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: i32,
     b: *mut Complex64,
-    ldb: blasint,
+    ldb: i32,
 ) {
-    let ztrsm = get_ztrsm();
-
-    match order {
-        CblasColMajor => {
-            let side_char = side_to_char(side);
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ztrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &m,
-                &n,
-                alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    let p = get_ztrsm_for_lp64_cblas();
+    match p {
+        ZtrsmProvider::Lp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        ZtrsmProvider::Ilp64(f) => {
+            let m = m as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let ldb = ldb as i64;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+            }
         }
-        CblasRowMajor => {
-            // Row-major: swap m↔n, invert side, invert uplo
-            // Trans is NOT inverted
-            let new_side = match side {
-                CblasLeft => CblasRight,
-                CblasRight => CblasLeft,
-            };
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let side_char = side_to_char(new_side);
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(trans); // NOT inverted
-            let diag_char = diag_to_char(diag);
-            ztrsm(
-                &side_char,
-                &uplo_char,
-                &trans_char,
-                &diag_char,
-                &n, // swapped
-                &m, // swapped
-                alpha,
-                a,
-                &lda,
-                b,
-                &ldb,
-            );
+    }
+}
+
+/// Double precision complex triangular solve with ILP64 CBLAS integer ABI.
+///
+/// # Safety
+///
+/// - All pointers must be valid and properly aligned
+/// - Matrix dimensions and leading dimensions must be consistent
+/// - ztrsm must be registered
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ztrsm_64(
+    order: CBLAS_ORDER,
+    side: CBLAS_SIDE,
+    uplo: CBLAS_UPLO,
+    trans: CBLAS_TRANSPOSE,
+    diag: CBLAS_DIAG,
+    m: i64,
+    n: i64,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: i64,
+    b: *mut Complex64,
+    ldb: i64,
+) {
+    let p = get_ztrsm_for_ilp64_cblas();
+    match p {
+        ZtrsmProvider::Ilp64(f) => match order {
+            CblasColMajor => {
+                let side_char = side_to_char(side);
+                let uplo_char = uplo_to_char(uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+            CblasRowMajor => {
+                let new_side = match side {
+                    CblasLeft => CblasRight,
+                    CblasRight => CblasLeft,
+                };
+                let new_uplo = match uplo {
+                    CblasUpper => CblasLower,
+                    CblasLower => CblasUpper,
+                };
+                let side_char = side_to_char(new_side);
+                let uplo_char = uplo_to_char(new_uplo);
+                let trans_char = transpose_to_char(trans);
+                let diag_char = diag_to_char(diag);
+                f(
+                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &ldb,
+                );
+            }
+        },
+        ZtrsmProvider::Lp64(f) => {
+            let m = m as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let ldb = ldb as i32;
+            match order {
+                CblasColMajor => {
+                    let side_char = side_to_char(side);
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+                CblasRowMajor => {
+                    let new_side = match side {
+                        CblasLeft => CblasRight,
+                        CblasRight => CblasLeft,
+                    };
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let side_char = side_to_char(new_side);
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    f(
+                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &ldb,
+                    );
+                }
+            }
         }
     }
 }

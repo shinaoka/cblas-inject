@@ -15,7 +15,14 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_cher, get_cher2, get_dsyr, get_dsyr2, get_ssyr, get_ssyr2, get_zher, get_zher2,
+    get_cher_for_lp64_cblas, get_cher_for_ilp64_cblas, CherProvider,
+    get_cher2_for_lp64_cblas, get_cher2_for_ilp64_cblas, Cher2Provider,
+    get_dsyr_for_lp64_cblas, get_dsyr_for_ilp64_cblas, DsyrProvider,
+    get_dsyr2_for_lp64_cblas, get_dsyr2_for_ilp64_cblas, Dsyr2Provider,
+    get_ssyr_for_lp64_cblas, get_ssyr_for_ilp64_cblas, SsyrProvider,
+    get_ssyr2_for_lp64_cblas, get_ssyr2_for_ilp64_cblas, Ssyr2Provider,
+    get_zher_for_lp64_cblas, get_zher_for_ilp64_cblas, ZherProvider,
+    get_zher2_for_lp64_cblas, get_zher2_for_ilp64_cblas, Zher2Provider,
 };
 use crate::types::{
     blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
@@ -37,14 +44,16 @@ use crate::types::{
 pub unsafe extern "C" fn cblas_ssyr(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f32,
     x: *const f32,
-    incx: blasint,
+    incx: i32,
     a: *mut f32,
-    lda: blasint,
+    lda: i32,
 ) {
-    let ssyr = get_ssyr();
+    let p = get_ssyr_for_lp64_cblas();
+    match p {
+        SsyrProvider::Lp64(ssyr) => {
 
     match order {
         CblasColMajor => {
@@ -61,6 +70,80 @@ pub unsafe extern "C" fn cblas_ssyr(
             ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
         }
     }
+        }
+        SsyrProvider::Ilp64(ssyr) => {
+            let n = n as i64; let incx = incx as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ssyr_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f32,
+    x: *const f32,
+    incx: i64,
+    a: *mut f32,
+    lda: i64,
+) {
+    let p = get_ssyr_for_ilp64_cblas();
+    match p {
+        SsyrProvider::Ilp64(ssyr) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        SsyrProvider::Lp64(ssyr) => {
+            let n = n as i32; let incx = incx as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision symmetric rank-1 update: A = alpha * x * x^T + A
@@ -74,14 +157,16 @@ pub unsafe extern "C" fn cblas_ssyr(
 pub unsafe extern "C" fn cblas_dsyr(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f64,
     x: *const f64,
-    incx: blasint,
+    incx: i32,
     a: *mut f64,
-    lda: blasint,
+    lda: i32,
 ) {
-    let dsyr = get_dsyr();
+    let p = get_dsyr_for_lp64_cblas();
+    match p {
+        DsyrProvider::Lp64(dsyr) => {
 
     match order {
         CblasColMajor => {
@@ -96,6 +181,80 @@ pub unsafe extern "C" fn cblas_dsyr(
             };
             let uplo_char = uplo_to_char(new_uplo);
             dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        DsyrProvider::Ilp64(dsyr) => {
+            let n = n as i64; let incx = incx as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dsyr_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f64,
+    x: *const f64,
+    incx: i64,
+    a: *mut f64,
+    lda: i64,
+) {
+    let p = get_dsyr_for_ilp64_cblas();
+    match p {
+        DsyrProvider::Ilp64(dsyr) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        DsyrProvider::Lp64(dsyr) => {
+            let n = n as i32; let incx = incx as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
         }
     }
 }
@@ -117,14 +276,16 @@ pub unsafe extern "C" fn cblas_dsyr(
 pub unsafe extern "C" fn cblas_cher(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     a: *mut Complex32,
-    lda: blasint,
+    lda: i32,
 ) {
-    let cher = get_cher();
+    let p = get_cher_for_lp64_cblas();
+    match p {
+        CherProvider::Lp64(cher) => {
 
     match order {
         CblasColMajor => {
@@ -143,6 +304,86 @@ pub unsafe extern "C" fn cblas_cher(
             cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
         }
     }
+        }
+        CherProvider::Ilp64(cher) => {
+            let n = n as i64; let incx = incx as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            // The Hermitian property A = A^H means A^T = conj(A)
+            // So row-major upper triangle = col-major lower triangle (conjugated)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cher_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f32,
+    x: *const Complex32,
+    incx: i64,
+    a: *mut Complex32,
+    lda: i64,
+) {
+    let p = get_cher_for_ilp64_cblas();
+    match p {
+        CherProvider::Ilp64(cher) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            // The Hermitian property A = A^H means A^T = conj(A)
+            // So row-major upper triangle = col-major lower triangle (conjugated)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        CherProvider::Lp64(cher) => {
+            let n = n as i32; let incx = incx as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            // The Hermitian property A = A^H means A^T = conj(A)
+            // So row-major upper triangle = col-major lower triangle (conjugated)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            cher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision complex hermitian rank-1 update: A = alpha * x * conj(x)^T + A
@@ -158,14 +399,16 @@ pub unsafe extern "C" fn cblas_cher(
 pub unsafe extern "C" fn cblas_zher(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f64,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     a: *mut Complex64,
-    lda: blasint,
+    lda: i32,
 ) {
-    let zher = get_zher();
+    let p = get_zher_for_lp64_cblas();
+    match p {
+        ZherProvider::Lp64(zher) => {
 
     match order {
         CblasColMajor => {
@@ -180,6 +423,80 @@ pub unsafe extern "C" fn cblas_zher(
             };
             let uplo_char = uplo_to_char(new_uplo);
             zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        ZherProvider::Ilp64(zher) => {
+            let n = n as i64; let incx = incx as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zher_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f64,
+    x: *const Complex64,
+    incx: i64,
+    a: *mut Complex64,
+    lda: i64,
+) {
+    let p = get_zher_for_ilp64_cblas();
+    match p {
+        ZherProvider::Ilp64(zher) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
+        }
+        ZherProvider::Lp64(zher) => {
+            let n = n as i32; let incx = incx as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher(&uplo_char, &n, &alpha, x, &incx, a, &lda);
+        }
+    }
         }
     }
 }
@@ -200,16 +517,18 @@ pub unsafe extern "C" fn cblas_zher(
 pub unsafe extern "C" fn cblas_ssyr2(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f32,
     x: *const f32,
-    incx: blasint,
+    incx: i32,
     y: *const f32,
-    incy: blasint,
+    incy: i32,
     a: *mut f32,
-    lda: blasint,
+    lda: i32,
 ) {
-    let ssyr2 = get_ssyr2();
+    let p = get_ssyr2_for_lp64_cblas();
+    match p {
+        Ssyr2Provider::Lp64(ssyr2) => {
 
     match order {
         CblasColMajor => {
@@ -226,6 +545,83 @@ pub unsafe extern "C" fn cblas_ssyr2(
             ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
         }
     }
+        }
+        Ssyr2Provider::Ilp64(ssyr2) => {
+            let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_ssyr2_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f32,
+    x: *const f32,
+    incx: i64,
+    y: *const f32,
+    incy: i64,
+    a: *mut f32,
+    lda: i64,
+) {
+    let p = get_ssyr2_for_ilp64_cblas();
+    match p {
+        Ssyr2Provider::Ilp64(ssyr2) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+        Ssyr2Provider::Lp64(ssyr2) => {
+            let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            ssyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision symmetric rank-2 update: A = alpha * x * y^T + alpha * y * x^T + A
@@ -240,16 +636,18 @@ pub unsafe extern "C" fn cblas_ssyr2(
 pub unsafe extern "C" fn cblas_dsyr2(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: f64,
     x: *const f64,
-    incx: blasint,
+    incx: i32,
     y: *const f64,
-    incy: blasint,
+    incy: i32,
     a: *mut f64,
-    lda: blasint,
+    lda: i32,
 ) {
-    let dsyr2 = get_dsyr2();
+    let p = get_dsyr2_for_lp64_cblas();
+    match p {
+        Dsyr2Provider::Lp64(dsyr2) => {
 
     match order {
         CblasColMajor => {
@@ -264,6 +662,83 @@ pub unsafe extern "C" fn cblas_dsyr2(
             };
             let uplo_char = uplo_to_char(new_uplo);
             dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+        Dsyr2Provider::Ilp64(dsyr2) => {
+            let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_dsyr2_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: f64,
+    x: *const f64,
+    incx: i64,
+    y: *const f64,
+    incy: i64,
+    a: *mut f64,
+    lda: i64,
+) {
+    let p = get_dsyr2_for_ilp64_cblas();
+    match p {
+        Dsyr2Provider::Ilp64(dsyr2) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
+        }
+        Dsyr2Provider::Lp64(dsyr2) => {
+            let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major: invert uplo (Upper <-> Lower)
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            dsyr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, a, &lda);
+        }
+    }
         }
     }
 }
@@ -286,16 +761,18 @@ pub unsafe extern "C" fn cblas_dsyr2(
 pub unsafe extern "C" fn cblas_cher2(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: *const Complex32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     y: *const Complex32,
-    incy: blasint,
+    incy: i32,
     a: *mut Complex32,
-    lda: blasint,
+    lda: i32,
 ) {
-    let cher2 = get_cher2();
+    let p = get_cher2_for_lp64_cblas();
+    match p {
+        Cher2Provider::Lp64(cher2) => {
 
     match order {
         CblasColMajor => {
@@ -314,6 +791,89 @@ pub unsafe extern "C" fn cblas_cher2(
             cher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
         }
     }
+        }
+        Cher2Provider::Ilp64(cher2) => {
+            let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            // For HER2 in row-major, we also need to swap x and y
+            // and use conjugate of alpha (handled by the property of HER2)
+            cher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_cher2_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: *const Complex32,
+    x: *const Complex32,
+    incx: i64,
+    y: *const Complex32,
+    incy: i64,
+    a: *mut Complex32,
+    lda: i64,
+) {
+    let p = get_cher2_for_ilp64_cblas();
+    match p {
+        Cher2Provider::Ilp64(cher2) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            // For HER2 in row-major, we also need to swap x and y
+            // and use conjugate of alpha (handled by the property of HER2)
+            cher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+        Cher2Provider::Lp64(cher2) => {
+            let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            cher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            // For HER2 in row-major, we also need to swap x and y
+            // and use conjugate of alpha (handled by the property of HER2)
+            cher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
 }
 
 /// Double precision complex hermitian rank-2 update
@@ -330,16 +890,18 @@ pub unsafe extern "C" fn cblas_cher2(
 pub unsafe extern "C" fn cblas_zher2(
     order: CBLAS_ORDER,
     uplo: CBLAS_UPLO,
-    n: blasint,
+    n: i32,
     alpha: *const Complex64,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     y: *const Complex64,
-    incy: blasint,
+    incy: i32,
     a: *mut Complex64,
-    lda: blasint,
+    lda: i32,
 ) {
-    let zher2 = get_zher2();
+    let p = get_zher2_for_lp64_cblas();
+    match p {
+        Zher2Provider::Lp64(zher2) => {
 
     match order {
         CblasColMajor => {
@@ -354,6 +916,83 @@ pub unsafe extern "C" fn cblas_zher2(
             };
             let uplo_char = uplo_to_char(new_uplo);
             zher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+        Zher2Provider::Ilp64(zher2) => {
+            let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo and swap x<->y
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+#[no_mangle]
+pub unsafe extern "C" fn cblas_zher2_64(
+    order: CBLAS_ORDER,
+    uplo: CBLAS_UPLO,
+    n: i64,
+    alpha: *const Complex64,
+    x: *const Complex64,
+    incx: i64,
+    y: *const Complex64,
+    incy: i64,
+    a: *mut Complex64,
+    lda: i64,
+) {
+    let p = get_zher2_for_ilp64_cblas();
+    match p {
+        Zher2Provider::Ilp64(zher2) => {
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo and swap x<->y
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
+        }
+        Zher2Provider::Lp64(zher2) => {
+            let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+
+    match order {
+        CblasColMajor => {
+            let uplo_char = uplo_to_char(uplo);
+            zher2(&uplo_char, &n, alpha, x, &incx, y, &incy, a, &lda);
+        }
+        CblasRowMajor => {
+            // Row-major for Hermitian: invert uplo and swap x<->y
+            let new_uplo = match uplo {
+                CblasUpper => CblasLower,
+                CblasLower => CblasUpper,
+            };
+            let uplo_char = uplo_to_char(new_uplo);
+            zher2(&uplo_char, &n, alpha, y, &incy, x, &incx, a, &lda);
+        }
+    }
         }
     }
 }

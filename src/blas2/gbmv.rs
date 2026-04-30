@@ -14,7 +14,12 @@
 
 use num_complex::{Complex32, Complex64};
 
-use crate::backend::{get_cgbmv, get_dgbmv, get_sgbmv, get_zgbmv};
+use crate::backend::{
+    get_cgbmv_for_lp64_cblas, get_cgbmv_for_ilp64_cblas, CgbmvProvider,
+    get_dgbmv_for_lp64_cblas, get_dgbmv_for_ilp64_cblas, DgbmvProvider,
+    get_sgbmv_for_lp64_cblas, get_sgbmv_for_ilp64_cblas, SgbmvProvider,
+    get_zgbmv_for_lp64_cblas, get_zgbmv_for_ilp64_cblas, ZgbmvProvider,
+};
 use crate::types::{
     blasint, normalize_transpose_real, transpose_to_char, CblasColMajor, CblasConjNoTrans,
     CblasConjTrans, CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
@@ -47,20 +52,22 @@ fn flip_transpose_real(trans: CBLAS_TRANSPOSE) -> CBLAS_TRANSPOSE {
 pub unsafe extern "C" fn cblas_sgbmv(
     order: CBLAS_ORDER,
     trans: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    kl: blasint,
-    ku: blasint,
+    m: i32,
+    n: i32,
+    kl: i32,
+    ku: i32,
     alpha: f32,
     a: *const f32,
-    lda: blasint,
+    lda: i32,
     x: *const f32,
-    incx: blasint,
+    incx: i32,
     beta: f32,
     y: *mut f32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let sgbmv = get_sgbmv();
+    let p = get_sgbmv_for_lp64_cblas();
+    match p {
+        SgbmvProvider::Lp64(sgbmv) => {
 
     match order {
         CblasColMajor => {
@@ -103,6 +110,165 @@ pub unsafe extern "C" fn cblas_sgbmv(
             );
         }
     }
+        }
+        SgbmvProvider::Ilp64(sgbmv) => {
+            let m = m as i64; let n = n as i64; let kl = kl as i64; let ku = ku as i64; let lda = lda as i64; let incx = incx as i64; let incy = incy as i64;
+
+    match order {
+        CblasColMajor => {
+            // Column-major: call Fortran directly
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Row-major: swap m/n, kl/ku and flip transpose
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gbmv.c
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &n,  // swapped: m -> n
+                &m,  // swapped: n -> m
+                &ku, // swapped: kl -> ku
+                &kl, // swapped: ku -> kl
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_sgbmv_64(
+    order: CBLAS_ORDER,
+    trans: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    kl: i64,
+    ku: i64,
+    alpha: f32,
+    a: *const f32,
+    lda: i64,
+    x: *const f32,
+    incx: i64,
+    beta: f32,
+    y: *mut f32,
+    incy: i64,
+) {
+    let p = get_sgbmv_for_ilp64_cblas();
+    match p {
+        SgbmvProvider::Ilp64(sgbmv) => {
+
+    match order {
+        CblasColMajor => {
+            // Column-major: call Fortran directly
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Row-major: swap m/n, kl/ku and flip transpose
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gbmv.c
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &n,  // swapped: m -> n
+                &m,  // swapped: n -> m
+                &ku, // swapped: kl -> ku
+                &kl, // swapped: ku -> kl
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+        SgbmvProvider::Lp64(sgbmv) => {
+            let m = m as i32; let n = n as i32; let kl = kl as i32; let ku = ku as i32; let lda = lda as i32; let incx = incx as i32; let incy = incy as i32;
+
+    match order {
+        CblasColMajor => {
+            // Column-major: call Fortran directly
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Row-major: swap m/n, kl/ku and flip transpose
+            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/gbmv.c
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            sgbmv(
+                &trans_char,
+                &n,  // swapped: m -> n
+                &m,  // swapped: n -> m
+                &ku, // swapped: kl -> ku
+                &kl, // swapped: ku -> kl
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
 }
 
 /// Double precision general band matrix-vector multiply.
@@ -120,20 +286,22 @@ pub unsafe extern "C" fn cblas_sgbmv(
 pub unsafe extern "C" fn cblas_dgbmv(
     order: CBLAS_ORDER,
     trans: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    kl: blasint,
-    ku: blasint,
+    m: i32,
+    n: i32,
+    kl: i32,
+    ku: i32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: i32,
     x: *const f64,
-    incx: blasint,
+    incx: i32,
     beta: f64,
     y: *mut f64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let dgbmv = get_dgbmv();
+    let p = get_dgbmv_for_lp64_cblas();
+    match p {
+        DgbmvProvider::Lp64(dgbmv) => {
 
     match order {
         CblasColMajor => {
@@ -173,6 +341,156 @@ pub unsafe extern "C" fn cblas_dgbmv(
             );
         }
     }
+        }
+        DgbmvProvider::Ilp64(dgbmv) => {
+            let m = m as i64; let n = n as i64; let kl = kl as i64; let ku = ku as i64; let lda = lda as i64; let incx = incx as i64; let incy = incy as i64;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_dgbmv_64(
+    order: CBLAS_ORDER,
+    trans: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    kl: i64,
+    ku: i64,
+    alpha: f64,
+    a: *const f64,
+    lda: i64,
+    x: *const f64,
+    incx: i64,
+    beta: f64,
+    y: *mut f64,
+    incy: i64,
+) {
+    let p = get_dgbmv_for_ilp64_cblas();
+    match p {
+        DgbmvProvider::Ilp64(dgbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+        DgbmvProvider::Lp64(dgbmv) => {
+            let m = m as i32; let n = n as i32; let kl = kl as i32; let ku = ku as i32; let lda = lda as i32; let incx = incx as i32; let incy = incy as i32;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(normalize_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            let trans_char = transpose_to_char(flip_transpose_real(trans));
+            dgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                &alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                &beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
 }
 
 /// Single precision complex general band matrix-vector multiply.
@@ -190,20 +508,22 @@ pub unsafe extern "C" fn cblas_dgbmv(
 pub unsafe extern "C" fn cblas_cgbmv(
     order: CBLAS_ORDER,
     trans: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    kl: blasint,
-    ku: blasint,
+    m: i32,
+    n: i32,
+    kl: i32,
+    ku: i32,
     alpha: *const Complex32,
     a: *const Complex32,
-    lda: blasint,
+    lda: i32,
     x: *const Complex32,
-    incx: blasint,
+    incx: i32,
     beta: *const Complex32,
     y: *mut Complex32,
-    incy: blasint,
+    incy: i32,
 ) {
-    let cgbmv = get_cgbmv();
+    let p = get_cgbmv_for_lp64_cblas();
+    match p {
+        CgbmvProvider::Lp64(cgbmv) => {
 
     match order {
         CblasColMajor => {
@@ -251,6 +571,180 @@ pub unsafe extern "C" fn cblas_cgbmv(
             );
         }
     }
+        }
+        CgbmvProvider::Ilp64(cgbmv) => {
+            let m = m as i64; let n = n as i64; let kl = kl as i64; let ku = ku as i64; let lda = lda as i64; let incx = incx as i64; let incy = incy as i64;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            cgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // For complex, row-major requires flipping transpose with conjugation preserved:
+            // NoTrans <-> Trans, ConjNoTrans <-> ConjTrans (OpenBLAS)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            cgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_cgbmv_64(
+    order: CBLAS_ORDER,
+    trans: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    kl: i64,
+    ku: i64,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: i64,
+    x: *const Complex32,
+    incx: i64,
+    beta: *const Complex32,
+    y: *mut Complex32,
+    incy: i64,
+) {
+    let p = get_cgbmv_for_ilp64_cblas();
+    match p {
+        CgbmvProvider::Ilp64(cgbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            cgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // For complex, row-major requires flipping transpose with conjugation preserved:
+            // NoTrans <-> Trans, ConjNoTrans <-> ConjTrans (OpenBLAS)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            cgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+        CgbmvProvider::Lp64(cgbmv) => {
+            let m = m as i32; let n = n as i32; let kl = kl as i32; let ku = ku as i32; let lda = lda as i32; let incx = incx as i32; let incy = incy as i32;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            cgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // For complex, row-major requires flipping transpose with conjugation preserved:
+            // NoTrans <-> Trans, ConjNoTrans <-> ConjTrans (OpenBLAS)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            cgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
 }
 
 /// Double precision complex general band matrix-vector multiply.
@@ -268,20 +762,22 @@ pub unsafe extern "C" fn cblas_cgbmv(
 pub unsafe extern "C" fn cblas_zgbmv(
     order: CBLAS_ORDER,
     trans: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    kl: blasint,
-    ku: blasint,
+    m: i32,
+    n: i32,
+    kl: i32,
+    ku: i32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: i32,
     x: *const Complex64,
-    incx: blasint,
+    incx: i32,
     beta: *const Complex64,
     y: *mut Complex64,
-    incy: blasint,
+    incy: i32,
 ) {
-    let zgbmv = get_zgbmv();
+    let p = get_zgbmv_for_lp64_cblas();
+    match p {
+        ZgbmvProvider::Lp64(zgbmv) => {
 
     match order {
         CblasColMajor => {
@@ -326,6 +822,177 @@ pub unsafe extern "C" fn cblas_zgbmv(
                 y,
                 &incy,
             );
+        }
+    }
+        }
+        ZgbmvProvider::Ilp64(zgbmv) => {
+            let m = m as i64; let n = n as i64; let kl = kl as i64; let ku = ku as i64; let lda = lda as i64; let incx = incx as i64; let incy = incy as i64;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            zgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Same handling as cgbmv (OpenBLAS row-major transpose flip for complex)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            zgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+    }
+}
+
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub unsafe extern "C" fn cblas_zgbmv_64(
+    order: CBLAS_ORDER,
+    trans: CBLAS_TRANSPOSE,
+    m: i64,
+    n: i64,
+    kl: i64,
+    ku: i64,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: i64,
+    x: *const Complex64,
+    incx: i64,
+    beta: *const Complex64,
+    y: *mut Complex64,
+    incy: i64,
+) {
+    let p = get_zgbmv_for_ilp64_cblas();
+    match p {
+        ZgbmvProvider::Ilp64(zgbmv) => {
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            zgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Same handling as cgbmv (OpenBLAS row-major transpose flip for complex)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            zgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
+        }
+        ZgbmvProvider::Lp64(zgbmv) => {
+            let m = m as i32; let n = n as i32; let kl = kl as i32; let ku = ku as i32; let lda = lda as i32; let incx = incx as i32; let incy = incy as i32;
+
+    match order {
+        CblasColMajor => {
+            let trans_char = transpose_to_char(trans);
+            zgbmv(
+                &trans_char,
+                &m,
+                &n,
+                &kl,
+                &ku,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+        CblasRowMajor => {
+            // Same handling as cgbmv (OpenBLAS row-major transpose flip for complex)
+            let flipped_trans = match trans {
+                CblasNoTrans => CblasTrans,
+                CblasTrans => CblasNoTrans,
+                CblasConjNoTrans => CblasConjTrans,
+                CblasConjTrans => CblasConjNoTrans,
+            };
+            let trans_char = transpose_to_char(flipped_trans);
+            zgbmv(
+                &trans_char,
+                &n,
+                &m,
+                &ku,
+                &kl,
+                alpha,
+                a,
+                &lda,
+                x,
+                &incx,
+                beta,
+                y,
+                &incy,
+            );
+        }
+    }
         }
     }
 }
