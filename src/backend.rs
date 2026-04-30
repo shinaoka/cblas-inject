@@ -4,7 +4,7 @@
 //! function pointers at runtime. Each function has its own `OnceLock` to allow
 //! partial registration (only register the functions you need).
 
-use std::ffi::c_char;
+use std::ffi::{c_char, c_void};
 use std::sync::OnceLock;
 
 use num_complex::{Complex32, Complex64};
@@ -13,6 +13,13 @@ use crate::blasint;
 
 pub type BlasInt32 = i32;
 pub type BlasInt64 = i64;
+
+/// C API status code for a successful operation.
+pub const CBLAS_INJECT_STATUS_OK: i32 = 0;
+/// C API status code for a null function pointer.
+pub const CBLAS_INJECT_STATUS_NULL_POINTER: i32 = 1;
+/// C API status code for a function that has already been registered.
+pub const CBLAS_INJECT_STATUS_ALREADY_REGISTERED: i32 = 2;
 
 // =============================================================================
 // Fortran BLAS function pointer types
@@ -2033,8 +2040,12 @@ static ZHPR2: OnceLock<Zhpr2FnPtr> = OnceLock::new();
 
 // BLAS Level 3
 static DGEMM: OnceLock<DgemmFnPtr> = OnceLock::new();
+static DGEMM_LP64: OnceLock<DgemmLp64FnPtr> = OnceLock::new();
+static DGEMM_ILP64: OnceLock<DgemmIlp64FnPtr> = OnceLock::new();
 static SGEMM: OnceLock<SgemmFnPtr> = OnceLock::new();
 static ZGEMM: OnceLock<ZgemmFnPtr> = OnceLock::new();
+static ZGEMM_LP64: OnceLock<ZgemmLp64FnPtr> = OnceLock::new();
+static ZGEMM_ILP64: OnceLock<ZgemmIlp64FnPtr> = OnceLock::new();
 static CGEMM: OnceLock<CgemmFnPtr> = OnceLock::new();
 static SSYMM: OnceLock<SsymmFnPtr> = OnceLock::new();
 static DSYMM: OnceLock<DsymmFnPtr> = OnceLock::new();
@@ -2066,6 +2077,96 @@ static ZTRSM: OnceLock<ZtrsmFnPtr> = OnceLock::new();
 // =============================================================================
 // Registration functions
 // =============================================================================
+
+fn register_dgemm_lp64_ptr(f: *const c_void) -> i32 {
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
+
+    let f = unsafe { std::mem::transmute::<*const c_void, DgemmLp64FnPtr>(f) };
+    match DGEMM_LP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+fn register_dgemm_ilp64_ptr(f: *const c_void) -> i32 {
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
+
+    let f = unsafe { std::mem::transmute::<*const c_void, DgemmIlp64FnPtr>(f) };
+    match DGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+fn register_zgemm_lp64_ptr(f: *const c_void) -> i32 {
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
+
+    let f = unsafe { std::mem::transmute::<*const c_void, ZgemmLp64FnPtr>(f) };
+    match ZGEMM_LP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
+
+    let f = unsafe { std::mem::transmute::<*const c_void, ZgemmIlp64FnPtr>(f) };
+    match ZGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    }
+}
+
+/// Register an LP64 Fortran dgemm provider through the stable C API.
+#[no_mangle]
+pub extern "C" fn cblas_inject_register_dgemm_lp64(f: *const c_void) -> i32 {
+    register_dgemm_lp64_ptr(f)
+}
+
+/// Register an ILP64 Fortran dgemm provider through the stable C API.
+#[no_mangle]
+pub extern "C" fn cblas_inject_register_dgemm_ilp64(f: *const c_void) -> i32 {
+    register_dgemm_ilp64_ptr(f)
+}
+
+/// Register an LP64 Fortran zgemm provider through the stable C API.
+#[no_mangle]
+pub extern "C" fn cblas_inject_register_zgemm_lp64(f: *const c_void) -> i32 {
+    register_zgemm_lp64_ptr(f)
+}
+
+/// Register an ILP64 Fortran zgemm provider through the stable C API.
+#[no_mangle]
+pub extern "C" fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> i32 {
+    register_zgemm_ilp64_ptr(f)
+}
+
+/// Return the BLAS integer width used by unprefixed CBLAS symbols in this build.
+#[no_mangle]
+pub extern "C" fn cblas_inject_blas_int_width() -> i32 {
+    (std::mem::size_of::<blasint>() * 8) as i32
+}
+
+/// Return whether this build accepts LP64 explicit provider registration.
+#[no_mangle]
+pub extern "C" fn cblas_inject_supports_lp64() -> i32 {
+    1
+}
+
+/// Return whether this build accepts ILP64 explicit provider registration.
+#[no_mangle]
+pub extern "C" fn cblas_inject_supports_ilp64() -> i32 {
+    1
+}
 
 // BLAS Level 1 registration
 
@@ -2992,6 +3093,11 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
     DGEMM
         .set(f)
         .expect("dgemm already registered (can only be set once)");
+    let f = std::mem::transmute::<DgemmFnPtr, *const c_void>(f);
+    #[cfg(not(feature = "ilp64"))]
+    let _ = register_dgemm_lp64_ptr(f);
+    #[cfg(feature = "ilp64")]
+    let _ = register_dgemm_ilp64_ptr(f);
 }
 
 /// Register the Fortran sgemm function pointer.
@@ -3024,6 +3130,11 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
     ZGEMM
         .set(f)
         .expect("zgemm already registered (can only be set once)");
+    let f = std::mem::transmute::<ZgemmFnPtr, *const c_void>(f);
+    #[cfg(not(feature = "ilp64"))]
+    let _ = register_zgemm_lp64_ptr(f);
+    #[cfg(feature = "ilp64")]
+    let _ = register_zgemm_ilp64_ptr(f);
 }
 
 /// Register the Fortran cgemm function pointer.
