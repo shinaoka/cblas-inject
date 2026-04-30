@@ -408,6 +408,10 @@ impl<T: Copy> Matrix<T> {
     }
 
     /// Get LDA as blasint.
+    pub fn lda_cblas(&self) -> i32 {
+        self.lda as i32
+    }
+
     pub fn lda_blasint(&self) -> blasint {
         self.lda as blasint
     }

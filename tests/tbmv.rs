@@ -101,7 +101,7 @@ fn ctbmv_row_vs_col_agree() {
                     let mut x_row = x0.clone();
                     let mut x_col = x0.clone();
 
-                    let lda = (k + 1) as blasint;
+                    let lda = (k + 1) as i32;
 
                     unsafe {
                         cblas_inject::cblas_ctbmv(
@@ -109,8 +109,8 @@ fn ctbmv_row_vs_col_agree() {
                             uplo,
                             trans,
                             diag,
-                            n as blasint,
-                            k as blasint,
+                            n as i32,
+                            k as i32,
                             a_row.as_ptr(),
                             lda,
                             x_row.as_mut_ptr(),
@@ -121,8 +121,8 @@ fn ctbmv_row_vs_col_agree() {
                             uplo,
                             trans,
                             diag,
-                            n as blasint,
-                            k as blasint,
+                            n as i32,
+                            k as i32,
                             a_col.as_ptr(),
                             lda,
                             x_col.as_mut_ptr(),
@@ -186,7 +186,7 @@ fn ztbmv_row_vs_col_agree() {
                     let mut x_row = x0.clone();
                     let mut x_col = x0.clone();
 
-                    let lda = (k + 1) as blasint;
+                    let lda = (k + 1) as i32;
 
                     unsafe {
                         cblas_inject::cblas_ztbmv(
@@ -194,8 +194,8 @@ fn ztbmv_row_vs_col_agree() {
                             uplo,
                             trans,
                             diag,
-                            n as blasint,
-                            k as blasint,
+                            n as i32,
+                            k as i32,
                             a_row.as_ptr(),
                             lda,
                             x_row.as_mut_ptr(),
@@ -206,8 +206,8 @@ fn ztbmv_row_vs_col_agree() {
                             uplo,
                             trans,
                             diag,
-                            n as blasint,
-                            k as blasint,
+                            n as i32,
+                            k as i32,
                             a_col.as_ptr(),
                             lda,
                             x_col.as_mut_ptr(),
