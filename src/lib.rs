@@ -39,6 +39,7 @@ compile_error!(
 );
 
 mod backend;
+mod int_convert;
 mod types;
 mod xerbla;
 

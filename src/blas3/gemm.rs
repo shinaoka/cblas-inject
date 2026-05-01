@@ -9,7 +9,7 @@
 //! For row-major layout, we swap A↔B, m↔n, lda↔ldb, TransA↔TransB.
 //! The transpose flags are NOT inverted, just swapped.
 
-use std::ffi::{c_char, c_int};
+use std::ffi::c_char;
 
 use num_complex::{Complex32, Complex64};
 
@@ -19,13 +19,17 @@ use crate::backend::{
     get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, CgemmProvider,
     DgemmProvider, SgemmProvider, ZgemmProvider,
 };
+#[cfg(feature = "ilp64")]
+use crate::int_convert::to_lp64_blasint;
+use crate::int_convert::{to_lp64_i64, unchecked_lp64_i64};
 use crate::types::{
     blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
-use crate::xerbla::cblas_xerbla;
 
 const CBLAS_DGEMM_ROUTINE: &[u8] = b"cblas_dgemm\0";
+const CBLAS_SGEMM_64_ROUTINE: &[u8] = b"cblas_sgemm_64\0";
 const CBLAS_ZGEMM_ROUTINE: &[u8] = b"cblas_zgemm\0";
+const CBLAS_CGEMM_64_ROUTINE: &[u8] = b"cblas_cgemm_64\0";
 const CBLAS_DGEMM_64_ROUTINE: &[u8] = b"cblas_dgemm_64\0";
 const CBLAS_ZGEMM_64_ROUTINE: &[u8] = b"cblas_zgemm_64\0";
 
@@ -38,15 +42,7 @@ fn to_lp64(_routine: &[u8], _param: blasint, value: blasint) -> Option<BlasInt32
 #[cfg(feature = "ilp64")]
 #[inline]
 fn to_lp64(routine: &[u8], param: blasint, value: blasint) -> Option<BlasInt32> {
-    match BlasInt32::try_from(value) {
-        Ok(value) => Some(value),
-        Err(_) => {
-            unsafe {
-                cblas_xerbla(param as c_int, routine.as_ptr().cast(), std::ptr::null());
-            }
-            None
-        }
-    }
+    to_lp64_blasint(routine, param, value)
 }
 
 #[cfg(feature = "ilp64")]
@@ -59,19 +55,6 @@ fn to_ilp64(value: blasint) -> BlasInt64 {
 #[inline]
 fn to_ilp64(value: blasint) -> BlasInt64 {
     BlasInt64::from(value)
-}
-
-#[inline]
-fn to_lp64_i64(routine: &[u8], param: c_int, value: i64) -> Option<BlasInt32> {
-    match BlasInt32::try_from(value) {
-        Ok(value) => Some(value),
-        Err(_) => {
-            unsafe {
-                cblas_xerbla(param, routine.as_ptr().cast(), std::ptr::null());
-            }
-            None
-        }
-    }
 }
 
 #[inline]
@@ -90,12 +73,6 @@ fn check_lp64_gemm_i64(
         && to_lp64_i64(routine, 9, lda).is_some()
         && to_lp64_i64(routine, 11, ldb).is_some()
         && to_lp64_i64(routine, 14, ldc).is_some()
-}
-
-#[inline]
-fn unchecked_lp64_i64(value: i64) -> BlasInt32 {
-    debug_assert!(BlasInt32::try_from(value).is_ok());
-    value as BlasInt32
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -534,6 +511,13 @@ pub unsafe extern "C" fn cblas_sgemm_64(
     ldc: i64,
 ) {
     let p = get_sgemm_for_ilp64_cblas();
+
+    if matches!(p, SgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_SGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
@@ -800,6 +784,13 @@ pub unsafe extern "C" fn cblas_cgemm_64(
     ldc: i64,
 ) {
     let p = get_cgemm_for_ilp64_cblas();
+
+    if matches!(p, CgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_CGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
