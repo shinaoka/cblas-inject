@@ -73,9 +73,15 @@ function main()
     ccall(set_complex_return_style, Cvoid, (Int32,), ComplexReturnStyle_ReturnValue)
     println("Set complex return style to ReturnValue")
 
-    # Now register zdotc
-    register_zdotc = dlsym(lib, :register_zdotc)
-    ccall(register_zdotc, Cvoid, (Ptr{Cvoid},), zdotc_ptr)
+    # Register with the API matching Julia's BLAS provider integer ABI.
+    register_name = if interface == :ilp64
+        :cblas_inject_register_zdotc_ilp64
+    else
+        :cblas_inject_register_zdotc_lp64
+    end
+    register_zdotc = dlsym(lib, register_name)
+    status = ccall(register_zdotc, Cint, (Ptr{Cvoid},), zdotc_ptr)
+    status == 0 || error("cblas-inject registration failed: $status")
     println("Registered zdotc")
 
     # Get cblas_zdotc_sub
