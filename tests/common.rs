@@ -70,9 +70,7 @@ pub fn generate_matrix_complex32(rows: usize, cols: usize, seed: usize) -> Vec<C
 /// Generate test vector data (real)
 #[allow(dead_code)]
 pub fn generate_vector_f64(len: usize, seed: usize) -> Vec<f64> {
-    (0..len)
-        .map(|i| ((i + seed) as f64 * 0.15).cos())
-        .collect()
+    (0..len).map(|i| ((i + seed) as f64 * 0.15).cos()).collect()
 }
 
 /// Generate test vector data (complex64)
@@ -106,12 +104,7 @@ pub fn generate_vector_complex32(len: usize, seed: usize) -> Vec<Complex32> {
 ///            independent of `trans`.
 /// - RowMajor: OpenBLAS swaps `m/n` internally and checks `lda >= max(1, swapped_m)` where `swapped_m = n`,
 ///            so `lda >= max(1, n)` independent of `trans`.
-pub fn calc_lda_gemv(
-    order: CBLAS_ORDER,
-    trans: CBLAS_TRANSPOSE,
-    m: usize,
-    n: usize,
-) -> blasint {
+pub fn calc_lda_gemv(order: CBLAS_ORDER, trans: CBLAS_TRANSPOSE, m: usize, n: usize) -> blasint {
     match order {
         // RowMajor: lda >= n (after OpenBLAS swap)
         CblasRowMajor => n as blasint,
@@ -194,12 +187,7 @@ pub fn assert_f64_eq(got: &[f64], expected: &[f64], tol: f64, context: &str) {
 }
 
 /// Compare two Complex64 slices with tolerance
-pub fn assert_complex64_eq(
-    got: &[Complex64],
-    expected: &[Complex64],
-    tol: f64,
-    context: &str,
-) {
+pub fn assert_complex64_eq(got: &[Complex64], expected: &[Complex64], tol: f64, context: &str) {
     assert_eq!(
         got.len(),
         expected.len(),
@@ -224,12 +212,7 @@ pub fn assert_complex64_eq(
 }
 
 /// Compare two Complex32 slices with tolerance
-pub fn assert_complex32_eq(
-    got: &[Complex32],
-    expected: &[Complex32],
-    tol: f32,
-    context: &str,
-) {
+pub fn assert_complex32_eq(got: &[Complex32], expected: &[Complex32], tol: f32, context: &str) {
     assert_eq!(
         got.len(),
         expected.len(),
@@ -339,8 +322,18 @@ impl<T: Copy> Matrix<T> {
     ///
     /// # Panics
     /// Panics if `lda < cols`.
-    pub fn new_row_major(rows: usize, cols: usize, lda: usize, fill: impl Fn(usize, usize) -> T) -> Self {
-        assert!(lda >= cols, "RowMajor: lda ({}) must be >= cols ({})", lda, cols);
+    pub fn new_row_major(
+        rows: usize,
+        cols: usize,
+        lda: usize,
+        fill: impl Fn(usize, usize) -> T,
+    ) -> Self {
+        assert!(
+            lda >= cols,
+            "RowMajor: lda ({}) must be >= cols ({})",
+            lda,
+            cols
+        );
         let mut data = vec![fill(0, 0); rows * lda];
         for i in 0..rows {
             for j in 0..cols {
@@ -360,8 +353,18 @@ impl<T: Copy> Matrix<T> {
     ///
     /// # Panics
     /// Panics if `lda < rows`.
-    pub fn new_col_major(rows: usize, cols: usize, lda: usize, fill: impl Fn(usize, usize) -> T) -> Self {
-        assert!(lda >= rows, "ColMajor: lda ({}) must be >= rows ({})", lda, rows);
+    pub fn new_col_major(
+        rows: usize,
+        cols: usize,
+        lda: usize,
+        fill: impl Fn(usize, usize) -> T,
+    ) -> Self {
+        assert!(
+            lda >= rows,
+            "ColMajor: lda ({}) must be >= rows ({})",
+            lda,
+            rows
+        );
         let mut data = vec![fill(0, 0); lda * cols];
         for i in 0..rows {
             for j in 0..cols {
@@ -382,7 +385,14 @@ impl<T: Copy> Matrix<T> {
     /// # Panics
     /// Panics if `i >= rows` or `j >= cols`.
     pub fn get(&self, i: usize, j: usize) -> T {
-        assert!(i < self.rows && j < self.cols, "Index out of bounds: ({}, {}) for matrix {}x{}", i, j, self.rows, self.cols);
+        assert!(
+            i < self.rows && j < self.cols,
+            "Index out of bounds: ({}, {}) for matrix {}x{}",
+            i,
+            j,
+            self.rows,
+            self.cols
+        );
         match self.layout {
             Layout::RowMajor => self.data[i * self.lda + j],
             Layout::ColMajor => self.data[i + j * self.lda],
@@ -392,8 +402,12 @@ impl<T: Copy> Matrix<T> {
     /// Convert matrix to a different layout with a new LDA.
     pub fn to_layout(&self, layout: Layout, lda: usize) -> Matrix<T> {
         match layout {
-            Layout::RowMajor => Matrix::new_row_major(self.rows, self.cols, lda, |i, j| self.get(i, j)),
-            Layout::ColMajor => Matrix::new_col_major(self.rows, self.cols, lda, |i, j| self.get(i, j)),
+            Layout::RowMajor => {
+                Matrix::new_row_major(self.rows, self.cols, lda, |i, j| self.get(i, j))
+            }
+            Layout::ColMajor => {
+                Matrix::new_col_major(self.rows, self.cols, lda, |i, j| self.get(i, j))
+            }
         }
     }
 

@@ -13,8 +13,8 @@ use num_complex::{Complex32, Complex64};
 use crate::backend::{
     get_ctrmm_for_ilp64_cblas, get_ctrmm_for_lp64_cblas, get_dtrmm_for_ilp64_cblas,
     get_dtrmm_for_lp64_cblas, get_strmm_for_ilp64_cblas, get_strmm_for_lp64_cblas,
-    get_ztrmm_for_ilp64_cblas, get_ztrmm_for_lp64_cblas, CtrmmProvider, DtrmmProvider, StrmmProvider,
-    ZtrmmProvider,
+    get_ztrmm_for_ilp64_cblas, get_ztrmm_for_lp64_cblas, CtrmmProvider, DtrmmProvider,
+    StrmmProvider, ZtrmmProvider,
 };
 use crate::types::{
     diag_to_char, side_to_char, transpose_to_char, uplo_to_char, CblasColMajor, CblasLeft,
@@ -54,7 +54,16 @@ pub unsafe extern "C" fn cblas_dtrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -72,7 +81,16 @@ pub unsafe extern "C" fn cblas_dtrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -89,8 +107,17 @@ pub unsafe extern "C" fn cblas_dtrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
                 CblasRowMajor => {
@@ -107,8 +134,17 @@ pub unsafe extern "C" fn cblas_dtrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
             }
@@ -140,6 +176,16 @@ pub unsafe extern "C" fn cblas_dtrmm_64(
     ldb: i64,
 ) {
     let p = get_dtrmm_for_ilp64_cblas();
+    if matches!(p, DtrmmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dtrmm_64\0",
+            [(6, m), (7, n), (10, lda), (12, ldb)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         DtrmmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -148,7 +194,16 @@ pub unsafe extern "C" fn cblas_dtrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -166,7 +221,16 @@ pub unsafe extern "C" fn cblas_dtrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -183,8 +247,17 @@ pub unsafe extern "C" fn cblas_dtrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
                 CblasRowMajor => {
@@ -201,8 +274,17 @@ pub unsafe extern "C" fn cblas_dtrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
             }
@@ -242,7 +324,16 @@ pub unsafe extern "C" fn cblas_strmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -260,7 +351,16 @@ pub unsafe extern "C" fn cblas_strmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -277,8 +377,17 @@ pub unsafe extern "C" fn cblas_strmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
                 CblasRowMajor => {
@@ -295,8 +404,17 @@ pub unsafe extern "C" fn cblas_strmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
             }
@@ -328,6 +446,16 @@ pub unsafe extern "C" fn cblas_strmm_64(
     ldb: i64,
 ) {
     let p = get_strmm_for_ilp64_cblas();
+    if matches!(p, StrmmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_strmm_64\0",
+            [(6, m), (7, n), (10, lda), (12, ldb)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         StrmmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -336,7 +464,16 @@ pub unsafe extern "C" fn cblas_strmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -354,7 +491,16 @@ pub unsafe extern "C" fn cblas_strmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -371,8 +517,17 @@ pub unsafe extern "C" fn cblas_strmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
                 CblasRowMajor => {
@@ -389,8 +544,17 @@ pub unsafe extern "C" fn cblas_strmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, &alpha, a, &lda,
-                        b, &ldb,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        &alpha,
+                        a,
+                        &lda,
+                        b,
+                        &ldb,
                     );
                 }
             }
@@ -430,7 +594,16 @@ pub unsafe extern "C" fn cblas_ctrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -448,7 +621,16 @@ pub unsafe extern "C" fn cblas_ctrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -465,7 +647,16 @@ pub unsafe extern "C" fn cblas_ctrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -483,7 +674,16 @@ pub unsafe extern "C" fn cblas_ctrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -516,6 +716,16 @@ pub unsafe extern "C" fn cblas_ctrmm_64(
     ldb: i64,
 ) {
     let p = get_ctrmm_for_ilp64_cblas();
+    if matches!(p, CtrmmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_ctrmm_64\0",
+            [(6, m), (7, n), (10, lda), (12, ldb)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CtrmmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -524,7 +734,16 @@ pub unsafe extern "C" fn cblas_ctrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -542,7 +761,16 @@ pub unsafe extern "C" fn cblas_ctrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -559,7 +787,16 @@ pub unsafe extern "C" fn cblas_ctrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -577,7 +814,16 @@ pub unsafe extern "C" fn cblas_ctrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -618,7 +864,16 @@ pub unsafe extern "C" fn cblas_ztrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -636,7 +891,16 @@ pub unsafe extern "C" fn cblas_ztrmm(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -653,7 +917,16 @@ pub unsafe extern "C" fn cblas_ztrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -671,7 +944,16 @@ pub unsafe extern "C" fn cblas_ztrmm(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -704,6 +986,16 @@ pub unsafe extern "C" fn cblas_ztrmm_64(
     ldb: i64,
 ) {
     let p = get_ztrmm_for_ilp64_cblas();
+    if matches!(p, ZtrmmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_ztrmm_64\0",
+            [(6, m), (7, n), (10, lda), (12, ldb)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZtrmmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -712,7 +1004,16 @@ pub unsafe extern "C" fn cblas_ztrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &m,
+                    &n,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -730,7 +1031,16 @@ pub unsafe extern "C" fn cblas_ztrmm_64(
                 let trans_char = transpose_to_char(trans);
                 let diag_char = diag_to_char(diag);
                 f(
-                    &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                    &side_char,
+                    &uplo_char,
+                    &trans_char,
+                    &diag_char,
+                    &n,
+                    &m,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
                     &ldb,
                 );
             }
@@ -747,7 +1057,16 @@ pub unsafe extern "C" fn cblas_ztrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &m, &n, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &m,
+                        &n,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }
@@ -765,7 +1084,16 @@ pub unsafe extern "C" fn cblas_ztrmm_64(
                     let trans_char = transpose_to_char(trans);
                     let diag_char = diag_to_char(diag);
                     f(
-                        &side_char, &uplo_char, &trans_char, &diag_char, &n, &m, alpha, a, &lda, b,
+                        &side_char,
+                        &uplo_char,
+                        &trans_char,
+                        &diag_char,
+                        &n,
+                        &m,
+                        alpha,
+                        a,
+                        &lda,
+                        b,
                         &ldb,
                     );
                 }

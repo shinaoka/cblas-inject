@@ -95,15 +95,6 @@ pub use blas2::sbmv::{
     cblas_chbmv, cblas_chbmv_64, cblas_dsbmv, cblas_dsbmv_64, cblas_ssbmv, cblas_ssbmv_64,
     cblas_zhbmv, cblas_zhbmv_64,
 };
-pub use blas2::symv::{
-    cblas_chemv, cblas_chemv_64, cblas_dsymv, cblas_dsymv_64, cblas_ssymv, cblas_ssymv_64,
-    cblas_zhemv, cblas_zhemv_64,
-};
-pub use blas2::syr::{
-    cblas_cher, cblas_cher2, cblas_cher2_64, cblas_cher_64, cblas_dsyr, cblas_dsyr2,
-    cblas_dsyr2_64, cblas_dsyr_64, cblas_ssyr, cblas_ssyr2, cblas_ssyr2_64, cblas_ssyr_64,
-    cblas_zher, cblas_zher2, cblas_zher2_64, cblas_zher_64,
-};
 pub use blas2::spmv::{
     cblas_chpmv, cblas_chpmv_64, cblas_dspmv, cblas_dspmv_64, cblas_sspmv, cblas_sspmv_64,
     cblas_zhpmv, cblas_zhpmv_64,
@@ -112,6 +103,15 @@ pub use blas2::spr::{
     cblas_chpr, cblas_chpr2, cblas_chpr2_64, cblas_chpr_64, cblas_dspr, cblas_dspr2,
     cblas_dspr2_64, cblas_dspr_64, cblas_sspr, cblas_sspr2, cblas_sspr2_64, cblas_sspr_64,
     cblas_zhpr, cblas_zhpr2, cblas_zhpr2_64, cblas_zhpr_64,
+};
+pub use blas2::symv::{
+    cblas_chemv, cblas_chemv_64, cblas_dsymv, cblas_dsymv_64, cblas_ssymv, cblas_ssymv_64,
+    cblas_zhemv, cblas_zhemv_64,
+};
+pub use blas2::syr::{
+    cblas_cher, cblas_cher2, cblas_cher2_64, cblas_cher_64, cblas_dsyr, cblas_dsyr2,
+    cblas_dsyr2_64, cblas_dsyr_64, cblas_ssyr, cblas_ssyr2, cblas_ssyr2_64, cblas_ssyr_64,
+    cblas_zher, cblas_zher2, cblas_zher2_64, cblas_zher_64,
 };
 pub use blas2::tbmv::{
     cblas_ctbmv, cblas_ctbmv_64, cblas_dtbmv, cblas_dtbmv_64, cblas_stbmv, cblas_stbmv_64,

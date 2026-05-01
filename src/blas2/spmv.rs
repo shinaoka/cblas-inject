@@ -11,10 +11,10 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_chpmv_for_lp64_cblas, get_chpmv_for_ilp64_cblas, ChpmvProvider,
-    get_dspmv_for_lp64_cblas, get_dspmv_for_ilp64_cblas, DspmvProvider,
-    get_sspmv_for_lp64_cblas, get_sspmv_for_ilp64_cblas, SspmvProvider,
-    get_zhpmv_for_lp64_cblas, get_zhpmv_for_ilp64_cblas, ZhpmvProvider,
+    get_chpmv_for_ilp64_cblas, get_chpmv_for_lp64_cblas, get_dspmv_for_ilp64_cblas,
+    get_dspmv_for_lp64_cblas, get_sspmv_for_ilp64_cblas, get_sspmv_for_lp64_cblas,
+    get_zhpmv_for_ilp64_cblas, get_zhpmv_for_lp64_cblas, ChpmvProvider, DspmvProvider,
+    SspmvProvider, ZhpmvProvider,
 };
 use crate::types::{
     blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
@@ -48,41 +48,42 @@ pub unsafe extern "C" fn cblas_sspmv(
     let p = get_sspmv_for_lp64_cblas();
     match p {
         SspmvProvider::Lp64(sspmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
         SspmvProvider::Ilp64(sspmv) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
     }
 }
@@ -102,43 +103,54 @@ pub unsafe extern "C" fn cblas_sspmv_64(
     incy: i64,
 ) {
     let p = get_sspmv_for_ilp64_cblas();
+    if matches!(p, SspmvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_sspmv_64\0",
+            [(3, n), (7, incx), (10, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         SspmvProvider::Ilp64(sspmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
         SspmvProvider::Lp64(sspmv) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
     }
 }
@@ -170,41 +182,42 @@ pub unsafe extern "C" fn cblas_dspmv(
     let p = get_dspmv_for_lp64_cblas();
     match p {
         DspmvProvider::Lp64(dspmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
         DspmvProvider::Ilp64(dspmv) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
     }
 }
@@ -224,43 +237,54 @@ pub unsafe extern "C" fn cblas_dspmv_64(
     incy: i64,
 ) {
     let p = get_dspmv_for_ilp64_cblas();
+    if matches!(p, DspmvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dspmv_64\0",
+            [(3, n), (7, incx), (10, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         DspmvProvider::Ilp64(dspmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
         DspmvProvider::Lp64(dspmv) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major: swap Upper/Lower
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap Upper/Lower
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspmv(&uplo_char, &n, &alpha, ap, x, &incx, &beta, y, &incy);
+                }
+            }
         }
     }
 }
@@ -292,157 +316,158 @@ pub unsafe extern "C" fn cblas_chpmv(
     let p = get_chpmv_for_lp64_cblas();
     match p {
         ChpmvProvider::Lp64(chpmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex32::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                chpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        chpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
         ChpmvProvider::Ilp64(chpmv) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex32::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                chpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        chpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
     }
 }
@@ -462,159 +487,170 @@ pub unsafe extern "C" fn cblas_chpmv_64(
     incy: i64,
 ) {
     let p = get_chpmv_for_ilp64_cblas();
+    if matches!(p, ChpmvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_chpmv_64\0",
+            [(3, n), (7, incx), (10, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ChpmvProvider::Ilp64(chpmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex32::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                chpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        chpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
         ChpmvProvider::Lp64(chpmv) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex32::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                chpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex32::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex32::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex32::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex32::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex32::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        chpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex32::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
     }
 }
@@ -646,157 +682,158 @@ pub unsafe extern "C" fn cblas_zhpmv(
     let p = get_zhpmv_for_lp64_cblas();
     match p {
         ZhpmvProvider::Lp64(zhpmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex64::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                zhpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        zhpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
         ZhpmvProvider::Ilp64(zhpmv) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex64::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                zhpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        zhpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
     }
 }
@@ -816,159 +853,170 @@ pub unsafe extern "C" fn cblas_zhpmv_64(
     incy: i64,
 ) {
     let p = get_zhpmv_for_ilp64_cblas();
+    if matches!(p, ZhpmvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zhpmv_64\0",
+            [(3, n), (7, incx), (10, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZhpmvProvider::Ilp64(zhpmv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex64::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                zhpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        zhpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
         ZhpmvProvider::Lp64(zhpmv) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-
-            // Conjugate alpha and beta
-            let alpha_val = *alpha;
-            let beta_val = *beta;
-            let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
-            let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
-
-            if n > 0 {
-                // Conjugate y (in-place before operation)
-                let abs_incy = if incy < 0 { -incy } else { incy };
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpmv(&uplo_char, &n, alpha, ap, x, &incx, beta, y, &incy);
                 }
-
-                // Create conjugated copy of x
-                let abs_incx = if incx < 0 { -incx } else { incx };
-                let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
-                for i in 0..n {
-                    let idx = if incx < 0 {
-                        ((n - 1 - i) * abs_incx) as isize
-                    } else {
-                        (i * abs_incx) as isize
+                CblasRowMajor => {
+                    // Row-major for Hermitian: swap Upper/Lower and conjugate scalars and vectors
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
                     };
-                    let val = *x.offset(idx);
-                    x_conj[i as usize] = Complex64::new(val.re, -val.im);
-                }
+                    let uplo_char = uplo_to_char(new_uplo);
 
-                // Call Fortran HPMV with conjugated values
-                zhpmv(
-                    &uplo_char,
-                    &n,
-                    &conj_alpha,
-                    ap,
-                    x_conj.as_ptr(),
-                    &1,
-                    &conj_beta,
-                    y,
-                    &incy,
-                );
+                    // Conjugate alpha and beta
+                    let alpha_val = *alpha;
+                    let beta_val = *beta;
+                    let conj_alpha = Complex64::new(alpha_val.re, -alpha_val.im);
+                    let conj_beta = Complex64::new(beta_val.re, -beta_val.im);
 
-                // Conjugate y (in-place after operation)
-                for i in 0..n {
-                    let idx = if incy < 0 {
-                        ((n - 1 - i) * abs_incy) as isize
-                    } else {
-                        (i * abs_incy) as isize
-                    };
-                    let y_ptr = y.offset(idx);
-                    let val = *y_ptr;
-                    *y_ptr = Complex64::new(val.re, -val.im);
+                    if n > 0 {
+                        // Conjugate y (in-place before operation)
+                        let abs_incy = if incy < 0 { -incy } else { incy };
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Create conjugated copy of x
+                        let abs_incx = if incx < 0 { -incx } else { incx };
+                        let mut x_conj = vec![Complex64::new(0.0, 0.0); n as usize];
+                        for i in 0..n {
+                            let idx = if incx < 0 {
+                                ((n - 1 - i) * abs_incx) as isize
+                            } else {
+                                (i * abs_incx) as isize
+                            };
+                            let val = *x.offset(idx);
+                            x_conj[i as usize] = Complex64::new(val.re, -val.im);
+                        }
+
+                        // Call Fortran HPMV with conjugated values
+                        zhpmv(
+                            &uplo_char,
+                            &n,
+                            &conj_alpha,
+                            ap,
+                            x_conj.as_ptr(),
+                            &1,
+                            &conj_beta,
+                            y,
+                            &incy,
+                        );
+
+                        // Conjugate y (in-place after operation)
+                        for i in 0..n {
+                            let idx = if incy < 0 {
+                                ((n - 1 - i) * abs_incy) as isize
+                            } else {
+                                (i * abs_incy) as isize
+                            };
+                            let y_ptr = y.offset(idx);
+                            let val = *y_ptr;
+                            *y_ptr = Complex64::new(val.re, -val.im);
+                        }
+                    }
                 }
             }
-        }
-    }
         }
     }
 }

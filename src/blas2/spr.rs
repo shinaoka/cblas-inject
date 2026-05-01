@@ -15,14 +15,13 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_chpr_for_lp64_cblas, get_chpr_for_ilp64_cblas, ChprProvider,
-    get_chpr2_for_lp64_cblas, get_chpr2_for_ilp64_cblas, Chpr2Provider,
-    get_dspr_for_lp64_cblas, get_dspr_for_ilp64_cblas, DsprProvider,
-    get_dspr2_for_lp64_cblas, get_dspr2_for_ilp64_cblas, Dspr2Provider,
-    get_sspr_for_lp64_cblas, get_sspr_for_ilp64_cblas, SsprProvider,
-    get_sspr2_for_lp64_cblas, get_sspr2_for_ilp64_cblas, Sspr2Provider,
-    get_zhpr_for_lp64_cblas, get_zhpr_for_ilp64_cblas, ZhprProvider,
-    get_zhpr2_for_lp64_cblas, get_zhpr2_for_ilp64_cblas, Zhpr2Provider,
+    get_chpr2_for_ilp64_cblas, get_chpr2_for_lp64_cblas, get_chpr_for_ilp64_cblas,
+    get_chpr_for_lp64_cblas, get_dspr2_for_ilp64_cblas, get_dspr2_for_lp64_cblas,
+    get_dspr_for_ilp64_cblas, get_dspr_for_lp64_cblas, get_sspr2_for_ilp64_cblas,
+    get_sspr2_for_lp64_cblas, get_sspr_for_ilp64_cblas, get_sspr_for_lp64_cblas,
+    get_zhpr2_for_ilp64_cblas, get_zhpr2_for_lp64_cblas, get_zhpr_for_ilp64_cblas,
+    get_zhpr_for_lp64_cblas, Chpr2Provider, ChprProvider, Dspr2Provider, DsprProvider,
+    Sspr2Provider, SsprProvider, Zhpr2Provider, ZhprProvider,
 };
 use crate::types::{
     blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
@@ -53,41 +52,41 @@ pub unsafe extern "C" fn cblas_sspr(
     let p = get_sspr_for_lp64_cblas();
     match p {
         SsprProvider::Lp64(sspr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         SsprProvider::Ilp64(sspr) => {
-            let n = n as i64; let incx = incx as i64;
+            let n = n as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -103,43 +102,49 @@ pub unsafe extern "C" fn cblas_sspr_64(
     ap: *mut f32,
 ) {
     let p = get_sspr_for_ilp64_cblas();
+    if matches!(p, SsprProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_sspr_64\0", [(3, n), (6, incx)]).is_none()
+    {
+        return;
+    }
+
     match p {
         SsprProvider::Ilp64(sspr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         SsprProvider::Lp64(sspr) => {
-            let n = n as i32; let incx = incx as i32;
+            let n = n as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -164,41 +169,41 @@ pub unsafe extern "C" fn cblas_dspr(
     let p = get_dspr_for_lp64_cblas();
     match p {
         DsprProvider::Lp64(dspr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         DsprProvider::Ilp64(dspr) => {
-            let n = n as i64; let incx = incx as i64;
+            let n = n as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -214,43 +219,49 @@ pub unsafe extern "C" fn cblas_dspr_64(
     ap: *mut f64,
 ) {
     let p = get_dspr_for_ilp64_cblas();
+    if matches!(p, DsprProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_dspr_64\0", [(3, n), (6, incx)]).is_none()
+    {
+        return;
+    }
+
     match p {
         DsprProvider::Ilp64(dspr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         DsprProvider::Lp64(dspr) => {
-            let n = n as i32; let incx = incx as i32;
+            let n = n as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -281,41 +292,41 @@ pub unsafe extern "C" fn cblas_chpr(
     let p = get_chpr_for_lp64_cblas();
     match p {
         ChprProvider::Lp64(chpr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         ChprProvider::Ilp64(chpr) => {
-            let n = n as i64; let incx = incx as i64;
+            let n = n as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -331,43 +342,49 @@ pub unsafe extern "C" fn cblas_chpr_64(
     ap: *mut Complex32,
 ) {
     let p = get_chpr_for_ilp64_cblas();
+    if matches!(p, ChprProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_chpr_64\0", [(3, n), (6, incx)]).is_none()
+    {
+        return;
+    }
+
     match p {
         ChprProvider::Ilp64(chpr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         ChprProvider::Lp64(chpr) => {
-            let n = n as i32; let incx = incx as i32;
+            let n = n as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            chpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    chpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -394,41 +411,41 @@ pub unsafe extern "C" fn cblas_zhpr(
     let p = get_zhpr_for_lp64_cblas();
     match p {
         ZhprProvider::Lp64(zhpr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         ZhprProvider::Ilp64(zhpr) => {
-            let n = n as i64; let incx = incx as i64;
+            let n = n as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -444,43 +461,49 @@ pub unsafe extern "C" fn cblas_zhpr_64(
     ap: *mut Complex64,
 ) {
     let p = get_zhpr_for_ilp64_cblas();
+    if matches!(p, ZhprProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_zhpr_64\0", [(3, n), (6, incx)]).is_none()
+    {
+        return;
+    }
+
     match p {
         ZhprProvider::Ilp64(zhpr) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
         ZhprProvider::Lp64(zhpr) => {
-            let n = n as i32; let incx = incx as i32;
+            let n = n as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    zhpr(&uplo_char, &n, &alpha, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -512,41 +535,42 @@ pub unsafe extern "C" fn cblas_sspr2(
     let p = get_sspr2_for_lp64_cblas();
     match p {
         Sspr2Provider::Lp64(sspr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
         Sspr2Provider::Ilp64(sspr2) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
     }
 }
@@ -565,43 +589,54 @@ pub unsafe extern "C" fn cblas_sspr2_64(
     ap: *mut f32,
 ) {
     let p = get_sspr2_for_ilp64_cblas();
+    if matches!(p, Sspr2Provider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_sspr2_64\0",
+            [(3, n), (6, incx), (8, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         Sspr2Provider::Ilp64(sspr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
         Sspr2Provider::Lp64(sspr2) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    sspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
     }
 }
@@ -629,41 +664,42 @@ pub unsafe extern "C" fn cblas_dspr2(
     let p = get_dspr2_for_lp64_cblas();
     match p {
         Dspr2Provider::Lp64(dspr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
         Dspr2Provider::Ilp64(dspr2) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
     }
 }
@@ -682,43 +718,54 @@ pub unsafe extern "C" fn cblas_dspr2_64(
     ap: *mut f64,
 ) {
     let p = get_dspr2_for_ilp64_cblas();
+    if matches!(p, Dspr2Provider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dspr2_64\0",
+            [(3, n), (6, incx), (8, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         Dspr2Provider::Ilp64(dspr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
         Dspr2Provider::Lp64(dspr2) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo (Upper <-> Lower)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo (Upper <-> Lower)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    dspr2(&uplo_char, &n, &alpha, x, &incx, y, &incy, ap);
+                }
+            }
         }
     }
 }
@@ -752,43 +799,44 @@ pub unsafe extern "C" fn cblas_chpr2(
     let p = get_chpr2_for_lp64_cblas();
     match p {
         Chpr2Provider::Lp64(chpr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
         Chpr2Provider::Ilp64(chpr2) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -807,45 +855,56 @@ pub unsafe extern "C" fn cblas_chpr2_64(
     ap: *mut Complex32,
 ) {
     let p = get_chpr2_for_ilp64_cblas();
+    if matches!(p, Chpr2Provider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_chpr2_64\0",
+            [(3, n), (6, incx), (8, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         Chpr2Provider::Ilp64(chpr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
         Chpr2Provider::Lp64(chpr2) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    chpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    chpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -875,43 +934,44 @@ pub unsafe extern "C" fn cblas_zhpr2(
     let p = get_zhpr2_for_lp64_cblas();
     match p {
         Zhpr2Provider::Lp64(zhpr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
         Zhpr2Provider::Ilp64(zhpr2) => {
-            let n = n as i64; let incx = incx as i64; let incy = incy as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
     }
 }
@@ -930,45 +990,56 @@ pub unsafe extern "C" fn cblas_zhpr2_64(
     ap: *mut Complex64,
 ) {
     let p = get_zhpr2_for_ilp64_cblas();
+    if matches!(p, Zhpr2Provider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zhpr2_64\0",
+            [(3, n), (6, incx), (8, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         Zhpr2Provider::Ilp64(zhpr2) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
         Zhpr2Provider::Lp64(zhpr2) => {
-            let n = n as i32; let incx = incx as i32; let incy = incy as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
-        }
-        CblasRowMajor => {
-            // Row-major for Hermitian: invert uplo and swap x<->y
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            // For HPR2 in row-major, we swap x and y
-            zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    zhpr2(&uplo_char, &n, alpha, x, &incx, y, &incy, ap);
+                }
+                CblasRowMajor => {
+                    // Row-major for Hermitian: invert uplo and swap x<->y
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    // For HPR2 in row-major, we swap x and y
+                    zhpr2(&uplo_char, &n, alpha, y, &incy, x, &incx, ap);
+                }
+            }
         }
     }
 }

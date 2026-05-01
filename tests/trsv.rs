@@ -84,7 +84,12 @@ fn ctrsv_row_vs_col_agree() {
                     let a_col = a_row.to_layout(Layout::ColMajor, n + 2);
 
                     let x0: Vec<Complex32> = (0..n)
-                        .map(|k| Complex32::new(((k + 11) as f32 * 0.15).cos(), ((k + 5) as f32 * 0.25).sin()))
+                        .map(|k| {
+                            Complex32::new(
+                                ((k + 11) as f32 * 0.15).cos(),
+                                ((k + 5) as f32 * 0.25).sin(),
+                            )
+                        })
                         .collect();
 
                     let mut x_row = x0.clone();
@@ -115,7 +120,10 @@ fn ctrsv_row_vs_col_agree() {
                         );
                     }
 
-                    let context = format!("ctrsv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}", n, uplo, trans, diag);
+                    let context = format!(
+                        "ctrsv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}",
+                        n, uplo, trans, diag
+                    );
                     assert_complex32_eq(&x_row, &x_col, 1e-5, &context);
                 }
             }
@@ -159,7 +167,12 @@ fn ztrsv_row_vs_col_agree() {
                     let a_col = a_row.to_layout(Layout::ColMajor, n + 2);
 
                     let x0: Vec<Complex64> = (0..n)
-                        .map(|k| Complex64::new(((k + 11) as f64 * 0.15).cos(), ((k + 5) as f64 * 0.25).sin()))
+                        .map(|k| {
+                            Complex64::new(
+                                ((k + 11) as f64 * 0.15).cos(),
+                                ((k + 5) as f64 * 0.25).sin(),
+                            )
+                        })
                         .collect();
 
                     let mut x_row = x0.clone();
@@ -190,7 +203,10 @@ fn ztrsv_row_vs_col_agree() {
                         );
                     }
 
-                    let context = format!("ztrsv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}", n, uplo, trans, diag);
+                    let context = format!(
+                        "ztrsv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}",
+                        n, uplo, trans, diag
+                    );
                     assert_complex64_eq(&x_row, &x_col, 1e-12, &context);
                 }
             }

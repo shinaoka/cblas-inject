@@ -7,12 +7,11 @@ use std::sync::atomic::{AtomicI64, AtomicU64, AtomicUsize, Ordering};
 use cblas_inject::BlasInt32;
 #[cfg(not(feature = "ilp64"))]
 use cblas_inject::BlasInt64;
-use cblas_inject::{
-    cblas_dgemm, cblas_zgemm, CblasColMajor, CblasNoTrans, CblasRowMajor,
-    CBLAS_INJECT_STATUS_OK,
-};
 #[cfg(feature = "ilp64")]
 use cblas_inject::{cblas_cgemm_64, cblas_sgemm_64};
+use cblas_inject::{
+    cblas_dgemm, cblas_zgemm, CblasColMajor, CblasNoTrans, CblasRowMajor, CBLAS_INJECT_STATUS_OK,
+};
 #[cfg(feature = "ilp64")]
 use num_complex::Complex32;
 use num_complex::Complex64;

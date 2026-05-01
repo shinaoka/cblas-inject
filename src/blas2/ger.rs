@@ -11,12 +11,11 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_cgerc_for_lp64_cblas, get_cgerc_for_ilp64_cblas, CgercProvider,
-    get_cgeru_for_lp64_cblas, get_cgeru_for_ilp64_cblas, CgeruProvider,
-    get_dger_for_lp64_cblas, get_dger_for_ilp64_cblas, DgerProvider,
-    get_sger_for_lp64_cblas, get_sger_for_ilp64_cblas, SgerProvider,
-    get_zgerc_for_lp64_cblas, get_zgerc_for_ilp64_cblas, ZgercProvider,
-    get_zgeru_for_lp64_cblas, get_zgeru_for_ilp64_cblas, ZgeruProvider,
+    get_cgerc_for_ilp64_cblas, get_cgerc_for_lp64_cblas, get_cgeru_for_ilp64_cblas,
+    get_cgeru_for_lp64_cblas, get_dger_for_ilp64_cblas, get_dger_for_lp64_cblas,
+    get_sger_for_ilp64_cblas, get_sger_for_lp64_cblas, get_zgerc_for_ilp64_cblas,
+    get_zgerc_for_lp64_cblas, get_zgeru_for_ilp64_cblas, get_zgeru_for_lp64_cblas, CgercProvider,
+    CgeruProvider, DgerProvider, SgerProvider, ZgercProvider, ZgeruProvider,
 };
 use crate::types::{blasint, CblasColMajor, CblasRowMajor, CBLAS_ORDER};
 
@@ -48,33 +47,36 @@ pub unsafe extern "C" fn cblas_sger(
     let p = get_sger_for_lp64_cblas();
     match p {
         SgerProvider::Lp64(sger) => {
-
-    match order {
-        CblasColMajor => {
-            sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            // A(m x n) in row-major = A^T(n x m) in col-major
-            // x * y^T in row-major = y * x^T in col-major
-            sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    // A(m x n) in row-major = A^T(n x m) in col-major
+                    // x * y^T in row-major = y * x^T in col-major
+                    sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         SgerProvider::Ilp64(sger) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            // A(m x n) in row-major = A^T(n x m) in col-major
-            // x * y^T in row-major = y * x^T in col-major
-            sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    // A(m x n) in row-major = A^T(n x m) in col-major
+                    // x * y^T in row-major = y * x^T in col-major
+                    sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -94,35 +96,48 @@ pub unsafe extern "C" fn cblas_sger_64(
     lda: i64,
 ) {
     let p = get_sger_for_ilp64_cblas();
+    if matches!(p, SgerProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_sger_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         SgerProvider::Ilp64(sger) => {
-
-    match order {
-        CblasColMajor => {
-            sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            // A(m x n) in row-major = A^T(n x m) in col-major
-            // x * y^T in row-major = y * x^T in col-major
-            sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    // A(m x n) in row-major = A^T(n x m) in col-major
+                    // x * y^T in row-major = y * x^T in col-major
+                    sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         SgerProvider::Lp64(sger) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            // A(m x n) in row-major = A^T(n x m) in col-major
-            // x * y^T in row-major = y * x^T in col-major
-            sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    sger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    // A(m x n) in row-major = A^T(n x m) in col-major
+                    // x * y^T in row-major = y * x^T in col-major
+                    sger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -151,29 +166,32 @@ pub unsafe extern "C" fn cblas_dger(
     let p = get_dger_for_lp64_cblas();
     match p {
         DgerProvider::Lp64(dger) => {
-
-    match order {
-        CblasColMajor => {
-            dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         DgerProvider::Ilp64(dger) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -193,31 +211,44 @@ pub unsafe extern "C" fn cblas_dger_64(
     lda: i64,
 ) {
     let p = get_dger_for_ilp64_cblas();
+    if matches!(p, DgerProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dger_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         DgerProvider::Ilp64(dger) => {
-
-    match order {
-        CblasColMajor => {
-            dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         DgerProvider::Lp64(dger) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    dger(&m, &n, &alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    dger(&n, &m, &alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -250,29 +281,32 @@ pub unsafe extern "C" fn cblas_cgeru(
     let p = get_cgeru_for_lp64_cblas();
     match p {
         CgeruProvider::Lp64(cgeru) => {
-
-    match order {
-        CblasColMajor => {
-            cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         CgeruProvider::Ilp64(cgeru) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -292,31 +326,44 @@ pub unsafe extern "C" fn cblas_cgeru_64(
     lda: i64,
 ) {
     let p = get_cgeru_for_ilp64_cblas();
+    if matches!(p, CgeruProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_cgeru_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CgeruProvider::Ilp64(cgeru) => {
-
-    match order {
-        CblasColMajor => {
-            cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         CgeruProvider::Lp64(cgeru) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    cgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -345,29 +392,32 @@ pub unsafe extern "C" fn cblas_zgeru(
     let p = get_zgeru_for_lp64_cblas();
     match p {
         ZgeruProvider::Lp64(zgeru) => {
-
-    match order {
-        CblasColMajor => {
-            zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         ZgeruProvider::Ilp64(zgeru) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -387,31 +437,44 @@ pub unsafe extern "C" fn cblas_zgeru_64(
     lda: i64,
 ) {
     let p = get_zgeru_for_ilp64_cblas();
+    if matches!(p, ZgeruProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zgeru_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZgeruProvider::Ilp64(zgeru) => {
-
-    match order {
-        CblasColMajor => {
-            zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         ZgeruProvider::Lp64(zgeru) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major: swap m<->n, swap x<->y, swap incx<->incy
-            zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgeru(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major: swap m<->n, swap x<->y, swap incx<->incy
+                    zgeru(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -444,35 +507,38 @@ pub unsafe extern "C" fn cblas_cgerc(
     let p = get_cgerc_for_lp64_cblas();
     match p {
         CgercProvider::Lp64(cgerc) => {
-
-    match order {
-        CblasColMajor => {
-            cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
-            // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
-            // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
-            // which is equivalent to calling GERC with swapped vectors
-            cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
+                    // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
+                    // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
+                    // which is equivalent to calling GERC with swapped vectors
+                    cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         CgercProvider::Ilp64(cgerc) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
-            // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
-            // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
-            // which is equivalent to calling GERC with swapped vectors
-            cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
+                    // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
+                    // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
+                    // which is equivalent to calling GERC with swapped vectors
+                    cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -492,37 +558,50 @@ pub unsafe extern "C" fn cblas_cgerc_64(
     lda: i64,
 ) {
     let p = get_cgerc_for_ilp64_cblas();
+    if matches!(p, CgercProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_cgerc_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CgercProvider::Ilp64(cgerc) => {
-
-    match order {
-        CblasColMajor => {
-            cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
-            // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
-            // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
-            // which is equivalent to calling GERC with swapped vectors
-            cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
+                    // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
+                    // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
+                    // which is equivalent to calling GERC with swapped vectors
+                    cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         CgercProvider::Lp64(cgerc) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
-            // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
-            // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
-            // which is equivalent to calling GERC with swapped vectors
-            cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    cgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, but also need to use conjugate of alpha
+                    // and swap to GERC(y, x) pattern. Following OpenBLAS logic.
+                    // A = alpha * x * conj(y)^T becomes A^T = conj(alpha) * conj(y) * x^H
+                    // which is equivalent to calling GERC with swapped vectors
+                    cgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -551,29 +630,32 @@ pub unsafe extern "C" fn cblas_zgerc(
     let p = get_zgerc_for_lp64_cblas();
     match p {
         ZgercProvider::Lp64(zgerc) => {
-
-    match order {
-        CblasColMajor => {
-            zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, swap x<->y
-            zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, swap x<->y
+                    zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         ZgercProvider::Ilp64(zgerc) => {
-            let m = m as i64; let n = n as i64; let incx = incx as i64; let incy = incy as i64; let lda = lda as i64;
+            let m = m as i64;
+            let n = n as i64;
+            let incx = incx as i64;
+            let incy = incy as i64;
+            let lda = lda as i64;
 
-    match order {
-        CblasColMajor => {
-            zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, swap x<->y
-            zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, swap x<->y
+                    zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }
@@ -593,31 +675,44 @@ pub unsafe extern "C" fn cblas_zgerc_64(
     lda: i64,
 ) {
     let p = get_zgerc_for_ilp64_cblas();
+    if matches!(p, ZgercProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zgerc_64\0",
+            [(2, m), (3, n), (6, incx), (8, incy), (10, lda)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZgercProvider::Ilp64(zgerc) => {
-
-    match order {
-        CblasColMajor => {
-            zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, swap x<->y
-            zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, swap x<->y
+                    zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
         ZgercProvider::Lp64(zgerc) => {
-            let m = m as i32; let n = n as i32; let incx = incx as i32; let incy = incy as i32; let lda = lda as i32;
+            let m = m as i32;
+            let n = n as i32;
+            let incx = incx as i32;
+            let incy = incy as i32;
+            let lda = lda as i32;
 
-    match order {
-        CblasColMajor => {
-            zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
-        }
-        CblasRowMajor => {
-            // Row-major for GERC: swap m<->n, swap x<->y
-            zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    zgerc(&m, &n, alpha, x, &incx, y, &incy, a, &lda);
+                }
+                CblasRowMajor => {
+                    // Row-major for GERC: swap m<->n, swap x<->y
+                    zgerc(&n, &m, alpha, y, &incy, x, &incx, a, &lda);
+                }
+            }
         }
     }
 }

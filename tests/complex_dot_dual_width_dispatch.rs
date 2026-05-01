@@ -3,10 +3,12 @@
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicI64, AtomicUsize, Ordering};
 
+use cblas_inject::CBLAS_INJECT_STATUS_OK;
+#[cfg(not(feature = "ilp64"))]
+use cblas_inject::{cblas_cdotc_sub, cblas_cdotu_sub, cblas_zdotc_sub, cblas_zdotu_sub, BlasInt64};
+#[cfg(feature = "ilp64")]
 use cblas_inject::{
-    cblas_cdotc_sub, cblas_cdotc_sub_64, cblas_cdotu_sub, cblas_cdotu_sub_64, cblas_zdotc_sub,
-    cblas_zdotc_sub_64, cblas_zdotu_sub, cblas_zdotu_sub_64, BlasInt32, BlasInt64,
-    CBLAS_INJECT_STATUS_OK,
+    cblas_cdotc_sub_64, cblas_cdotu_sub_64, cblas_zdotc_sub_64, cblas_zdotu_sub_64, BlasInt32,
 };
 use num_complex::{Complex32, Complex64};
 
