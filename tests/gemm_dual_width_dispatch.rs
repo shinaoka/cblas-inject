@@ -8,7 +8,7 @@ use cblas_inject::BlasInt32;
 #[cfg(not(feature = "ilp64"))]
 use cblas_inject::BlasInt64;
 #[cfg(feature = "ilp64")]
-use cblas_inject::{cblas_cgemm_64, cblas_sgemm_64};
+use cblas_inject::{cblas_cgemm_64, cblas_dgemm_64, cblas_sgemm_64, cblas_zgemm_64};
 use cblas_inject::{
     cblas_dgemm, cblas_zgemm, CblasColMajor, CblasNoTrans, CblasRowMajor, CBLAS_INJECT_STATUS_OK,
 };
@@ -383,7 +383,7 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
     let dgemm_calls = DGEMM_CALLS.load(Ordering::SeqCst);
     let mut overflow_c = [11.0; 1];
     unsafe {
-        cblas_dgemm(
+        cblas_dgemm_64(
             CblasColMajor,
             CblasNoTrans,
             CblasNoTrans,
@@ -406,7 +406,7 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
     let zgemm_calls = ZGEMM_CALLS.load(Ordering::SeqCst);
     let mut overflow_zc = [Complex64::new(11.0, -11.0); 1];
     unsafe {
-        cblas_zgemm(
+        cblas_zgemm_64(
             CblasColMajor,
             CblasNoTrans,
             CblasNoTrans,

@@ -29,16 +29,6 @@ pub(crate) fn to_lp64_array_i64<const N: usize>(
 }
 
 #[inline]
-#[cfg(feature = "ilp64")]
-pub(crate) fn to_lp64_blasint(
-    routine: &[u8],
-    param: crate::blasint,
-    value: crate::blasint,
-) -> Option<BlasInt32> {
-    to_lp64_i64(routine, param as c_int, value as i64)
-}
-
-#[inline]
 pub(crate) fn unchecked_lp64_i64(value: i64) -> BlasInt32 {
     debug_assert!(BlasInt32::try_from(value).is_ok());
     value as BlasInt32

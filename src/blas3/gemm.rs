@@ -19,43 +19,13 @@ use crate::backend::{
     get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, CgemmProvider,
     DgemmProvider, SgemmProvider, ZgemmProvider,
 };
-#[cfg(feature = "ilp64")]
-use crate::int_convert::to_lp64_blasint;
 use crate::int_convert::{to_lp64_i64, unchecked_lp64_i64};
-use crate::types::{
-    blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
-};
+use crate::types::{transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE};
 
-const CBLAS_DGEMM_ROUTINE: &[u8] = b"cblas_dgemm\0";
 const CBLAS_SGEMM_64_ROUTINE: &[u8] = b"cblas_sgemm_64\0";
-const CBLAS_ZGEMM_ROUTINE: &[u8] = b"cblas_zgemm\0";
 const CBLAS_CGEMM_64_ROUTINE: &[u8] = b"cblas_cgemm_64\0";
 const CBLAS_DGEMM_64_ROUTINE: &[u8] = b"cblas_dgemm_64\0";
 const CBLAS_ZGEMM_64_ROUTINE: &[u8] = b"cblas_zgemm_64\0";
-
-#[cfg(not(feature = "ilp64"))]
-#[inline]
-fn to_lp64(_routine: &[u8], _param: blasint, value: blasint) -> Option<BlasInt32> {
-    Some(value)
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-fn to_lp64(routine: &[u8], param: blasint, value: blasint) -> Option<BlasInt32> {
-    to_lp64_blasint(routine, param, value)
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-fn to_ilp64(value: blasint) -> BlasInt64 {
-    value
-}
-
-#[cfg(not(feature = "ilp64"))]
-#[inline]
-fn to_ilp64(value: blasint) -> BlasInt64 {
-    BlasInt64::from(value)
-}
 
 #[inline]
 fn check_lp64_gemm_i64(
@@ -80,38 +50,20 @@ unsafe fn call_dgemm_provider(
     provider: DgemmProvider,
     transa: c_char,
     transb: c_char,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: BlasInt32,
+    n: BlasInt32,
+    k: BlasInt32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: BlasInt32,
     b: *const f64,
-    ldb: blasint,
+    ldb: BlasInt32,
     beta: f64,
     c: *mut f64,
-    ldc: blasint,
+    ldc: BlasInt32,
 ) -> bool {
     match provider {
         DgemmProvider::Lp64(dgemm) => {
-            let Some(m) = to_lp64(CBLAS_DGEMM_ROUTINE, 4, m) else {
-                return false;
-            };
-            let Some(n) = to_lp64(CBLAS_DGEMM_ROUTINE, 5, n) else {
-                return false;
-            };
-            let Some(k) = to_lp64(CBLAS_DGEMM_ROUTINE, 6, k) else {
-                return false;
-            };
-            let Some(lda) = to_lp64(CBLAS_DGEMM_ROUTINE, 9, lda) else {
-                return false;
-            };
-            let Some(ldb) = to_lp64(CBLAS_DGEMM_ROUTINE, 11, ldb) else {
-                return false;
-            };
-            let Some(ldc) = to_lp64(CBLAS_DGEMM_ROUTINE, 14, ldc) else {
-                return false;
-            };
             unsafe {
                 dgemm(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
@@ -120,12 +72,12 @@ unsafe fn call_dgemm_provider(
             true
         }
         DgemmProvider::Ilp64(dgemm) => {
-            let m = to_ilp64(m);
-            let n = to_ilp64(n);
-            let k = to_ilp64(k);
-            let lda = to_ilp64(lda);
-            let ldb = to_ilp64(ldb);
-            let ldc = to_ilp64(ldc);
+            let m = BlasInt64::from(m);
+            let n = BlasInt64::from(n);
+            let k = BlasInt64::from(k);
+            let lda = BlasInt64::from(lda);
+            let ldb = BlasInt64::from(ldb);
+            let ldc = BlasInt64::from(ldc);
             unsafe {
                 dgemm(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
@@ -141,38 +93,20 @@ unsafe fn call_zgemm_provider(
     provider: ZgemmProvider,
     transa: c_char,
     transb: c_char,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: BlasInt32,
+    n: BlasInt32,
+    k: BlasInt32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: BlasInt32,
     b: *const Complex64,
-    ldb: blasint,
+    ldb: BlasInt32,
     beta: *const Complex64,
     c: *mut Complex64,
-    ldc: blasint,
+    ldc: BlasInt32,
 ) -> bool {
     match provider {
         ZgemmProvider::Lp64(zgemm) => {
-            let Some(m) = to_lp64(CBLAS_ZGEMM_ROUTINE, 4, m) else {
-                return false;
-            };
-            let Some(n) = to_lp64(CBLAS_ZGEMM_ROUTINE, 5, n) else {
-                return false;
-            };
-            let Some(k) = to_lp64(CBLAS_ZGEMM_ROUTINE, 6, k) else {
-                return false;
-            };
-            let Some(lda) = to_lp64(CBLAS_ZGEMM_ROUTINE, 9, lda) else {
-                return false;
-            };
-            let Some(ldb) = to_lp64(CBLAS_ZGEMM_ROUTINE, 11, ldb) else {
-                return false;
-            };
-            let Some(ldc) = to_lp64(CBLAS_ZGEMM_ROUTINE, 14, ldc) else {
-                return false;
-            };
             unsafe {
                 zgemm(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
@@ -181,12 +115,12 @@ unsafe fn call_zgemm_provider(
             true
         }
         ZgemmProvider::Ilp64(zgemm) => {
-            let m = to_ilp64(m);
-            let n = to_ilp64(n);
-            let k = to_ilp64(k);
-            let lda = to_ilp64(lda);
-            let ldb = to_ilp64(ldb);
-            let ldc = to_ilp64(ldc);
+            let m = BlasInt64::from(m);
+            let n = BlasInt64::from(n);
+            let k = BlasInt64::from(k);
+            let lda = BlasInt64::from(lda);
+            let ldb = BlasInt64::from(ldb);
+            let ldc = BlasInt64::from(ldc);
             unsafe {
                 zgemm(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
@@ -290,17 +224,17 @@ pub unsafe extern "C" fn cblas_dgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: i32,
     b: *const f64,
-    ldb: blasint,
+    ldb: i32,
     beta: f64,
     c: *mut f64,
-    ldc: blasint,
+    ldc: i32,
 ) {
     let dgemm = get_dgemm_for_current_cblas();
 
@@ -653,17 +587,17 @@ pub unsafe extern "C" fn cblas_zgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: i32,
     b: *const Complex64,
-    ldb: blasint,
+    ldb: i32,
     beta: *const Complex64,
     c: *mut Complex64,
-    ldc: blasint,
+    ldc: i32,
 ) {
     let zgemm = get_zgemm_for_current_cblas();
 

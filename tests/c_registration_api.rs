@@ -3,12 +3,12 @@ use std::ffi::c_char;
 use std::ffi::c_void;
 use std::ptr;
 
-use cblas_inject::{
-    blasint, CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_NULL_POINTER,
-    CBLAS_INJECT_STATUS_OK,
-};
 #[cfg(not(feature = "openblas"))]
 use cblas_inject::{register_dgemm, register_zgemm, BlasInt32, BlasInt64};
+use cblas_inject::{
+    CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_NULL_POINTER,
+    CBLAS_INJECT_STATUS_OK,
+};
 #[cfg(not(feature = "openblas"))]
 use num_complex::Complex64;
 
@@ -26,17 +26,17 @@ extern "C" {
 unsafe extern "C" fn mock_dgemm_current(
     _transa: *const c_char,
     _transb: *const c_char,
-    _m: *const blasint,
-    _n: *const blasint,
-    _k: *const blasint,
+    _m: *const BlasInt32,
+    _n: *const BlasInt32,
+    _k: *const BlasInt32,
     _alpha: *const f64,
     _a: *const f64,
-    _lda: *const blasint,
+    _lda: *const BlasInt32,
     _b: *const f64,
-    _ldb: *const blasint,
+    _ldb: *const BlasInt32,
     _beta: *const f64,
     _c: *mut f64,
-    _ldc: *const blasint,
+    _ldc: *const BlasInt32,
 ) {
 }
 
@@ -44,17 +44,17 @@ unsafe extern "C" fn mock_dgemm_current(
 unsafe extern "C" fn mock_zgemm_current(
     _transa: *const c_char,
     _transb: *const c_char,
-    _m: *const blasint,
-    _n: *const blasint,
-    _k: *const blasint,
+    _m: *const BlasInt32,
+    _n: *const BlasInt32,
+    _k: *const BlasInt32,
     _alpha: *const Complex64,
     _a: *const Complex64,
-    _lda: *const blasint,
+    _lda: *const BlasInt32,
     _b: *const Complex64,
-    _ldb: *const blasint,
+    _ldb: *const BlasInt32,
     _beta: *const Complex64,
     _c: *mut Complex64,
-    _ldc: *const blasint,
+    _ldc: *const BlasInt32,
 ) {
 }
 
@@ -136,10 +136,7 @@ fn c_registration_api_reports_capabilities_and_rejects_null_pointers() {
     assert_eq!(CBLAS_INJECT_STATUS_NULL_POINTER, 1);
     assert_eq!(CBLAS_INJECT_STATUS_ALREADY_REGISTERED, 2);
     unsafe {
-        assert_eq!(
-            cblas_inject_blas_int_width(),
-            (std::mem::size_of::<blasint>() * 8) as i32
-        );
+        assert_eq!(cblas_inject_blas_int_width(), 32);
         assert_eq!(cblas_inject_supports_lp64_registration(), 1);
         assert_eq!(cblas_inject_supports_ilp64_registration(), 1);
     }
@@ -172,7 +169,6 @@ fn c_registration_api_reports_duplicate_for_legacy_current_width() {
         register_zgemm(mock_zgemm_current);
     }
 
-    #[cfg(not(feature = "ilp64"))]
     unsafe {
         assert_eq!(
             cblas_inject_register_dgemm_lp64(mock_dgemm_lp64 as *const c_void),
@@ -188,26 +184,6 @@ fn c_registration_api_reports_duplicate_for_legacy_current_width() {
         );
         assert_eq!(
             cblas_inject_register_zgemm_ilp64(mock_zgemm_ilp64 as *const c_void),
-            CBLAS_INJECT_STATUS_OK
-        );
-    }
-
-    #[cfg(feature = "ilp64")]
-    unsafe {
-        assert_eq!(
-            cblas_inject_register_dgemm_ilp64(mock_dgemm_ilp64 as *const c_void),
-            CBLAS_INJECT_STATUS_ALREADY_REGISTERED
-        );
-        assert_eq!(
-            cblas_inject_register_zgemm_ilp64(mock_zgemm_ilp64 as *const c_void),
-            CBLAS_INJECT_STATUS_ALREADY_REGISTERED
-        );
-        assert_eq!(
-            cblas_inject_register_dgemm_lp64(mock_dgemm_lp64 as *const c_void),
-            CBLAS_INJECT_STATUS_OK
-        );
-        assert_eq!(
-            cblas_inject_register_zgemm_lp64(mock_zgemm_lp64 as *const c_void),
             CBLAS_INJECT_STATUS_OK
         );
     }
