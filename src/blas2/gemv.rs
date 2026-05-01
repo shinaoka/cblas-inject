@@ -19,8 +19,8 @@ use crate::backend::{
     SgemvProvider, ZgemvProvider,
 };
 use crate::types::{
-    blasint, normalize_transpose_real, transpose_to_char, CblasColMajor, CblasConjNoTrans,
-    CblasConjTrans, CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
+    normalize_transpose_real, transpose_to_char, CblasColMajor, CblasConjNoTrans, CblasConjTrans,
+    CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
 
 /// Flip transpose operation for row-major conversion (real-valued operations).

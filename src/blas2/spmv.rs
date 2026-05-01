@@ -17,8 +17,7 @@ use crate::backend::{
     SspmvProvider, ZhpmvProvider,
 };
 use crate::types::{
-    blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
-    CBLAS_UPLO,
+    uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER, CBLAS_UPLO,
 };
 
 /// Single precision symmetric packed matrix-vector multiply.

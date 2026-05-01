@@ -24,8 +24,7 @@ use crate::backend::{
     Ssyr2Provider, SsyrProvider, Zher2Provider, ZherProvider,
 };
 use crate::types::{
-    blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
-    CBLAS_UPLO,
+    uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER, CBLAS_UPLO,
 };
 
 // =============================================================================

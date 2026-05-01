@@ -24,8 +24,7 @@ use crate::backend::{
     Sspr2Provider, SsprProvider, Zhpr2Provider, ZhprProvider,
 };
 use crate::types::{
-    blasint, uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER,
-    CBLAS_UPLO,
+    uplo_to_char, CblasColMajor, CblasLower, CblasRowMajor, CblasUpper, CBLAS_ORDER, CBLAS_UPLO,
 };
 
 // =============================================================================

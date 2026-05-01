@@ -4,6 +4,8 @@
 //! function pointers at runtime. Each function has its own `OnceLock` to allow
 //! partial registration (only register the functions you need).
 
+#![allow(dead_code, clippy::useless_transmute)]
+
 use std::ffi::{c_char, c_void};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 

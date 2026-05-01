@@ -17,7 +17,7 @@ use crate::backend::{
     get_zgerc_for_lp64_cblas, get_zgeru_for_ilp64_cblas, get_zgeru_for_lp64_cblas, CgercProvider,
     CgeruProvider, DgerProvider, SgerProvider, ZgercProvider, ZgeruProvider,
 };
-use crate::types::{blasint, CblasColMajor, CblasRowMajor, CBLAS_ORDER};
+use crate::types::{CblasColMajor, CblasRowMajor, CBLAS_ORDER};
 
 // =============================================================================
 // Real GER: A = alpha * x * y^T + A

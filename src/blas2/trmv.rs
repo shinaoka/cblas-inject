@@ -16,9 +16,9 @@ use crate::backend::{
     StrmvProvider, ZtrmvProvider,
 };
 use crate::types::{
-    blasint, diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char,
-    CblasColMajor, CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor,
-    CblasTrans, CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_UPLO,
+    diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char, CblasColMajor,
+    CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor, CblasTrans,
+    CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_UPLO,
 };
 
 /// Single precision triangular matrix-vector multiply.
