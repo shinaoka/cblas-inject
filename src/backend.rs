@@ -6849,62 +6849,111 @@ pub unsafe extern "C" fn cblas_inject_register_zdotc_ilp64(f: *const std::ffi::c
     }
 }
 
-// Complex dot getters (LP64-first with ILP64 fallback)
+// Complex dot getters. These functions preserve the registered provider width,
+// because the raw pointer must be transmuted to the matching ABI before call.
 
-pub(crate) fn get_cdotu_lp64_ptr() -> *const () {
+#[derive(Clone, Copy)]
+pub(crate) enum CdotuProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum ZdotuProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum CdotcProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum ZdotcProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+pub(crate) fn get_cdotu_for_lp64_cblas() -> CdotuProvider {
     if let Some(p) = CDOTU_LP64_PTR.get() {
-        return p.0;
+        return CdotuProvider::Lp64(p.0);
     }
-    CDOTU_ILP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
-}
-
-pub(crate) fn get_cdotu_ilp64_ptr() -> *const () {
     if let Some(p) = CDOTU_ILP64_PTR.get() {
-        return p.0;
+        return CdotuProvider::Ilp64(p.0);
     }
-    CDOTU_LP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
+    panic!("cdotu not registered")
 }
 
-pub(crate) fn get_zdotu_lp64_ptr() -> *const () {
+pub(crate) fn get_cdotu_for_ilp64_cblas() -> CdotuProvider {
+    if let Some(p) = CDOTU_ILP64_PTR.get() {
+        return CdotuProvider::Ilp64(p.0);
+    }
+    if let Some(p) = CDOTU_LP64_PTR.get() {
+        return CdotuProvider::Lp64(p.0);
+    }
+    panic!("cdotu not registered")
+}
+
+pub(crate) fn get_zdotu_for_lp64_cblas() -> ZdotuProvider {
     if let Some(p) = ZDOTU_LP64_PTR.get() {
-        return p.0;
+        return ZdotuProvider::Lp64(p.0);
     }
-    ZDOTU_ILP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
-}
-
-pub(crate) fn get_zdotu_ilp64_ptr() -> *const () {
     if let Some(p) = ZDOTU_ILP64_PTR.get() {
-        return p.0;
+        return ZdotuProvider::Ilp64(p.0);
     }
-    ZDOTU_LP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
+    panic!("zdotu not registered")
 }
 
-pub(crate) fn get_cdotc_lp64_ptr() -> *const () {
+pub(crate) fn get_zdotu_for_ilp64_cblas() -> ZdotuProvider {
+    if let Some(p) = ZDOTU_ILP64_PTR.get() {
+        return ZdotuProvider::Ilp64(p.0);
+    }
+    if let Some(p) = ZDOTU_LP64_PTR.get() {
+        return ZdotuProvider::Lp64(p.0);
+    }
+    panic!("zdotu not registered")
+}
+
+pub(crate) fn get_cdotc_for_lp64_cblas() -> CdotcProvider {
     if let Some(p) = CDOTC_LP64_PTR.get() {
-        return p.0;
+        return CdotcProvider::Lp64(p.0);
     }
-    CDOTC_ILP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
-}
-
-pub(crate) fn get_cdotc_ilp64_ptr() -> *const () {
     if let Some(p) = CDOTC_ILP64_PTR.get() {
-        return p.0;
+        return CdotcProvider::Ilp64(p.0);
     }
-    CDOTC_LP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
+    panic!("cdotc not registered")
 }
 
-pub(crate) fn get_zdotc_lp64_ptr() -> *const () {
+pub(crate) fn get_cdotc_for_ilp64_cblas() -> CdotcProvider {
+    if let Some(p) = CDOTC_ILP64_PTR.get() {
+        return CdotcProvider::Ilp64(p.0);
+    }
+    if let Some(p) = CDOTC_LP64_PTR.get() {
+        return CdotcProvider::Lp64(p.0);
+    }
+    panic!("cdotc not registered")
+}
+
+pub(crate) fn get_zdotc_for_lp64_cblas() -> ZdotcProvider {
     if let Some(p) = ZDOTC_LP64_PTR.get() {
-        return p.0;
+        return ZdotcProvider::Lp64(p.0);
     }
-    ZDOTC_ILP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
+    if let Some(p) = ZDOTC_ILP64_PTR.get() {
+        return ZdotcProvider::Ilp64(p.0);
+    }
+    panic!("zdotc not registered")
 }
 
-pub(crate) fn get_zdotc_ilp64_ptr() -> *const () {
+pub(crate) fn get_zdotc_for_ilp64_cblas() -> ZdotcProvider {
     if let Some(p) = ZDOTC_ILP64_PTR.get() {
-        return p.0;
+        return ZdotcProvider::Ilp64(p.0);
     }
-    ZDOTC_LP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
+    if let Some(p) = ZDOTC_LP64_PTR.get() {
+        return ZdotcProvider::Lp64(p.0);
+    }
+    panic!("zdotc not registered")
 }
 
 // Internal getters (used by blas2/gemv.rs, blas3/gemm.rs etc.)
@@ -7970,22 +8019,30 @@ pub(crate) fn get_ddot() -> DdotFnPtr {
 
 #[inline]
 pub(crate) fn get_cdotu_ptr() -> *const () {
-    get_cdotu_lp64_ptr()
+    match get_cdotu_for_lp64_cblas() {
+        CdotuProvider::Lp64(ptr) | CdotuProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_zdotu_ptr() -> *const () {
-    get_zdotu_lp64_ptr()
+    match get_zdotu_for_lp64_cblas() {
+        ZdotuProvider::Lp64(ptr) | ZdotuProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_cdotc_ptr() -> *const () {
-    get_cdotc_lp64_ptr()
+    match get_cdotc_for_lp64_cblas() {
+        CdotcProvider::Lp64(ptr) | CdotcProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_zdotc_ptr() -> *const () {
-    get_zdotc_lp64_ptr()
+    match get_zdotc_for_lp64_cblas() {
+        ZdotcProvider::Lp64(ptr) | ZdotcProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
