@@ -1,6 +1,6 @@
 [package]
 name = "cblas-inject"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Hiroshi Shinaoka <h.shinaoka@gmail.com>"]
 license = "(MIT OR Apache-2.0) AND BSD-3-Clause"
