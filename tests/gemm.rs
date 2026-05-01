@@ -6,7 +6,7 @@
 extern crate blas_src;
 
 use cblas_inject::{
-    blasint, register_dgemm, register_zgemm, CblasColMajor, CblasConjNoTrans, CblasConjTrans,
+    register_dgemm, register_zgemm, BlasInt32, CblasColMajor, CblasConjNoTrans, CblasConjTrans,
     CblasNoTrans, CblasRowMajor, CblasTrans, CBLAS_ORDER, CBLAS_TRANSPOSE,
 };
 use num_complex::Complex64;
@@ -17,33 +17,33 @@ extern "C" {
     fn dgemm_(
         transa: *const c_char,
         transb: *const c_char,
-        m: *const blasint,
-        n: *const blasint,
-        k: *const blasint,
+        m: *const BlasInt32,
+        n: *const BlasInt32,
+        k: *const BlasInt32,
         alpha: *const f64,
         a: *const f64,
-        lda: *const blasint,
+        lda: *const BlasInt32,
         b: *const f64,
-        ldb: *const blasint,
+        ldb: *const BlasInt32,
         beta: *const f64,
         c: *mut f64,
-        ldc: *const blasint,
+        ldc: *const BlasInt32,
     );
 
     fn zgemm_(
         transa: *const c_char,
         transb: *const c_char,
-        m: *const blasint,
-        n: *const blasint,
-        k: *const blasint,
+        m: *const BlasInt32,
+        n: *const BlasInt32,
+        k: *const BlasInt32,
         alpha: *const Complex64,
         a: *const Complex64,
-        lda: *const blasint,
+        lda: *const BlasInt32,
         b: *const Complex64,
-        ldb: *const blasint,
+        ldb: *const BlasInt32,
         beta: *const Complex64,
         c: *mut Complex64,
-        ldc: *const blasint,
+        ldc: *const BlasInt32,
     );
 }
 
@@ -56,34 +56,34 @@ mod openblas {
             order: u32,
             transa: u32,
             transb: u32,
-            m: blasint,
-            n: blasint,
-            k: blasint,
+            m: BlasInt32,
+            n: BlasInt32,
+            k: BlasInt32,
             alpha: f64,
             a: *const f64,
-            lda: blasint,
+            lda: BlasInt32,
             b: *const f64,
-            ldb: blasint,
+            ldb: BlasInt32,
             beta: f64,
             c: *mut f64,
-            ldc: blasint,
+            ldc: BlasInt32,
         );
 
         pub fn cblas_zgemm(
             order: u32,
             transa: u32,
             transb: u32,
-            m: blasint,
-            n: blasint,
-            k: blasint,
+            m: BlasInt32,
+            n: BlasInt32,
+            k: BlasInt32,
             alpha: *const Complex64,
             a: *const Complex64,
-            lda: blasint,
+            lda: BlasInt32,
             b: *const Complex64,
-            ldb: blasint,
+            ldb: BlasInt32,
             beta: *const Complex64,
             c: *mut Complex64,
-            ldc: blasint,
+            ldc: BlasInt32,
         );
     }
 }
@@ -129,15 +129,15 @@ fn generate_complex_matrix(rows: usize, cols: usize, seed: usize) -> Vec<Complex
 }
 
 /// Calculate leading dimension for a matrix
-fn calc_lda(order: CBLAS_ORDER, trans: CBLAS_TRANSPOSE, rows: usize, cols: usize) -> blasint {
+fn calc_lda(order: CBLAS_ORDER, trans: CBLAS_TRANSPOSE, rows: usize, cols: usize) -> BlasInt32 {
     match order {
         CblasRowMajor => match trans {
-            CblasNoTrans | CblasConjNoTrans => cols as blasint,
-            CblasTrans | CblasConjTrans => rows as blasint,
+            CblasNoTrans | CblasConjNoTrans => cols as BlasInt32,
+            CblasTrans | CblasConjTrans => rows as BlasInt32,
         },
         CblasColMajor => match trans {
-            CblasNoTrans | CblasConjNoTrans => rows as blasint,
-            CblasTrans | CblasConjTrans => cols as blasint,
+            CblasNoTrans | CblasConjNoTrans => rows as BlasInt32,
+            CblasTrans | CblasConjTrans => cols as BlasInt32,
         },
     }
 }
@@ -246,8 +246,8 @@ fn test_dgemm_case(
     let lda = calc_lda(order, transa, m, k);
     let ldb = calc_lda(order, transb, k, n);
     let ldc = match order {
-        CblasRowMajor => n as blasint,
-        CblasColMajor => m as blasint,
+        CblasRowMajor => n as BlasInt32,
+        CblasColMajor => m as BlasInt32,
     };
 
     // Result from cblas-trampoline
@@ -257,9 +257,9 @@ fn test_dgemm_case(
             order,
             transa,
             transb,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             alpha,
             a.as_ptr(),
             lda,
@@ -278,9 +278,9 @@ fn test_dgemm_case(
             order as u32,
             transa as u32,
             transb as u32,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             alpha,
             a.as_ptr(),
             lda,
@@ -376,8 +376,8 @@ fn test_zgemm_case(
     let lda = calc_lda(order, transa, m, k);
     let ldb = calc_lda(order, transb, k, n);
     let ldc = match order {
-        CblasRowMajor => n as blasint,
-        CblasColMajor => m as blasint,
+        CblasRowMajor => n as BlasInt32,
+        CblasColMajor => m as BlasInt32,
     };
 
     // Result from cblas-trampoline
@@ -387,9 +387,9 @@ fn test_zgemm_case(
             order,
             transa,
             transb,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             &alpha,
             a.as_ptr(),
             lda,
@@ -408,9 +408,9 @@ fn test_zgemm_case(
             order as u32,
             transa as u32,
             transb as u32,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             &alpha,
             a.as_ptr(),
             lda,
@@ -484,34 +484,34 @@ fn test_dgemm_non_square() {
             CblasRowMajor,
             CblasNoTrans,
             CblasNoTrans,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             1.5,
             a.as_ptr(),
-            k as blasint,
+            k as BlasInt32,
             b.as_ptr(),
-            n as blasint,
+            n as BlasInt32,
             0.5,
             c_trampoline.as_mut_ptr(),
-            n as blasint,
+            n as BlasInt32,
         );
 
         openblas::cblas_dgemm(
             CblasRowMajor as u32,
             CblasNoTrans as u32,
             CblasNoTrans as u32,
-            m as blasint,
-            n as blasint,
-            k as blasint,
+            m as BlasInt32,
+            n as BlasInt32,
+            k as BlasInt32,
             1.5,
             a.as_ptr(),
-            k as blasint,
+            k as BlasInt32,
             b.as_ptr(),
-            n as blasint,
+            n as BlasInt32,
             0.5,
             c_reference.as_mut_ptr(),
-            n as blasint,
+            n as BlasInt32,
         );
     }
 

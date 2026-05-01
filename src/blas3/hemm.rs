@@ -127,6 +127,16 @@ pub unsafe extern "C" fn cblas_chemm_64(
     ldc: i64,
 ) {
     let p = get_chemm_for_ilp64_cblas();
+    if matches!(p, ChemmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_chemm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ChemmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -295,6 +305,16 @@ pub unsafe extern "C" fn cblas_zhemm_64(
     ldc: i64,
 ) {
     let p = get_zhemm_for_ilp64_cblas();
+    if matches!(p, ZhemmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zhemm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZhemmProvider::Ilp64(f) => match order {
             CblasColMajor => {

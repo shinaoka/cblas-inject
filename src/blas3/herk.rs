@@ -53,7 +53,18 @@ pub unsafe extern "C" fn cblas_cherk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -67,7 +78,18 @@ pub unsafe extern "C" fn cblas_cherk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         CherkProvider::Ilp64(f) => {
@@ -79,7 +101,18 @@ pub unsafe extern "C" fn cblas_cherk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -93,7 +126,18 @@ pub unsafe extern "C" fn cblas_cherk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -125,12 +169,33 @@ pub unsafe extern "C" fn cblas_cherk_64(
     ldc: i64,
 ) {
     let p = get_cherk_for_ilp64_cblas();
+    if matches!(p, CherkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_cherk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CherkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -144,7 +209,18 @@ pub unsafe extern "C" fn cblas_cherk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         CherkProvider::Lp64(f) => {
@@ -156,7 +232,18 @@ pub unsafe extern "C" fn cblas_cherk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -170,7 +257,18 @@ pub unsafe extern "C" fn cblas_cherk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -210,7 +308,18 @@ pub unsafe extern "C" fn cblas_zherk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -224,7 +333,18 @@ pub unsafe extern "C" fn cblas_zherk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         ZherkProvider::Ilp64(f) => {
@@ -236,7 +356,18 @@ pub unsafe extern "C" fn cblas_zherk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -250,7 +381,18 @@ pub unsafe extern "C" fn cblas_zherk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -282,12 +424,33 @@ pub unsafe extern "C" fn cblas_zherk_64(
     ldc: i64,
 ) {
     let p = get_zherk_for_ilp64_cblas();
+    if matches!(p, ZherkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zherk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZherkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -301,7 +464,18 @@ pub unsafe extern "C" fn cblas_zherk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         ZherkProvider::Lp64(f) => {
@@ -313,7 +487,18 @@ pub unsafe extern "C" fn cblas_zherk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -327,7 +512,18 @@ pub unsafe extern "C" fn cblas_zherk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }

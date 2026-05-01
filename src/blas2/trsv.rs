@@ -11,15 +11,15 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_ctrsv_for_lp64_cblas, get_ctrsv_for_ilp64_cblas, CtrsvProvider,
-    get_dtrsv_for_lp64_cblas, get_dtrsv_for_ilp64_cblas, DtrsvProvider,
-    get_strsv_for_lp64_cblas, get_strsv_for_ilp64_cblas, StrsvProvider,
-    get_ztrsv_for_lp64_cblas, get_ztrsv_for_ilp64_cblas, ZtrsvProvider,
+    get_ctrsv_for_ilp64_cblas, get_ctrsv_for_lp64_cblas, get_dtrsv_for_ilp64_cblas,
+    get_dtrsv_for_lp64_cblas, get_strsv_for_ilp64_cblas, get_strsv_for_lp64_cblas,
+    get_ztrsv_for_ilp64_cblas, get_ztrsv_for_lp64_cblas, CtrsvProvider, DtrsvProvider,
+    StrsvProvider, ZtrsvProvider,
 };
 use crate::types::{
-    blasint, diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char,
-    CblasColMajor, CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor,
-    CblasTrans, CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_UPLO,
+    diag_to_char, normalize_transpose_real, transpose_to_char, uplo_to_char, CblasColMajor,
+    CblasConjNoTrans, CblasConjTrans, CblasLower, CblasNoTrans, CblasRowMajor, CblasTrans,
+    CblasUpper, CBLAS_DIAG, CBLAS_ORDER, CBLAS_TRANSPOSE, CBLAS_UPLO,
 };
 
 /// Single precision triangular solve.
@@ -46,61 +46,62 @@ pub unsafe extern "C" fn cblas_strsv(
     let p = get_strsv_for_lp64_cblas();
     match p {
         StrsvProvider::Lp64(strsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         StrsvProvider::Ilp64(strsv) => {
-            let n = n as i64; let lda = lda as i64; let incx = incx as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -118,63 +119,71 @@ pub unsafe extern "C" fn cblas_strsv_64(
     incx: i64,
 ) {
     let p = get_strsv_for_ilp64_cblas();
+    if matches!(p, StrsvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_strsv_64\0", [(5, n), (7, lda), (9, incx)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         StrsvProvider::Ilp64(strsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         StrsvProvider::Lp64(strsv) => {
-            let n = n as i32; let lda = lda as i32; let incx = incx as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // Following OpenBLAS: https://github.com/OpenMathLib/OpenBLAS/blob/develop/interface/trsv.c
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    strsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -203,59 +212,60 @@ pub unsafe extern "C" fn cblas_dtrsv(
     let p = get_dtrsv_for_lp64_cblas();
     match p {
         DtrsvProvider::Lp64(dtrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         DtrsvProvider::Ilp64(dtrsv) => {
-            let n = n as i64; let lda = lda as i64; let incx = incx as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -273,61 +283,69 @@ pub unsafe extern "C" fn cblas_dtrsv_64(
     incx: i64,
 ) {
     let p = get_dtrsv_for_ilp64_cblas();
+    if matches!(p, DtrsvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_dtrsv_64\0", [(5, n), (7, lda), (9, incx)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         DtrsvProvider::Ilp64(dtrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         DtrsvProvider::Lp64(dtrsv) => {
-            let n = n as i32; let lda = lda as i32; let incx = incx as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(normalize_transpose_real(trans));
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match normalize_transpose_real(trans) {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                _ => unreachable!(),
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(normalize_transpose_real(trans));
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match normalize_transpose_real(trans) {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        _ => unreachable!(),
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    dtrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -356,63 +374,64 @@ pub unsafe extern "C" fn cblas_ctrsv(
     let p = get_ctrsv_for_lp64_cblas();
     match p {
         CtrsvProvider::Lp64(ctrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         CtrsvProvider::Ilp64(ctrsv) => {
-            let n = n as i64; let lda = lda as i64; let incx = incx as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -430,65 +449,73 @@ pub unsafe extern "C" fn cblas_ctrsv_64(
     incx: i64,
 ) {
     let p = get_ctrsv_for_ilp64_cblas();
+    if matches!(p, CtrsvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_ctrsv_64\0", [(5, n), (7, lda), (9, incx)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         CtrsvProvider::Ilp64(ctrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         CtrsvProvider::Lp64(ctrsv) => {
-            let n = n as i32; let lda = lda as i32; let incx = incx as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ctrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -517,63 +544,64 @@ pub unsafe extern "C" fn cblas_ztrsv(
     let p = get_ztrsv_for_lp64_cblas();
     match p {
         ZtrsvProvider::Lp64(ztrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         ZtrsvProvider::Ilp64(ztrsv) => {
-            let n = n as i64; let lda = lda as i64; let incx = incx as i64;
+            let n = n as i64;
+            let lda = lda as i64;
+            let incx = incx as i64;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }
@@ -591,65 +619,73 @@ pub unsafe extern "C" fn cblas_ztrsv_64(
     incx: i64,
 ) {
     let p = get_ztrsv_for_ilp64_cblas();
+    if matches!(p, ZtrsvProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_ztrsv_64\0", [(5, n), (7, lda), (9, incx)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         ZtrsvProvider::Ilp64(ztrsv) => {
-
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
         ZtrsvProvider::Lp64(ztrsv) => {
-            let n = n as i32; let lda = lda as i32; let incx = incx as i32;
+            let n = n as i32;
+            let lda = lda as i32;
+            let incx = incx as i32;
 
-    match order {
-        CblasColMajor => {
-            let uplo_char = uplo_to_char(uplo);
-            let trans_char = transpose_to_char(trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-        CblasRowMajor => {
-            // Row-major: invert uplo and trans
-            // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
-            let new_uplo = match uplo {
-                CblasUpper => CblasLower,
-                CblasLower => CblasUpper,
-            };
-            let new_trans = match trans {
-                CblasNoTrans => CblasTrans,
-                CblasTrans => CblasNoTrans,
-                CblasConjNoTrans => CblasConjTrans,
-                CblasConjTrans => CblasConjNoTrans,
-            };
-            let uplo_char = uplo_to_char(new_uplo);
-            let trans_char = transpose_to_char(new_trans);
-            let diag_char = diag_to_char(diag);
-            ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
-        }
-    }
+            match order {
+                CblasColMajor => {
+                    let uplo_char = uplo_to_char(uplo);
+                    let trans_char = transpose_to_char(trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+                CblasRowMajor => {
+                    // Row-major: invert uplo and trans
+                    // For complex: ConjTrans stays ConjTrans (conjugate is preserved)
+                    let new_uplo = match uplo {
+                        CblasUpper => CblasLower,
+                        CblasLower => CblasUpper,
+                    };
+                    let new_trans = match trans {
+                        CblasNoTrans => CblasTrans,
+                        CblasTrans => CblasNoTrans,
+                        CblasConjNoTrans => CblasConjTrans,
+                        CblasConjTrans => CblasConjNoTrans,
+                    };
+                    let uplo_char = uplo_to_char(new_uplo);
+                    let trans_char = transpose_to_char(new_trans);
+                    let diag_char = diag_to_char(diag);
+                    ztrsv(&uplo_char, &trans_char, &diag_char, &n, a, &lda, x, &incx);
+                }
+            }
         }
     }
 }

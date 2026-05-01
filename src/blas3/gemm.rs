@@ -9,7 +9,7 @@
 //! For row-major layout, we swap A↔B, m↔n, lda↔ldb, TransA↔TransB.
 //! The transpose flags are NOT inverted, just swapped.
 
-use std::ffi::{c_char, c_int};
+use std::ffi::c_char;
 
 use num_complex::{Complex32, Complex64};
 
@@ -19,60 +19,13 @@ use crate::backend::{
     get_zgemm_for_current_cblas, get_zgemm_for_ilp64_cblas, BlasInt32, BlasInt64, CgemmProvider,
     DgemmProvider, SgemmProvider, ZgemmProvider,
 };
-use crate::types::{
-    blasint, transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE,
-};
-use crate::xerbla::cblas_xerbla;
+use crate::int_convert::{to_lp64_i64, unchecked_lp64_i64};
+use crate::types::{transpose_to_char, CblasColMajor, CblasRowMajor, CBLAS_ORDER, CBLAS_TRANSPOSE};
 
-const CBLAS_DGEMM_ROUTINE: &[u8] = b"cblas_dgemm\0";
-const CBLAS_ZGEMM_ROUTINE: &[u8] = b"cblas_zgemm\0";
+const CBLAS_SGEMM_64_ROUTINE: &[u8] = b"cblas_sgemm_64\0";
+const CBLAS_CGEMM_64_ROUTINE: &[u8] = b"cblas_cgemm_64\0";
 const CBLAS_DGEMM_64_ROUTINE: &[u8] = b"cblas_dgemm_64\0";
 const CBLAS_ZGEMM_64_ROUTINE: &[u8] = b"cblas_zgemm_64\0";
-
-#[cfg(not(feature = "ilp64"))]
-#[inline]
-fn to_lp64(_routine: &[u8], _param: blasint, value: blasint) -> Option<BlasInt32> {
-    Some(value)
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-fn to_lp64(routine: &[u8], param: blasint, value: blasint) -> Option<BlasInt32> {
-    match BlasInt32::try_from(value) {
-        Ok(value) => Some(value),
-        Err(_) => {
-            unsafe {
-                cblas_xerbla(param as c_int, routine.as_ptr().cast(), std::ptr::null());
-            }
-            None
-        }
-    }
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-fn to_ilp64(value: blasint) -> BlasInt64 {
-    value
-}
-
-#[cfg(not(feature = "ilp64"))]
-#[inline]
-fn to_ilp64(value: blasint) -> BlasInt64 {
-    BlasInt64::from(value)
-}
-
-#[inline]
-fn to_lp64_i64(routine: &[u8], param: c_int, value: i64) -> Option<BlasInt32> {
-    match BlasInt32::try_from(value) {
-        Ok(value) => Some(value),
-        Err(_) => {
-            unsafe {
-                cblas_xerbla(param, routine.as_ptr().cast(), std::ptr::null());
-            }
-            None
-        }
-    }
-}
 
 #[inline]
 fn check_lp64_gemm_i64(
@@ -92,49 +45,25 @@ fn check_lp64_gemm_i64(
         && to_lp64_i64(routine, 14, ldc).is_some()
 }
 
-#[inline]
-fn unchecked_lp64_i64(value: i64) -> BlasInt32 {
-    debug_assert!(BlasInt32::try_from(value).is_ok());
-    value as BlasInt32
-}
-
 #[allow(clippy::too_many_arguments)]
 unsafe fn call_dgemm_provider(
     provider: DgemmProvider,
     transa: c_char,
     transb: c_char,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: BlasInt32,
+    n: BlasInt32,
+    k: BlasInt32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: BlasInt32,
     b: *const f64,
-    ldb: blasint,
+    ldb: BlasInt32,
     beta: f64,
     c: *mut f64,
-    ldc: blasint,
+    ldc: BlasInt32,
 ) -> bool {
     match provider {
         DgemmProvider::Lp64(dgemm) => {
-            let Some(m) = to_lp64(CBLAS_DGEMM_ROUTINE, 4, m) else {
-                return false;
-            };
-            let Some(n) = to_lp64(CBLAS_DGEMM_ROUTINE, 5, n) else {
-                return false;
-            };
-            let Some(k) = to_lp64(CBLAS_DGEMM_ROUTINE, 6, k) else {
-                return false;
-            };
-            let Some(lda) = to_lp64(CBLAS_DGEMM_ROUTINE, 9, lda) else {
-                return false;
-            };
-            let Some(ldb) = to_lp64(CBLAS_DGEMM_ROUTINE, 11, ldb) else {
-                return false;
-            };
-            let Some(ldc) = to_lp64(CBLAS_DGEMM_ROUTINE, 14, ldc) else {
-                return false;
-            };
             unsafe {
                 dgemm(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
@@ -143,12 +72,12 @@ unsafe fn call_dgemm_provider(
             true
         }
         DgemmProvider::Ilp64(dgemm) => {
-            let m = to_ilp64(m);
-            let n = to_ilp64(n);
-            let k = to_ilp64(k);
-            let lda = to_ilp64(lda);
-            let ldb = to_ilp64(ldb);
-            let ldc = to_ilp64(ldc);
+            let m = BlasInt64::from(m);
+            let n = BlasInt64::from(n);
+            let k = BlasInt64::from(k);
+            let lda = BlasInt64::from(lda);
+            let ldb = BlasInt64::from(ldb);
+            let ldc = BlasInt64::from(ldc);
             unsafe {
                 dgemm(
                     &transa, &transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc,
@@ -164,38 +93,20 @@ unsafe fn call_zgemm_provider(
     provider: ZgemmProvider,
     transa: c_char,
     transb: c_char,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: BlasInt32,
+    n: BlasInt32,
+    k: BlasInt32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: BlasInt32,
     b: *const Complex64,
-    ldb: blasint,
+    ldb: BlasInt32,
     beta: *const Complex64,
     c: *mut Complex64,
-    ldc: blasint,
+    ldc: BlasInt32,
 ) -> bool {
     match provider {
         ZgemmProvider::Lp64(zgemm) => {
-            let Some(m) = to_lp64(CBLAS_ZGEMM_ROUTINE, 4, m) else {
-                return false;
-            };
-            let Some(n) = to_lp64(CBLAS_ZGEMM_ROUTINE, 5, n) else {
-                return false;
-            };
-            let Some(k) = to_lp64(CBLAS_ZGEMM_ROUTINE, 6, k) else {
-                return false;
-            };
-            let Some(lda) = to_lp64(CBLAS_ZGEMM_ROUTINE, 9, lda) else {
-                return false;
-            };
-            let Some(ldb) = to_lp64(CBLAS_ZGEMM_ROUTINE, 11, ldb) else {
-                return false;
-            };
-            let Some(ldc) = to_lp64(CBLAS_ZGEMM_ROUTINE, 14, ldc) else {
-                return false;
-            };
             unsafe {
                 zgemm(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
@@ -204,12 +115,12 @@ unsafe fn call_zgemm_provider(
             true
         }
         ZgemmProvider::Ilp64(zgemm) => {
-            let m = to_ilp64(m);
-            let n = to_ilp64(n);
-            let k = to_ilp64(k);
-            let lda = to_ilp64(lda);
-            let ldb = to_ilp64(ldb);
-            let ldc = to_ilp64(ldc);
+            let m = BlasInt64::from(m);
+            let n = BlasInt64::from(n);
+            let k = BlasInt64::from(k);
+            let lda = BlasInt64::from(lda);
+            let ldb = BlasInt64::from(ldb);
+            let ldc = BlasInt64::from(ldc);
             unsafe {
                 zgemm(
                     &transa, &transb, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c, &ldc,
@@ -313,17 +224,17 @@ pub unsafe extern "C" fn cblas_dgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: f64,
     a: *const f64,
-    lda: blasint,
+    lda: i32,
     b: *const f64,
-    ldb: blasint,
+    ldb: i32,
     beta: f64,
     c: *mut f64,
-    ldc: blasint,
+    ldc: i32,
 ) {
     let dgemm = get_dgemm_for_current_cblas();
 
@@ -488,12 +399,34 @@ pub unsafe extern "C" fn cblas_sgemm(
             let transb_char = transpose_to_char(transb);
             match p {
                 SgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &m,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
+                    &ldb,
+                    &beta,
+                    c,
                     &ldc,
                 ),
                 SgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &(m as i64), &(n as i64), &(k as i64), &alpha, a,
-                    &(lda as i64), b, &(ldb as i64), &beta, c, &(ldc as i64),
+                    &transa_char,
+                    &transb_char,
+                    &(m as i64),
+                    &(n as i64),
+                    &(k as i64),
+                    &alpha,
+                    a,
+                    &(lda as i64),
+                    b,
+                    &(ldb as i64),
+                    &beta,
+                    c,
+                    &(ldc as i64),
                 ),
             }
         }
@@ -502,12 +435,34 @@ pub unsafe extern "C" fn cblas_sgemm(
             let transb_char = transpose_to_char(transa);
             match p {
                 SgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &n, &m, &k, &alpha, b, &ldb, a, &lda, &beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &n,
+                    &m,
+                    &k,
+                    &alpha,
+                    b,
+                    &ldb,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
                     &ldc,
                 ),
                 SgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &(n as i64), &(m as i64), &(k as i64), &alpha, b,
-                    &(ldb as i64), a, &(lda as i64), &beta, c, &(ldc as i64),
+                    &transa_char,
+                    &transb_char,
+                    &(n as i64),
+                    &(m as i64),
+                    &(k as i64),
+                    &alpha,
+                    b,
+                    &(ldb as i64),
+                    a,
+                    &(lda as i64),
+                    &beta,
+                    c,
+                    &(ldc as i64),
                 ),
             }
         }
@@ -534,18 +489,47 @@ pub unsafe extern "C" fn cblas_sgemm_64(
     ldc: i64,
 ) {
     let p = get_sgemm_for_ilp64_cblas();
+
+    if matches!(p, SgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_SGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
             match p {
                 SgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &m,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    b,
+                    &ldb,
+                    &beta,
+                    c,
                     &ldc,
                 ),
                 SgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &(m as i32), &(n as i32), &(k as i32), &alpha, a,
-                    &(lda as i32), b, &(ldb as i32), &beta, c, &(ldc as i32),
+                    &transa_char,
+                    &transb_char,
+                    &(m as i32),
+                    &(n as i32),
+                    &(k as i32),
+                    &alpha,
+                    a,
+                    &(lda as i32),
+                    b,
+                    &(ldb as i32),
+                    &beta,
+                    c,
+                    &(ldc as i32),
                 ),
             }
         }
@@ -554,12 +538,34 @@ pub unsafe extern "C" fn cblas_sgemm_64(
             let transb_char = transpose_to_char(transa);
             match p {
                 SgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &n, &m, &k, &alpha, b, &ldb, a, &lda, &beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &n,
+                    &m,
+                    &k,
+                    &alpha,
+                    b,
+                    &ldb,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
                     &ldc,
                 ),
                 SgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &(n as i32), &(m as i32), &(k as i32), &alpha, b,
-                    &(ldb as i32), a, &(lda as i32), &beta, c, &(ldc as i32),
+                    &transa_char,
+                    &transb_char,
+                    &(n as i32),
+                    &(m as i32),
+                    &(k as i32),
+                    &alpha,
+                    b,
+                    &(ldb as i32),
+                    a,
+                    &(lda as i32),
+                    &beta,
+                    c,
+                    &(ldc as i32),
                 ),
             }
         }
@@ -581,17 +587,17 @@ pub unsafe extern "C" fn cblas_zgemm(
     order: CBLAS_ORDER,
     transa: CBLAS_TRANSPOSE,
     transb: CBLAS_TRANSPOSE,
-    m: blasint,
-    n: blasint,
-    k: blasint,
+    m: i32,
+    n: i32,
+    k: i32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: blasint,
+    lda: i32,
     b: *const Complex64,
-    ldb: blasint,
+    ldb: i32,
     beta: *const Complex64,
     c: *mut Complex64,
-    ldc: blasint,
+    ldc: i32,
 ) {
     let zgemm = get_zgemm_for_current_cblas();
 
@@ -754,12 +760,34 @@ pub unsafe extern "C" fn cblas_cgemm(
             let transb_char = transpose_to_char(transb);
             match p {
                 CgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &m,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
+                    &ldb,
+                    beta,
+                    c,
                     &ldc,
                 ),
                 CgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &(m as i64), &(n as i64), &(k as i64), alpha, a,
-                    &(lda as i64), b, &(ldb as i64), beta, c, &(ldc as i64),
+                    &transa_char,
+                    &transb_char,
+                    &(m as i64),
+                    &(n as i64),
+                    &(k as i64),
+                    alpha,
+                    a,
+                    &(lda as i64),
+                    b,
+                    &(ldb as i64),
+                    beta,
+                    c,
+                    &(ldc as i64),
                 ),
             }
         }
@@ -768,12 +796,34 @@ pub unsafe extern "C" fn cblas_cgemm(
             let transb_char = transpose_to_char(transa);
             match p {
                 CgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &n, &m, &k, alpha, b, &ldb, a, &lda, beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &n,
+                    &m,
+                    &k,
+                    alpha,
+                    b,
+                    &ldb,
+                    a,
+                    &lda,
+                    beta,
+                    c,
                     &ldc,
                 ),
                 CgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &(n as i64), &(m as i64), &(k as i64), alpha, b,
-                    &(ldb as i64), a, &(lda as i64), beta, c, &(ldc as i64),
+                    &transa_char,
+                    &transb_char,
+                    &(n as i64),
+                    &(m as i64),
+                    &(k as i64),
+                    alpha,
+                    b,
+                    &(ldb as i64),
+                    a,
+                    &(lda as i64),
+                    beta,
+                    c,
+                    &(ldc as i64),
                 ),
             }
         }
@@ -800,18 +850,47 @@ pub unsafe extern "C" fn cblas_cgemm_64(
     ldc: i64,
 ) {
     let p = get_cgemm_for_ilp64_cblas();
+
+    if matches!(p, CgemmProvider::Lp64(_))
+        && !check_lp64_gemm_i64(CBLAS_CGEMM_64_ROUTINE, m, n, k, lda, ldb, ldc)
+    {
+        return;
+    }
+
     match order {
         CblasColMajor => {
             let transa_char = transpose_to_char(transa);
             let transb_char = transpose_to_char(transb);
             match p {
                 CgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &m, &n, &k, alpha, a, &lda, b, &ldb, beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &m,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    b,
+                    &ldb,
+                    beta,
+                    c,
                     &ldc,
                 ),
                 CgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &(m as i32), &(n as i32), &(k as i32), alpha, a,
-                    &(lda as i32), b, &(ldb as i32), beta, c, &(ldc as i32),
+                    &transa_char,
+                    &transb_char,
+                    &(m as i32),
+                    &(n as i32),
+                    &(k as i32),
+                    alpha,
+                    a,
+                    &(lda as i32),
+                    b,
+                    &(ldb as i32),
+                    beta,
+                    c,
+                    &(ldc as i32),
                 ),
             }
         }
@@ -820,12 +899,34 @@ pub unsafe extern "C" fn cblas_cgemm_64(
             let transb_char = transpose_to_char(transa);
             match p {
                 CgemmProvider::Ilp64(f) => f(
-                    &transa_char, &transb_char, &n, &m, &k, alpha, b, &ldb, a, &lda, beta, c,
+                    &transa_char,
+                    &transb_char,
+                    &n,
+                    &m,
+                    &k,
+                    alpha,
+                    b,
+                    &ldb,
+                    a,
+                    &lda,
+                    beta,
+                    c,
                     &ldc,
                 ),
                 CgemmProvider::Lp64(f) => f(
-                    &transa_char, &transb_char, &(n as i32), &(m as i32), &(k as i32), alpha, b,
-                    &(ldb as i32), a, &(lda as i32), beta, c, &(ldc as i32),
+                    &transa_char,
+                    &transb_char,
+                    &(n as i32),
+                    &(m as i32),
+                    &(k as i32),
+                    alpha,
+                    b,
+                    &(ldb as i32),
+                    a,
+                    &(lda as i32),
+                    beta,
+                    c,
+                    &(ldc as i32),
                 ),
             }
         }

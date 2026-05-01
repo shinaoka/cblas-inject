@@ -48,7 +48,18 @@ pub unsafe extern "C" fn cblas_dsyrk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -62,7 +73,18 @@ pub unsafe extern "C" fn cblas_dsyrk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         DsyrkProvider::Ilp64(f) => {
@@ -74,7 +96,18 @@ pub unsafe extern "C" fn cblas_dsyrk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -88,7 +121,18 @@ pub unsafe extern "C" fn cblas_dsyrk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -118,12 +162,33 @@ pub unsafe extern "C" fn cblas_dsyrk_64(
     ldc: i64,
 ) {
     let p = get_dsyrk_for_ilp64_cblas();
+    if matches!(p, DsyrkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dsyrk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         DsyrkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -137,7 +202,18 @@ pub unsafe extern "C" fn cblas_dsyrk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         DsyrkProvider::Lp64(f) => {
@@ -149,7 +225,18 @@ pub unsafe extern "C" fn cblas_dsyrk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -163,7 +250,18 @@ pub unsafe extern "C" fn cblas_dsyrk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -198,7 +296,18 @@ pub unsafe extern "C" fn cblas_ssyrk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -212,7 +321,18 @@ pub unsafe extern "C" fn cblas_ssyrk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         SsyrkProvider::Ilp64(f) => {
@@ -224,7 +344,18 @@ pub unsafe extern "C" fn cblas_ssyrk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -238,7 +369,18 @@ pub unsafe extern "C" fn cblas_ssyrk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -268,12 +410,33 @@ pub unsafe extern "C" fn cblas_ssyrk_64(
     ldc: i64,
 ) {
     let p = get_ssyrk_for_ilp64_cblas();
+    if matches!(p, SsyrkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_ssyrk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         SsyrkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -287,7 +450,18 @@ pub unsafe extern "C" fn cblas_ssyrk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    &alpha,
+                    a,
+                    &lda,
+                    &beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         SsyrkProvider::Lp64(f) => {
@@ -299,7 +473,18 @@ pub unsafe extern "C" fn cblas_ssyrk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -313,7 +498,18 @@ pub unsafe extern "C" fn cblas_ssyrk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, &alpha, a, &lda, &beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        &alpha,
+                        a,
+                        &lda,
+                        &beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -348,7 +544,18 @@ pub unsafe extern "C" fn cblas_csyrk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -362,7 +569,18 @@ pub unsafe extern "C" fn cblas_csyrk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         CsyrkProvider::Ilp64(f) => {
@@ -374,7 +592,18 @@ pub unsafe extern "C" fn cblas_csyrk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -388,7 +617,18 @@ pub unsafe extern "C" fn cblas_csyrk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -418,12 +658,33 @@ pub unsafe extern "C" fn cblas_csyrk_64(
     ldc: i64,
 ) {
     let p = get_csyrk_for_ilp64_cblas();
+    if matches!(p, CsyrkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_csyrk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CsyrkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -437,7 +698,18 @@ pub unsafe extern "C" fn cblas_csyrk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         CsyrkProvider::Lp64(f) => {
@@ -449,7 +721,18 @@ pub unsafe extern "C" fn cblas_csyrk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -463,7 +746,18 @@ pub unsafe extern "C" fn cblas_csyrk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -498,7 +792,18 @@ pub unsafe extern "C" fn cblas_zsyrk(
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -512,7 +817,18 @@ pub unsafe extern "C" fn cblas_zsyrk(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         ZsyrkProvider::Ilp64(f) => {
@@ -524,7 +840,18 @@ pub unsafe extern "C" fn cblas_zsyrk(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -538,7 +865,18 @@ pub unsafe extern "C" fn cblas_zsyrk(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }
@@ -568,12 +906,33 @@ pub unsafe extern "C" fn cblas_zsyrk_64(
     ldc: i64,
 ) {
     let p = get_zsyrk_for_ilp64_cblas();
+    if matches!(p, ZsyrkProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zsyrk_64\0",
+            [(4, n), (5, k), (8, lda), (11, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZsyrkProvider::Ilp64(f) => match order {
             CblasColMajor => {
                 let uplo_char = uplo_to_char(uplo);
                 let trans_char = transpose_to_char(trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
             CblasRowMajor => {
                 let new_uplo = match uplo {
@@ -587,7 +946,18 @@ pub unsafe extern "C" fn cblas_zsyrk_64(
                 };
                 let uplo_char = uplo_to_char(new_uplo);
                 let trans_char = transpose_to_char(new_trans);
-                f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                f(
+                    &uplo_char,
+                    &trans_char,
+                    &n,
+                    &k,
+                    alpha,
+                    a,
+                    &lda,
+                    beta,
+                    c,
+                    &ldc,
+                );
             }
         },
         ZsyrkProvider::Lp64(f) => {
@@ -599,7 +969,18 @@ pub unsafe extern "C" fn cblas_zsyrk_64(
                 CblasColMajor => {
                     let uplo_char = uplo_to_char(uplo);
                     let trans_char = transpose_to_char(trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
                 CblasRowMajor => {
                     let new_uplo = match uplo {
@@ -613,7 +994,18 @@ pub unsafe extern "C" fn cblas_zsyrk_64(
                     };
                     let uplo_char = uplo_to_char(new_uplo);
                     let trans_char = transpose_to_char(new_trans);
-                    f(&uplo_char, &trans_char, &n, &k, alpha, a, &lda, beta, c, &ldc);
+                    f(
+                        &uplo_char,
+                        &trans_char,
+                        &n,
+                        &k,
+                        alpha,
+                        a,
+                        &lda,
+                        beta,
+                        c,
+                        &ldc,
+                    );
                 }
             }
         }

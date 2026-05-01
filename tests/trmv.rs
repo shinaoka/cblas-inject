@@ -66,7 +66,10 @@ fn ctrmv_row_vs_col_agree() {
                             CblasLower => i >= j,
                         };
                         if is_triangular && (diag != cblas_inject::CblasUnit || i != j) {
-                            Complex32::new(((i + 3 * j) as f32 * 0.1).sin(), ((7 * i + j) as f32 * 0.2).cos())
+                            Complex32::new(
+                                ((i + 3 * j) as f32 * 0.1).sin(),
+                                ((7 * i + j) as f32 * 0.2).cos(),
+                            )
                         } else {
                             Complex32::new(0.0, 0.0)
                         }
@@ -74,7 +77,12 @@ fn ctrmv_row_vs_col_agree() {
                     let a_col = a_row.to_layout(Layout::ColMajor, n + 2);
 
                     let x0: Vec<Complex32> = (0..n)
-                        .map(|k| Complex32::new(((k + 11) as f32 * 0.15).cos(), ((k + 5) as f32 * 0.25).sin()))
+                        .map(|k| {
+                            Complex32::new(
+                                ((k + 11) as f32 * 0.15).cos(),
+                                ((k + 5) as f32 * 0.25).sin(),
+                            )
+                        })
                         .collect();
 
                     let mut x_row = x0.clone();
@@ -105,7 +113,10 @@ fn ctrmv_row_vs_col_agree() {
                         );
                     }
 
-                    let context = format!("ctrmv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}", n, uplo, trans, diag);
+                    let context = format!(
+                        "ctrmv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}",
+                        n, uplo, trans, diag
+                    );
                     assert_complex32_eq(&x_row, &x_col, 1e-5, &context);
                 }
             }
@@ -132,7 +143,10 @@ fn ztrmv_row_vs_col_agree() {
                             CblasLower => i >= j,
                         };
                         if is_triangular && (diag != cblas_inject::CblasUnit || i != j) {
-                            Complex64::new(((i + 3 * j) as f64 * 0.1).sin(), ((7 * i + j) as f64 * 0.2).cos())
+                            Complex64::new(
+                                ((i + 3 * j) as f64 * 0.1).sin(),
+                                ((7 * i + j) as f64 * 0.2).cos(),
+                            )
                         } else {
                             Complex64::new(0.0, 0.0)
                         }
@@ -140,7 +154,12 @@ fn ztrmv_row_vs_col_agree() {
                     let a_col = a_row.to_layout(Layout::ColMajor, n + 2);
 
                     let x0: Vec<Complex64> = (0..n)
-                        .map(|k| Complex64::new(((k + 11) as f64 * 0.15).cos(), ((k + 5) as f64 * 0.25).sin()))
+                        .map(|k| {
+                            Complex64::new(
+                                ((k + 11) as f64 * 0.15).cos(),
+                                ((k + 5) as f64 * 0.25).sin(),
+                            )
+                        })
                         .collect();
 
                     let mut x_row = x0.clone();
@@ -171,7 +190,10 @@ fn ztrmv_row_vs_col_agree() {
                         );
                     }
 
-                    let context = format!("ztrmv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}", n, uplo, trans, diag);
+                    let context = format!(
+                        "ztrmv row-vs-col: n={}, uplo={:?}, trans={:?}, diag={:?}",
+                        n, uplo, trans, diag
+                    );
                     assert_complex64_eq(&x_row, &x_col, 1e-12, &context);
                 }
             }

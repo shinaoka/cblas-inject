@@ -83,19 +83,35 @@ fn cgbmv_row_vs_col_agree() {
         for &trans in &transposes {
             // Create the same logical band matrix in both layouts
             let a_col = create_band_matrix_col(m, n, kl, ku, |i, j| {
-                Complex32::new(((i + 3 * j) as f32 * 0.1).sin(), ((7 * i + j) as f32 * 0.2).cos())
+                Complex32::new(
+                    ((i + 3 * j) as f32 * 0.1).sin(),
+                    ((7 * i + j) as f32 * 0.2).cos(),
+                )
             });
             let a_row = create_band_matrix_row(m, n, kl, ku, |i, j| {
-                Complex32::new(((i + 3 * j) as f32 * 0.1).sin(), ((7 * i + j) as f32 * 0.2).cos())
+                Complex32::new(
+                    ((i + 3 * j) as f32 * 0.1).sin(),
+                    ((7 * i + j) as f32 * 0.2).cos(),
+                )
             });
 
             let xl = x_len_gemv(trans, m, n);
             let yl = y_len_gemv(trans, m, n);
             let x: Vec<Complex32> = (0..xl)
-                .map(|k| Complex32::new(((k + 11) as f32 * 0.15).cos(), ((k + 5) as f32 * 0.25).sin()))
+                .map(|k| {
+                    Complex32::new(
+                        ((k + 11) as f32 * 0.15).cos(),
+                        ((k + 5) as f32 * 0.25).sin(),
+                    )
+                })
                 .collect();
             let y0: Vec<Complex32> = (0..yl)
-                .map(|k| Complex32::new(((k + 17) as f32 * 0.05).sin(), ((k + 19) as f32 * 0.07).cos()))
+                .map(|k| {
+                    Complex32::new(
+                        ((k + 17) as f32 * 0.05).sin(),
+                        ((k + 19) as f32 * 0.07).cos(),
+                    )
+                })
                 .collect();
 
             let mut y_row = y0.clone();
@@ -139,7 +155,10 @@ fn cgbmv_row_vs_col_agree() {
                 );
             }
 
-            let context = format!("cgbmv row-vs-col: m={}, n={}, kl={}, ku={}, trans={:?}", m, n, kl, ku, trans);
+            let context = format!(
+                "cgbmv row-vs-col: m={}, n={}, kl={}, ku={}, trans={:?}",
+                m, n, kl, ku, trans
+            );
             assert_complex32_eq(&y_row, &y_col, 1e-5, &context);
         }
     }
@@ -162,19 +181,35 @@ fn zgbmv_row_vs_col_agree() {
     for &(m, n, kl, ku) in &cases {
         for &trans in &transposes {
             let a_col = create_band_matrix_col(m, n, kl, ku, |i, j| {
-                Complex64::new(((i + 3 * j) as f64 * 0.1).sin(), ((7 * i + j) as f64 * 0.2).cos())
+                Complex64::new(
+                    ((i + 3 * j) as f64 * 0.1).sin(),
+                    ((7 * i + j) as f64 * 0.2).cos(),
+                )
             });
             let a_row = create_band_matrix_row(m, n, kl, ku, |i, j| {
-                Complex64::new(((i + 3 * j) as f64 * 0.1).sin(), ((7 * i + j) as f64 * 0.2).cos())
+                Complex64::new(
+                    ((i + 3 * j) as f64 * 0.1).sin(),
+                    ((7 * i + j) as f64 * 0.2).cos(),
+                )
             });
 
             let xl = x_len_gemv(trans, m, n);
             let yl = y_len_gemv(trans, m, n);
             let x: Vec<Complex64> = (0..xl)
-                .map(|k| Complex64::new(((k + 11) as f64 * 0.15).cos(), ((k + 5) as f64 * 0.25).sin()))
+                .map(|k| {
+                    Complex64::new(
+                        ((k + 11) as f64 * 0.15).cos(),
+                        ((k + 5) as f64 * 0.25).sin(),
+                    )
+                })
                 .collect();
             let y0: Vec<Complex64> = (0..yl)
-                .map(|k| Complex64::new(((k + 17) as f64 * 0.05).sin(), ((k + 19) as f64 * 0.07).cos()))
+                .map(|k| {
+                    Complex64::new(
+                        ((k + 17) as f64 * 0.05).sin(),
+                        ((k + 19) as f64 * 0.07).cos(),
+                    )
+                })
                 .collect();
 
             let mut y_row = y0.clone();
@@ -218,7 +253,10 @@ fn zgbmv_row_vs_col_agree() {
                 );
             }
 
-            let context = format!("zgbmv row-vs-col: m={}, n={}, kl={}, ku={}, trans={:?}", m, n, kl, ku, trans);
+            let context = format!(
+                "zgbmv row-vs-col: m={}, n={}, kl={}, ku={}, trans={:?}",
+                m, n, kl, ku, trans
+            );
             assert_complex64_eq(&y_row, &y_col, 1e-12, &context);
         }
     }

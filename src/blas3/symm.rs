@@ -129,6 +129,16 @@ pub unsafe extern "C" fn cblas_dsymm_64(
     ldc: i64,
 ) {
     let p = get_dsymm_for_ilp64_cblas();
+    if matches!(p, DsymmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_dsymm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         DsymmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -297,6 +307,16 @@ pub unsafe extern "C" fn cblas_ssymm_64(
     ldc: i64,
 ) {
     let p = get_ssymm_for_ilp64_cblas();
+    if matches!(p, SsymmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_ssymm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         SsymmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -465,6 +485,16 @@ pub unsafe extern "C" fn cblas_csymm_64(
     ldc: i64,
 ) {
     let p = get_csymm_for_ilp64_cblas();
+    if matches!(p, CsymmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_csymm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         CsymmProvider::Ilp64(f) => match order {
             CblasColMajor => {
@@ -633,6 +663,16 @@ pub unsafe extern "C" fn cblas_zsymm_64(
     ldc: i64,
 ) {
     let p = get_zsymm_for_ilp64_cblas();
+    if matches!(p, ZsymmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_zsymm_64\0",
+            [(4, m), (5, n), (8, lda), (10, ldb), (13, ldc)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match p {
         ZsymmProvider::Ilp64(f) => match order {
             CblasColMajor => {

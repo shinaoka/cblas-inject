@@ -3,10 +3,10 @@
 use num_complex::{Complex32, Complex64};
 
 use crate::backend::{
-    get_dcabs1, get_drot_for_ilp64_cblas, get_drot_for_lp64_cblas, get_drotg, get_drotm_for_ilp64_cblas,
-    get_drotm_for_lp64_cblas, get_drotmg, get_scabs1, get_srot_for_ilp64_cblas,
-    get_srot_for_lp64_cblas, get_srotg, get_srotm_for_ilp64_cblas, get_srotm_for_lp64_cblas,
-    get_srotmg, DrotProvider, DrotmProvider, SrotProvider, SrotmProvider,
+    get_dcabs1, get_drot_for_ilp64_cblas, get_drot_for_lp64_cblas, get_drotg,
+    get_drotm_for_ilp64_cblas, get_drotm_for_lp64_cblas, get_drotmg, get_scabs1,
+    get_srot_for_ilp64_cblas, get_srot_for_lp64_cblas, get_srotg, get_srotm_for_ilp64_cblas,
+    get_srotm_for_lp64_cblas, get_srotmg, DrotProvider, DrotmProvider, SrotProvider, SrotmProvider,
 };
 
 /// Apply Givens rotation (double precision).
@@ -51,6 +51,13 @@ pub unsafe extern "C" fn cblas_drot_64(
     s: f64,
 ) {
     let p = get_drot_for_ilp64_cblas();
+    if matches!(p, DrotProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_drot_64\0", [(1, n), (3, incx), (5, incy)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         DrotProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
         DrotProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), &c, &s),
@@ -99,6 +106,13 @@ pub unsafe extern "C" fn cblas_srot_64(
     s: f32,
 ) {
     let p = get_srot_for_ilp64_cblas();
+    if matches!(p, SrotProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(b"cblas_srot_64\0", [(1, n), (3, incx), (5, incy)])
+            .is_none()
+    {
+        return;
+    }
+
     match p {
         SrotProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, &c, &s),
         SrotProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), &c, &s),
@@ -186,6 +200,16 @@ pub unsafe extern "C" fn cblas_drotm_64(
     p: *const f64,
 ) {
     let pv = get_drotm_for_ilp64_cblas();
+    if matches!(pv, DrotmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_drotm_64\0",
+            [(1, n), (3, incx), (5, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match pv {
         DrotmProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, p),
         DrotmProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), p),
@@ -231,6 +255,16 @@ pub unsafe extern "C" fn cblas_srotm_64(
     p: *const f32,
 ) {
     let pv = get_srotm_for_ilp64_cblas();
+    if matches!(pv, SrotmProvider::Lp64(_))
+        && crate::int_convert::to_lp64_array_i64(
+            b"cblas_srotm_64\0",
+            [(1, n), (3, incx), (5, incy)],
+        )
+        .is_none()
+    {
+        return;
+    }
+
     match pv {
         SrotmProvider::Ilp64(f) => f(&n, x, &incx, y, &incy, p),
         SrotmProvider::Lp64(f) => f(&(n as i32), x, &(incx as i32), y, &(incy as i32), p),

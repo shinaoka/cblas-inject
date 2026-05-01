@@ -4,6 +4,8 @@
 //! function pointers at runtime. Each function has its own `OnceLock` to allow
 //! partial registration (only register the functions you need).
 
+#![allow(dead_code, clippy::useless_transmute)]
+
 use std::ffi::{c_char, c_void};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
@@ -114,7 +116,6 @@ pub type SswapIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dswap function pointer type (double precision vector swap)
 pub type DswapFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -139,7 +140,6 @@ pub type DswapIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran cswap function pointer type (single precision complex vector swap)
 pub type CswapFnPtr = unsafe extern "C" fn(
@@ -166,7 +166,6 @@ pub type CswapIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zswap function pointer type (double precision complex vector swap)
 pub type ZswapFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -191,7 +190,6 @@ pub type ZswapIlp64FnPtr = unsafe extern "C" fn(
     y: *mut Complex64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran scopy function pointer type (single precision vector copy)
 pub type ScopyFnPtr = unsafe extern "C" fn(
@@ -218,7 +216,6 @@ pub type ScopyIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dcopy function pointer type (double precision vector copy)
 pub type DcopyFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -243,7 +240,6 @@ pub type DcopyIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran ccopy function pointer type (single precision complex vector copy)
 pub type CcopyFnPtr = unsafe extern "C" fn(
@@ -270,7 +266,6 @@ pub type CcopyIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zcopy function pointer type (double precision complex vector copy)
 pub type ZcopyFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -295,7 +290,6 @@ pub type ZcopyIlp64FnPtr = unsafe extern "C" fn(
     y: *mut Complex64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran saxpy function pointer type (single precision y = alpha*x + y)
 pub type SaxpyFnPtr = unsafe extern "C" fn(
@@ -325,7 +319,6 @@ pub type SaxpyIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran daxpy function pointer type (double precision y = alpha*x + y)
 pub type DaxpyFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -353,7 +346,6 @@ pub type DaxpyIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran caxpy function pointer type (single precision complex y = alpha*x + y)
 pub type CaxpyFnPtr = unsafe extern "C" fn(
@@ -383,7 +375,6 @@ pub type CaxpyIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zaxpy function pointer type (double precision complex y = alpha*x + y)
 pub type ZaxpyFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -412,28 +403,41 @@ pub type ZaxpyIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran sscal function pointer type (single precision vector scaling)
 pub type SscalFnPtr =
     unsafe extern "C" fn(n: *const blasint, alpha: *const f32, x: *mut f32, incx: *const blasint);
 
-pub type SscalLp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt32, alpha: *const f32, x: *mut f32, incx: *const BlasInt32);
+pub type SscalLp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt32,
+    alpha: *const f32,
+    x: *mut f32,
+    incx: *const BlasInt32,
+);
 
-pub type SscalIlp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt64, alpha: *const f32, x: *mut f32, incx: *const BlasInt64);
-
+pub type SscalIlp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt64,
+    alpha: *const f32,
+    x: *mut f32,
+    incx: *const BlasInt64,
+);
 
 /// Fortran dscal function pointer type (double precision vector scaling)
 pub type DscalFnPtr =
     unsafe extern "C" fn(n: *const blasint, alpha: *const f64, x: *mut f64, incx: *const blasint);
 
-pub type DscalLp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt32, alpha: *const f64, x: *mut f64, incx: *const BlasInt32);
+pub type DscalLp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt32,
+    alpha: *const f64,
+    x: *mut f64,
+    incx: *const BlasInt32,
+);
 
-pub type DscalIlp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt64, alpha: *const f64, x: *mut f64, incx: *const BlasInt64);
-
+pub type DscalIlp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt64,
+    alpha: *const f64,
+    x: *mut f64,
+    incx: *const BlasInt64,
+);
 
 /// Fortran cscal function pointer type (single precision complex vector scaling)
 pub type CscalFnPtr = unsafe extern "C" fn(
@@ -457,7 +461,6 @@ pub type CscalIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran zscal function pointer type (double precision complex vector scaling)
 pub type ZscalFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -479,7 +482,6 @@ pub type ZscalIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran csscal function pointer type (scale complex vector by real scalar)
 pub type CsscalFnPtr = unsafe extern "C" fn(
@@ -503,7 +505,6 @@ pub type CsscalIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran zdscal function pointer type (scale complex vector by real scalar)
 pub type ZdscalFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -525,7 +526,6 @@ pub type ZdscalIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran drot function pointer type (apply Givens rotation, double precision)
 pub type DrotFnPtr = unsafe extern "C" fn(
@@ -558,7 +558,6 @@ pub type DrotIlp64FnPtr = unsafe extern "C" fn(
     s: *const f64,
 );
 
-
 /// Fortran srot function pointer type (apply Givens rotation, single precision)
 pub type SrotFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -589,7 +588,6 @@ pub type SrotIlp64FnPtr = unsafe extern "C" fn(
     c: *const f32,
     s: *const f32,
 );
-
 
 /// Fortran drotg function pointer type (generate Givens rotation, double precision)
 pub type DrotgFnPtr = unsafe extern "C" fn(a: *mut f64, b: *mut f64, c: *mut f64, s: *mut f64);
@@ -633,7 +631,6 @@ pub type DrotmIlp64FnPtr = unsafe extern "C" fn(
     p: *const f64,
 );
 
-
 /// Fortran srotm function pointer type (apply modified Givens rotation, single precision)
 pub type SrotmFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -662,7 +659,6 @@ pub type SrotmIlp64FnPtr = unsafe extern "C" fn(
     p: *const f32,
 );
 
-
 /// Fortran drotmg function pointer type (generate modified Givens rotation, double precision)
 pub type DrotmgFnPtr =
     unsafe extern "C" fn(d1: *mut f64, d2: *mut f64, b1: *mut f64, b2: *const f64, p: *mut f64);
@@ -673,7 +669,6 @@ pub type DrotmgLp64FnPtr =
 pub type DrotmgIlp64FnPtr =
     unsafe extern "C" fn(d1: *mut f64, d2: *mut f64, b1: *mut f64, b2: *const f64, p: *mut f64);
 
-
 /// Fortran srotmg function pointer type (generate modified Givens rotation, single precision)
 pub type SrotmgFnPtr =
     unsafe extern "C" fn(d1: *mut f32, d2: *mut f32, b1: *mut f32, b2: *const f32, p: *mut f32);
@@ -683,7 +678,6 @@ pub type SrotmgLp64FnPtr =
 
 pub type SrotmgIlp64FnPtr =
     unsafe extern "C" fn(d1: *mut f32, d2: *mut f32, b1: *mut f32, b2: *const f32, p: *mut f32);
-
 
 /// Fortran dcabs1 function pointer type (|Re(z)| + |Im(z)|, double precision complex)
 pub type Dcabs1FnPtr = unsafe extern "C" fn(z: *const Complex64) -> f64;
@@ -724,7 +718,6 @@ pub type SdotIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 ) -> f32;
 
-
 /// Fortran ddot function pointer type (double precision dot product)
 pub type DdotFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -749,7 +742,6 @@ pub type DdotIlp64FnPtr = unsafe extern "C" fn(
     y: *const f64,
     incy: *const BlasInt64,
 ) -> f64;
-
 
 /// Fortran cdotu function pointer type (complex single precision dot product, unconjugated)
 /// Return value convention: complex returned via register (OpenBLAS, MKL intel, BLIS)
@@ -776,7 +768,6 @@ pub type CdotuIlp64FnPtr = unsafe extern "C" fn(
     y: *const Complex32,
     incy: *const BlasInt64,
 ) -> Complex32;
-
 
 /// Fortran cdotu function pointer type with hidden argument convention
 /// Hidden argument convention: complex written to first pointer argument (gfortran default, MKL gf)
@@ -833,7 +824,6 @@ pub type ZdotuIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 ) -> Complex64;
 
-
 /// Fortran zdotu function pointer type with hidden argument convention
 /// Hidden argument convention: complex written to first pointer argument (gfortran default, MKL gf)
 pub type ZdotuHiddenFnPtr = unsafe extern "C" fn(
@@ -889,7 +879,6 @@ pub type CdotcIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 ) -> Complex32;
 
-
 /// Fortran cdotc function pointer type with hidden argument convention
 /// Hidden argument convention: complex written to first pointer argument (gfortran default, MKL gf)
 pub type CdotcHiddenFnPtr = unsafe extern "C" fn(
@@ -944,7 +933,6 @@ pub type ZdotcIlp64FnPtr = unsafe extern "C" fn(
     y: *const Complex64,
     incy: *const BlasInt64,
 ) -> Complex64;
-
 
 /// Fortran zdotc function pointer type with hidden argument convention
 /// Hidden argument convention: complex written to first pointer argument (gfortran default, MKL gf)
@@ -1003,7 +991,6 @@ pub type SdsdotIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 ) -> f32;
 
-
 /// Fortran dsdot function pointer type (double precision dot product of single precision vectors)
 pub type DsdotFnPtr = unsafe extern "C" fn(
     n: *const blasint,
@@ -1029,7 +1016,6 @@ pub type DsdotIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 ) -> f64;
 
-
 /// Fortran snrm2 function pointer type (single precision Euclidean norm)
 pub type Snrm2FnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const f32, incx: *const blasint) -> f32;
@@ -1039,7 +1025,6 @@ pub type Snrm2Lp64FnPtr =
 
 pub type Snrm2Ilp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f32, incx: *const BlasInt64) -> f32;
-
 
 /// Fortran dnrm2 function pointer type (double precision Euclidean norm)
 pub type Dnrm2FnPtr =
@@ -1051,7 +1036,6 @@ pub type Dnrm2Lp64FnPtr =
 pub type Dnrm2Ilp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f64, incx: *const BlasInt64) -> f64;
 
-
 /// Fortran scnrm2 function pointer type (complex single precision Euclidean norm)
 pub type Scnrm2FnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const Complex32, incx: *const blasint) -> f32;
@@ -1061,7 +1045,6 @@ pub type Scnrm2Lp64FnPtr =
 
 pub type Scnrm2Ilp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex32, incx: *const BlasInt64) -> f32;
-
 
 /// Fortran dznrm2 function pointer type (complex double precision Euclidean norm)
 pub type Dznrm2FnPtr =
@@ -1073,7 +1056,6 @@ pub type Dznrm2Lp64FnPtr =
 pub type Dznrm2Ilp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex64, incx: *const BlasInt64) -> f64;
 
-
 /// Fortran sasum function pointer type (single precision sum of absolute values)
 pub type SasumFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const f32, incx: *const blasint) -> f32;
@@ -1083,7 +1065,6 @@ pub type SasumLp64FnPtr =
 
 pub type SasumIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f32, incx: *const BlasInt64) -> f32;
-
 
 /// Fortran dasum function pointer type (double precision sum of absolute values)
 pub type DasumFnPtr =
@@ -1095,7 +1076,6 @@ pub type DasumLp64FnPtr =
 pub type DasumIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f64, incx: *const BlasInt64) -> f64;
 
-
 /// Fortran scasum function pointer type (complex single precision sum of absolute values)
 pub type ScasumFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const Complex32, incx: *const blasint) -> f32;
@@ -1105,7 +1085,6 @@ pub type ScasumLp64FnPtr =
 
 pub type ScasumIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex32, incx: *const BlasInt64) -> f32;
-
 
 /// Fortran dzasum function pointer type (complex double precision sum of absolute values)
 pub type DzasumFnPtr =
@@ -1117,7 +1096,6 @@ pub type DzasumLp64FnPtr =
 pub type DzasumIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex64, incx: *const BlasInt64) -> f64;
 
-
 /// Fortran isamax function pointer type (index of max absolute value, single precision)
 pub type IsamaxFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const f32, incx: *const blasint) -> blasint;
@@ -1127,7 +1105,6 @@ pub type IsamaxLp64FnPtr =
 
 pub type IsamaxIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f32, incx: *const BlasInt64) -> BlasInt64;
-
 
 /// Fortran idamax function pointer type (index of max absolute value, double precision)
 pub type IdamaxFnPtr =
@@ -1139,28 +1116,37 @@ pub type IdamaxLp64FnPtr =
 pub type IdamaxIlp64FnPtr =
     unsafe extern "C" fn(n: *const BlasInt64, x: *const f64, incx: *const BlasInt64) -> BlasInt64;
 
-
 /// Fortran icamax function pointer type (index of max absolute value, complex single precision)
 pub type IcamaxFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const Complex32, incx: *const blasint) -> blasint;
 
-pub type IcamaxLp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt32, x: *const Complex32, incx: *const BlasInt32) -> BlasInt32;
+pub type IcamaxLp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt32,
+    x: *const Complex32,
+    incx: *const BlasInt32,
+) -> BlasInt32;
 
-pub type IcamaxIlp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex32, incx: *const BlasInt64) -> BlasInt64;
-
+pub type IcamaxIlp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt64,
+    x: *const Complex32,
+    incx: *const BlasInt64,
+) -> BlasInt64;
 
 /// Fortran izamax function pointer type (index of max absolute value, complex double precision)
 pub type IzamaxFnPtr =
     unsafe extern "C" fn(n: *const blasint, x: *const Complex64, incx: *const blasint) -> blasint;
 
-pub type IzamaxLp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt32, x: *const Complex64, incx: *const BlasInt32) -> BlasInt32;
+pub type IzamaxLp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt32,
+    x: *const Complex64,
+    incx: *const BlasInt32,
+) -> BlasInt32;
 
-pub type IzamaxIlp64FnPtr =
-    unsafe extern "C" fn(n: *const BlasInt64, x: *const Complex64, incx: *const BlasInt64) -> BlasInt64;
-
+pub type IzamaxIlp64FnPtr = unsafe extern "C" fn(
+    n: *const BlasInt64,
+    x: *const Complex64,
+    incx: *const BlasInt64,
+) -> BlasInt64;
 
 // BLAS Level 2: Matrix-Vector operations
 
@@ -1207,7 +1193,6 @@ pub type SgemvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dgemv function pointer type (double precision general matrix-vector multiply)
 pub type DgemvFnPtr = unsafe extern "C" fn(
     trans: *const c_char,
@@ -1250,7 +1235,6 @@ pub type DgemvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran cgemv function pointer type (single precision complex general matrix-vector multiply)
 pub type CgemvFnPtr = unsafe extern "C" fn(
@@ -1295,7 +1279,6 @@ pub type CgemvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zgemv function pointer type (double precision complex general matrix-vector multiply)
 pub type ZgemvFnPtr = unsafe extern "C" fn(
     trans: *const c_char,
@@ -1338,7 +1321,6 @@ pub type ZgemvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut Complex64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran sgbmv function pointer type (single precision general band matrix-vector multiply)
 pub type SgbmvFnPtr = unsafe extern "C" fn(
@@ -1389,7 +1371,6 @@ pub type SgbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dgbmv function pointer type (double precision general band matrix-vector multiply)
 pub type DgbmvFnPtr = unsafe extern "C" fn(
     trans: *const c_char,
@@ -1438,7 +1419,6 @@ pub type DgbmvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran cgbmv function pointer type (single precision complex general band matrix-vector multiply)
 pub type CgbmvFnPtr = unsafe extern "C" fn(
@@ -1489,7 +1469,6 @@ pub type CgbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zgbmv function pointer type (double precision complex general band matrix-vector multiply)
 pub type ZgbmvFnPtr = unsafe extern "C" fn(
     trans: *const c_char,
@@ -1539,7 +1518,6 @@ pub type ZgbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran ssymv function pointer type (single precision symmetric matrix-vector multiply)
 pub type SsymvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1579,7 +1557,6 @@ pub type SsymvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f32,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran dsymv function pointer type (double precision symmetric matrix-vector multiply)
 pub type DsymvFnPtr = unsafe extern "C" fn(
@@ -1621,7 +1598,6 @@ pub type DsymvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran chemv function pointer type (single precision complex Hermitian matrix-vector multiply)
 pub type ChemvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1662,7 +1638,6 @@ pub type ChemvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zhemv function pointer type (double precision complex Hermitian matrix-vector multiply)
 pub type ZhemvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1702,7 +1677,6 @@ pub type ZhemvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut Complex64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran ssbmv function pointer type (single precision symmetric band matrix-vector multiply)
 pub type SsbmvFnPtr = unsafe extern "C" fn(
@@ -1747,7 +1721,6 @@ pub type SsbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dsbmv function pointer type (double precision symmetric band matrix-vector multiply)
 pub type DsbmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1790,7 +1763,6 @@ pub type DsbmvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran chbmv function pointer type (single precision complex Hermitian band matrix-vector multiply)
 pub type ChbmvFnPtr = unsafe extern "C" fn(
@@ -1835,7 +1807,6 @@ pub type ChbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zhbmv function pointer type (double precision complex Hermitian band matrix-vector multiply)
 pub type ZhbmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1879,7 +1850,6 @@ pub type ZhbmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran strmv function pointer type (single precision triangular matrix-vector multiply)
 pub type StrmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1913,7 +1883,6 @@ pub type StrmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran dtrmv function pointer type (double precision triangular matrix-vector multiply)
 pub type DtrmvFnPtr = unsafe extern "C" fn(
@@ -1949,7 +1918,6 @@ pub type DtrmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ctrmv function pointer type (single precision complex triangular matrix-vector multiply)
 pub type CtrmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -1983,7 +1951,6 @@ pub type CtrmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran ztrmv function pointer type (double precision complex triangular matrix-vector multiply)
 pub type ZtrmvFnPtr = unsafe extern "C" fn(
@@ -2019,7 +1986,6 @@ pub type ZtrmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran strsv function pointer type (single precision triangular solve)
 pub type StrsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2053,7 +2019,6 @@ pub type StrsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran dtrsv function pointer type (double precision triangular solve)
 pub type DtrsvFnPtr = unsafe extern "C" fn(
@@ -2089,7 +2054,6 @@ pub type DtrsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ctrsv function pointer type (single precision complex triangular solve)
 pub type CtrsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2124,7 +2088,6 @@ pub type CtrsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ztrsv function pointer type (double precision complex triangular solve)
 pub type ZtrsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2158,7 +2121,6 @@ pub type ZtrsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran stbmv function pointer type (single precision triangular band matrix-vector multiply)
 pub type StbmvFnPtr = unsafe extern "C" fn(
@@ -2197,7 +2159,6 @@ pub type StbmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran dtbmv function pointer type (double precision triangular band matrix-vector multiply)
 pub type DtbmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2234,7 +2195,6 @@ pub type DtbmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran ctbmv function pointer type (single precision complex triangular band matrix-vector multiply)
 pub type CtbmvFnPtr = unsafe extern "C" fn(
@@ -2273,7 +2233,6 @@ pub type CtbmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ztbmv function pointer type (double precision complex triangular band matrix-vector multiply)
 pub type ZtbmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2310,7 +2269,6 @@ pub type ZtbmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran stbsv function pointer type (single precision triangular band solve)
 pub type StbsvFnPtr = unsafe extern "C" fn(
@@ -2349,7 +2307,6 @@ pub type StbsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran dtbsv function pointer type (double precision triangular band solve)
 pub type DtbsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2386,7 +2343,6 @@ pub type DtbsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran ctbsv function pointer type (single precision complex triangular band solve)
 pub type CtbsvFnPtr = unsafe extern "C" fn(
@@ -2425,7 +2381,6 @@ pub type CtbsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ztbsv function pointer type (double precision complex triangular band solve)
 pub type ZtbsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2462,7 +2417,6 @@ pub type ZtbsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex64,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran sger function pointer type (single precision rank-1 update)
 pub type SgerFnPtr = unsafe extern "C" fn(
@@ -2501,7 +2455,6 @@ pub type SgerIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran dger function pointer type (double precision rank-1 update)
 pub type DgerFnPtr = unsafe extern "C" fn(
     m: *const blasint,
@@ -2538,7 +2491,6 @@ pub type DgerIlp64FnPtr = unsafe extern "C" fn(
     a: *mut f64,
     lda: *const BlasInt64,
 );
-
 
 /// Fortran cgeru function pointer type (single complex unconjugated rank-1 update)
 pub type CgeruFnPtr = unsafe extern "C" fn(
@@ -2577,7 +2529,6 @@ pub type CgeruIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran cgerc function pointer type (single complex conjugated rank-1 update)
 pub type CgercFnPtr = unsafe extern "C" fn(
     m: *const blasint,
@@ -2614,7 +2565,6 @@ pub type CgercIlp64FnPtr = unsafe extern "C" fn(
     a: *mut Complex32,
     lda: *const BlasInt64,
 );
-
 
 /// Fortran zgeru function pointer type (double complex unconjugated rank-1 update)
 pub type ZgeruFnPtr = unsafe extern "C" fn(
@@ -2653,7 +2603,6 @@ pub type ZgeruIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran zgerc function pointer type (double complex conjugated rank-1 update)
 pub type ZgercFnPtr = unsafe extern "C" fn(
     m: *const blasint,
@@ -2691,7 +2640,6 @@ pub type ZgercIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran ssyr function pointer type (single precision symmetric rank-1 update)
 pub type SsyrFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2722,7 +2670,6 @@ pub type SsyrIlp64FnPtr = unsafe extern "C" fn(
     a: *mut f32,
     lda: *const BlasInt64,
 );
-
 
 /// Fortran dsyr function pointer type (double precision symmetric rank-1 update)
 pub type DsyrFnPtr = unsafe extern "C" fn(
@@ -2755,7 +2702,6 @@ pub type DsyrIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran cher function pointer type (single complex hermitian rank-1 update)
 pub type CherFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2787,7 +2733,6 @@ pub type CherIlp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran zher function pointer type (double complex hermitian rank-1 update)
 pub type ZherFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2818,7 +2763,6 @@ pub type ZherIlp64FnPtr = unsafe extern "C" fn(
     a: *mut Complex64,
     lda: *const BlasInt64,
 );
-
 
 /// Fortran ssyr2 function pointer type (single precision symmetric rank-2 update)
 pub type Ssyr2FnPtr = unsafe extern "C" fn(
@@ -2857,7 +2801,6 @@ pub type Ssyr2Ilp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran dsyr2 function pointer type (double precision symmetric rank-2 update)
 pub type Dsyr2FnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2894,7 +2837,6 @@ pub type Dsyr2Ilp64FnPtr = unsafe extern "C" fn(
     a: *mut f64,
     lda: *const BlasInt64,
 );
-
 
 /// Fortran cher2 function pointer type (single complex hermitian rank-2 update)
 pub type Cher2FnPtr = unsafe extern "C" fn(
@@ -2933,7 +2875,6 @@ pub type Cher2Ilp64FnPtr = unsafe extern "C" fn(
     lda: *const BlasInt64,
 );
 
-
 /// Fortran zher2 function pointer type (double complex hermitian rank-2 update)
 pub type Zher2FnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -2970,7 +2911,6 @@ pub type Zher2Ilp64FnPtr = unsafe extern "C" fn(
     a: *mut Complex64,
     lda: *const BlasInt64,
 );
-
 
 // BLAS Level 2: Packed Matrix Operations
 
@@ -3011,7 +2951,6 @@ pub type SspmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran dspmv function pointer type (double precision symmetric packed matrix-vector multiply)
 pub type DspmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3048,7 +2987,6 @@ pub type DspmvIlp64FnPtr = unsafe extern "C" fn(
     y: *mut f64,
     incy: *const BlasInt64,
 );
-
 
 /// Fortran chpmv function pointer type (single precision complex Hermitian packed matrix-vector multiply)
 pub type ChpmvFnPtr = unsafe extern "C" fn(
@@ -3087,7 +3025,6 @@ pub type ChpmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran zhpmv function pointer type (double precision complex Hermitian packed matrix-vector multiply)
 pub type ZhpmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3125,7 +3062,6 @@ pub type ZhpmvIlp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
 );
 
-
 /// Fortran stpmv function pointer type (single precision triangular packed matrix-vector multiply)
 pub type StpmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3156,7 +3092,6 @@ pub type StpmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran dtpmv function pointer type (double precision triangular packed matrix-vector multiply)
 pub type DtpmvFnPtr = unsafe extern "C" fn(
@@ -3189,7 +3124,6 @@ pub type DtpmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ctpmv function pointer type (single precision complex triangular packed matrix-vector multiply)
 pub type CtpmvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3220,7 +3154,6 @@ pub type CtpmvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran ztpmv function pointer type (double precision complex triangular packed matrix-vector multiply)
 pub type ZtpmvFnPtr = unsafe extern "C" fn(
@@ -3253,7 +3186,6 @@ pub type ZtpmvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran stpsv function pointer type (single precision triangular packed solve)
 pub type StpsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3284,7 +3216,6 @@ pub type StpsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut f32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran dtpsv function pointer type (double precision triangular packed solve)
 pub type DtpsvFnPtr = unsafe extern "C" fn(
@@ -3317,7 +3248,6 @@ pub type DtpsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran ctpsv function pointer type (single precision complex triangular packed solve)
 pub type CtpsvFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3348,7 +3278,6 @@ pub type CtpsvIlp64FnPtr = unsafe extern "C" fn(
     x: *mut Complex32,
     incx: *const BlasInt64,
 );
-
 
 /// Fortran ztpsv function pointer type (double precision complex triangular packed solve)
 pub type ZtpsvFnPtr = unsafe extern "C" fn(
@@ -3381,7 +3310,6 @@ pub type ZtpsvIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
 );
 
-
 /// Fortran sspr function pointer type (single precision symmetric packed rank-1 update)
 pub type SsprFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3409,7 +3337,6 @@ pub type SsprIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
     ap: *mut f32,
 );
-
 
 /// Fortran dspr function pointer type (double precision symmetric packed rank-1 update)
 pub type DsprFnPtr = unsafe extern "C" fn(
@@ -3439,7 +3366,6 @@ pub type DsprIlp64FnPtr = unsafe extern "C" fn(
     ap: *mut f64,
 );
 
-
 /// Fortran chpr function pointer type (single precision complex Hermitian packed rank-1 update)
 pub type ChprFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3468,7 +3394,6 @@ pub type ChprIlp64FnPtr = unsafe extern "C" fn(
     ap: *mut Complex32,
 );
 
-
 /// Fortran zhpr function pointer type (double precision complex Hermitian packed rank-1 update)
 pub type ZhprFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3496,7 +3421,6 @@ pub type ZhprIlp64FnPtr = unsafe extern "C" fn(
     incx: *const BlasInt64,
     ap: *mut Complex64,
 );
-
 
 /// Fortran sspr2 function pointer type (single precision symmetric packed rank-2 update)
 pub type Sspr2FnPtr = unsafe extern "C" fn(
@@ -3532,7 +3456,6 @@ pub type Sspr2Ilp64FnPtr = unsafe extern "C" fn(
     ap: *mut f32,
 );
 
-
 /// Fortran dspr2 function pointer type (double precision symmetric packed rank-2 update)
 pub type Dspr2FnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3566,7 +3489,6 @@ pub type Dspr2Ilp64FnPtr = unsafe extern "C" fn(
     incy: *const BlasInt64,
     ap: *mut f64,
 );
-
 
 /// Fortran chpr2 function pointer type (single precision complex Hermitian packed rank-2 update)
 pub type Chpr2FnPtr = unsafe extern "C" fn(
@@ -3602,7 +3524,6 @@ pub type Chpr2Ilp64FnPtr = unsafe extern "C" fn(
     ap: *mut Complex32,
 );
 
-
 /// Fortran zhpr2 function pointer type (double precision complex Hermitian packed rank-2 update)
 pub type Zhpr2FnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -3637,24 +3558,23 @@ pub type Zhpr2Ilp64FnPtr = unsafe extern "C" fn(
     ap: *mut Complex64,
 );
 
-
 // BLAS Level 3: Matrix-Matrix operations
 
 /// Fortran dgemm function pointer type (double precision general matrix multiply)
 pub type DgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
     transb: *const c_char,
-    m: *const blasint,
-    n: *const blasint,
-    k: *const blasint,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
     alpha: *const f64,
     a: *const f64,
-    lda: *const blasint,
+    lda: *const BlasInt32,
     b: *const f64,
-    ldb: *const blasint,
+    ldb: *const BlasInt32,
     beta: *const f64,
     c: *mut f64,
-    ldc: *const blasint,
+    ldc: *const BlasInt32,
 );
 
 /// Fortran dgemm LP64 function pointer type (double precision general matrix multiply)
@@ -3695,17 +3615,17 @@ pub type DgemmIlp64FnPtr = unsafe extern "C" fn(
 pub type SgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
     transb: *const c_char,
-    m: *const blasint,
-    n: *const blasint,
-    k: *const blasint,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
     alpha: *const f32,
     a: *const f32,
-    lda: *const blasint,
+    lda: *const BlasInt32,
     b: *const f32,
-    ldb: *const blasint,
+    ldb: *const BlasInt32,
     beta: *const f32,
     c: *mut f32,
-    ldc: *const blasint,
+    ldc: *const BlasInt32,
 );
 
 /// Fortran sgemm LP64 function pointer type (single precision general matrix multiply)
@@ -3746,17 +3666,17 @@ pub type SgemmIlp64FnPtr = unsafe extern "C" fn(
 pub type ZgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
     transb: *const c_char,
-    m: *const blasint,
-    n: *const blasint,
-    k: *const blasint,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
     alpha: *const Complex64,
     a: *const Complex64,
-    lda: *const blasint,
+    lda: *const BlasInt32,
     b: *const Complex64,
-    ldb: *const blasint,
+    ldb: *const BlasInt32,
     beta: *const Complex64,
     c: *mut Complex64,
-    ldc: *const blasint,
+    ldc: *const BlasInt32,
 );
 
 /// Fortran zgemm LP64 function pointer type (double precision complex general matrix multiply)
@@ -3797,17 +3717,17 @@ pub type ZgemmIlp64FnPtr = unsafe extern "C" fn(
 pub type CgemmFnPtr = unsafe extern "C" fn(
     transa: *const c_char,
     transb: *const c_char,
-    m: *const blasint,
-    n: *const blasint,
-    k: *const blasint,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
     alpha: *const Complex32,
     a: *const Complex32,
-    lda: *const blasint,
+    lda: *const BlasInt32,
     b: *const Complex32,
-    ldb: *const blasint,
+    ldb: *const BlasInt32,
     beta: *const Complex32,
     c: *mut Complex32,
-    ldc: *const blasint,
+    ldc: *const BlasInt32,
 );
 
 /// Fortran cgemm LP64 function pointer type (single precision complex general matrix multiply)
@@ -3914,7 +3834,6 @@ pub type SsymmIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran dsymm function pointer type (double precision symmetric matrix multiply)
 pub type DsymmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -3960,7 +3879,6 @@ pub type DsymmIlp64FnPtr = unsafe extern "C" fn(
     c: *mut f64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran csymm function pointer type (single precision complex symmetric matrix multiply)
 pub type CsymmFnPtr = unsafe extern "C" fn(
@@ -4008,7 +3926,6 @@ pub type CsymmIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zsymm function pointer type (double precision complex symmetric matrix multiply)
 pub type ZsymmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4054,7 +3971,6 @@ pub type ZsymmIlp64FnPtr = unsafe extern "C" fn(
     c: *mut Complex64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran chemm function pointer type (single precision complex Hermitian matrix multiply)
 pub type ChemmFnPtr = unsafe extern "C" fn(
@@ -4102,7 +4018,6 @@ pub type ChemmIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zhemm function pointer type (double precision complex Hermitian matrix multiply)
 pub type ZhemmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4149,7 +4064,6 @@ pub type ZhemmIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran dsyrk function pointer type (double precision symmetric rank-k update)
 pub type DsyrkFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -4189,7 +4103,6 @@ pub type DsyrkIlp64FnPtr = unsafe extern "C" fn(
     c: *mut f64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran ssyrk function pointer type (single precision symmetric rank-k update)
 pub type SsyrkFnPtr = unsafe extern "C" fn(
@@ -4231,7 +4144,6 @@ pub type SsyrkIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran csyrk function pointer type (single precision complex symmetric rank-k update)
 pub type CsyrkFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -4272,7 +4184,6 @@ pub type CsyrkIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zsyrk function pointer type (double precision complex symmetric rank-k update)
 pub type ZsyrkFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -4312,7 +4223,6 @@ pub type ZsyrkIlp64FnPtr = unsafe extern "C" fn(
     c: *mut Complex64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran cherk function pointer type (single precision complex Hermitian rank-k update)
 /// Note: alpha and beta are REAL (f32), not complex
@@ -4355,7 +4265,6 @@ pub type CherkIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zherk function pointer type (double precision complex Hermitian rank-k update)
 /// Note: alpha and beta are REAL (f64), not complex
 pub type ZherkFnPtr = unsafe extern "C" fn(
@@ -4396,7 +4305,6 @@ pub type ZherkIlp64FnPtr = unsafe extern "C" fn(
     c: *mut Complex64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran dsyr2k function pointer type (double precision symmetric rank-2k update)
 pub type Dsyr2kFnPtr = unsafe extern "C" fn(
@@ -4444,7 +4352,6 @@ pub type Dsyr2kIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran ssyr2k function pointer type (single precision symmetric rank-2k update)
 pub type Ssyr2kFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -4490,7 +4397,6 @@ pub type Ssyr2kIlp64FnPtr = unsafe extern "C" fn(
     c: *mut f32,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran csyr2k function pointer type (single precision complex symmetric rank-2k update)
 pub type Csyr2kFnPtr = unsafe extern "C" fn(
@@ -4538,7 +4444,6 @@ pub type Csyr2kIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zsyr2k function pointer type (double precision complex symmetric rank-2k update)
 pub type Zsyr2kFnPtr = unsafe extern "C" fn(
     uplo: *const c_char,
@@ -4584,7 +4489,6 @@ pub type Zsyr2kIlp64FnPtr = unsafe extern "C" fn(
     c: *mut Complex64,
     ldc: *const BlasInt64,
 );
-
 
 /// Fortran cher2k function pointer type (single precision complex Hermitian rank-2k update)
 /// Note: alpha is complex, beta is real
@@ -4633,7 +4537,6 @@ pub type Cher2kIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran zher2k function pointer type (double precision complex Hermitian rank-2k update)
 /// Note: alpha is complex, beta is real
 pub type Zher2kFnPtr = unsafe extern "C" fn(
@@ -4681,7 +4584,6 @@ pub type Zher2kIlp64FnPtr = unsafe extern "C" fn(
     ldc: *const BlasInt64,
 );
 
-
 /// Fortran dtrmm function pointer type (double precision triangular matrix multiply)
 pub type DtrmmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4724,7 +4626,6 @@ pub type DtrmmIlp64FnPtr = unsafe extern "C" fn(
     b: *mut f64,
     ldb: *const BlasInt64,
 );
-
 
 /// Fortran dtrsm function pointer type (double precision triangular solve)
 pub type DtrsmFnPtr = unsafe extern "C" fn(
@@ -4769,7 +4670,6 @@ pub type DtrsmIlp64FnPtr = unsafe extern "C" fn(
     ldb: *const BlasInt64,
 );
 
-
 /// Fortran strmm function pointer type (single precision triangular matrix multiply)
 pub type StrmmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4812,7 +4712,6 @@ pub type StrmmIlp64FnPtr = unsafe extern "C" fn(
     b: *mut f32,
     ldb: *const BlasInt64,
 );
-
 
 /// Fortran ctrmm function pointer type (single precision complex triangular matrix multiply)
 pub type CtrmmFnPtr = unsafe extern "C" fn(
@@ -4857,7 +4756,6 @@ pub type CtrmmIlp64FnPtr = unsafe extern "C" fn(
     ldb: *const BlasInt64,
 );
 
-
 /// Fortran ztrmm function pointer type (double precision complex triangular matrix multiply)
 pub type ZtrmmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4900,7 +4798,6 @@ pub type ZtrmmIlp64FnPtr = unsafe extern "C" fn(
     b: *mut Complex64,
     ldb: *const BlasInt64,
 );
-
 
 /// Fortran strsm function pointer type (single precision triangular solve)
 pub type StrsmFnPtr = unsafe extern "C" fn(
@@ -4945,7 +4842,6 @@ pub type StrsmIlp64FnPtr = unsafe extern "C" fn(
     ldb: *const BlasInt64,
 );
 
-
 /// Fortran ctrsm function pointer type (single precision complex triangular solve)
 pub type CtrsmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -4989,7 +4885,6 @@ pub type CtrsmIlp64FnPtr = unsafe extern "C" fn(
     ldb: *const BlasInt64,
 );
 
-
 /// Fortran ztrsm function pointer type (double precision complex triangular solve)
 pub type ZtrsmFnPtr = unsafe extern "C" fn(
     side: *const c_char,
@@ -5032,7 +4927,6 @@ pub type ZtrsmIlp64FnPtr = unsafe extern "C" fn(
     b: *mut Complex64,
     ldb: *const BlasInt64,
 );
-
 
 // =============================================================================
 // Complex return style configuration
@@ -5253,142 +5147,874 @@ static ZTRSM: OnceLock<ZtrsmFnPtr> = OnceLock::new();
 static REGISTRATION_LOCK: Mutex<()> = Mutex::new(());
 
 // Dual LP64/ILP64 backend definitions
-define_dual_backend!(Sswap, "sswap", SswapLp64FnPtr, SswapIlp64FnPtr, SswapProvider);
-define_dual_backend!(Dswap, "dswap", DswapLp64FnPtr, DswapIlp64FnPtr, DswapProvider);
-define_dual_backend!(Cswap, "cswap", CswapLp64FnPtr, CswapIlp64FnPtr, CswapProvider);
-define_dual_backend!(Zswap, "zswap", ZswapLp64FnPtr, ZswapIlp64FnPtr, ZswapProvider);
-define_dual_backend!(Scopy, "scopy", ScopyLp64FnPtr, ScopyIlp64FnPtr, ScopyProvider);
-define_dual_backend!(Dcopy, "dcopy", DcopyLp64FnPtr, DcopyIlp64FnPtr, DcopyProvider);
-define_dual_backend!(Ccopy, "ccopy", CcopyLp64FnPtr, CcopyIlp64FnPtr, CcopyProvider);
-define_dual_backend!(Zcopy, "zcopy", ZcopyLp64FnPtr, ZcopyIlp64FnPtr, ZcopyProvider);
-define_dual_backend!(Saxpy, "saxpy", SaxpyLp64FnPtr, SaxpyIlp64FnPtr, SaxpyProvider);
-define_dual_backend!(Daxpy, "daxpy", DaxpyLp64FnPtr, DaxpyIlp64FnPtr, DaxpyProvider);
-define_dual_backend!(Caxpy, "caxpy", CaxpyLp64FnPtr, CaxpyIlp64FnPtr, CaxpyProvider);
-define_dual_backend!(Zaxpy, "zaxpy", ZaxpyLp64FnPtr, ZaxpyIlp64FnPtr, ZaxpyProvider);
-define_dual_backend!(Sscal, "sscal", SscalLp64FnPtr, SscalIlp64FnPtr, SscalProvider);
-define_dual_backend!(Dscal, "dscal", DscalLp64FnPtr, DscalIlp64FnPtr, DscalProvider);
-define_dual_backend!(Cscal, "cscal", CscalLp64FnPtr, CscalIlp64FnPtr, CscalProvider);
-define_dual_backend!(Zscal, "zscal", ZscalLp64FnPtr, ZscalIlp64FnPtr, ZscalProvider);
-define_dual_backend!(Csscal, "csscal", CsscalLp64FnPtr, CsscalIlp64FnPtr, CsscalProvider);
-define_dual_backend!(Zdscal, "zdscal", ZdscalLp64FnPtr, ZdscalIlp64FnPtr, ZdscalProvider);
+define_dual_backend!(
+    Sswap,
+    "sswap",
+    SswapLp64FnPtr,
+    SswapIlp64FnPtr,
+    SswapProvider
+);
+define_dual_backend!(
+    Dswap,
+    "dswap",
+    DswapLp64FnPtr,
+    DswapIlp64FnPtr,
+    DswapProvider
+);
+define_dual_backend!(
+    Cswap,
+    "cswap",
+    CswapLp64FnPtr,
+    CswapIlp64FnPtr,
+    CswapProvider
+);
+define_dual_backend!(
+    Zswap,
+    "zswap",
+    ZswapLp64FnPtr,
+    ZswapIlp64FnPtr,
+    ZswapProvider
+);
+define_dual_backend!(
+    Scopy,
+    "scopy",
+    ScopyLp64FnPtr,
+    ScopyIlp64FnPtr,
+    ScopyProvider
+);
+define_dual_backend!(
+    Dcopy,
+    "dcopy",
+    DcopyLp64FnPtr,
+    DcopyIlp64FnPtr,
+    DcopyProvider
+);
+define_dual_backend!(
+    Ccopy,
+    "ccopy",
+    CcopyLp64FnPtr,
+    CcopyIlp64FnPtr,
+    CcopyProvider
+);
+define_dual_backend!(
+    Zcopy,
+    "zcopy",
+    ZcopyLp64FnPtr,
+    ZcopyIlp64FnPtr,
+    ZcopyProvider
+);
+define_dual_backend!(
+    Saxpy,
+    "saxpy",
+    SaxpyLp64FnPtr,
+    SaxpyIlp64FnPtr,
+    SaxpyProvider
+);
+define_dual_backend!(
+    Daxpy,
+    "daxpy",
+    DaxpyLp64FnPtr,
+    DaxpyIlp64FnPtr,
+    DaxpyProvider
+);
+define_dual_backend!(
+    Caxpy,
+    "caxpy",
+    CaxpyLp64FnPtr,
+    CaxpyIlp64FnPtr,
+    CaxpyProvider
+);
+define_dual_backend!(
+    Zaxpy,
+    "zaxpy",
+    ZaxpyLp64FnPtr,
+    ZaxpyIlp64FnPtr,
+    ZaxpyProvider
+);
+define_dual_backend!(
+    Sscal,
+    "sscal",
+    SscalLp64FnPtr,
+    SscalIlp64FnPtr,
+    SscalProvider
+);
+define_dual_backend!(
+    Dscal,
+    "dscal",
+    DscalLp64FnPtr,
+    DscalIlp64FnPtr,
+    DscalProvider
+);
+define_dual_backend!(
+    Cscal,
+    "cscal",
+    CscalLp64FnPtr,
+    CscalIlp64FnPtr,
+    CscalProvider
+);
+define_dual_backend!(
+    Zscal,
+    "zscal",
+    ZscalLp64FnPtr,
+    ZscalIlp64FnPtr,
+    ZscalProvider
+);
+define_dual_backend!(
+    Csscal,
+    "csscal",
+    CsscalLp64FnPtr,
+    CsscalIlp64FnPtr,
+    CsscalProvider
+);
+define_dual_backend!(
+    Zdscal,
+    "zdscal",
+    ZdscalLp64FnPtr,
+    ZdscalIlp64FnPtr,
+    ZdscalProvider
+);
 define_dual_backend!(Srot, "srot", SrotLp64FnPtr, SrotIlp64FnPtr, SrotProvider);
 define_dual_backend!(Drot, "drot", DrotLp64FnPtr, DrotIlp64FnPtr, DrotProvider);
-define_dual_backend!(Srotg, "srotg", SrotgLp64FnPtr, SrotgIlp64FnPtr, SrotgProvider);
-define_dual_backend!(Drotg, "drotg", DrotgLp64FnPtr, DrotgIlp64FnPtr, DrotgProvider);
-define_dual_backend!(Srotm, "srotm", SrotmLp64FnPtr, SrotmIlp64FnPtr, SrotmProvider);
-define_dual_backend!(Drotm, "drotm", DrotmLp64FnPtr, DrotmIlp64FnPtr, DrotmProvider);
-define_dual_backend!(Srotmg, "srotmg", SrotmgLp64FnPtr, SrotmgIlp64FnPtr, SrotmgProvider);
-define_dual_backend!(Drotmg, "drotmg", DrotmgLp64FnPtr, DrotmgIlp64FnPtr, DrotmgProvider);
-define_dual_backend!(Scabs1, "scabs1", Scabs1Lp64FnPtr, Scabs1Ilp64FnPtr, Scabs1Provider);
-define_dual_backend!(Dcabs1, "dcabs1", Dcabs1Lp64FnPtr, Dcabs1Ilp64FnPtr, Dcabs1Provider);
+define_dual_backend!(
+    Srotg,
+    "srotg",
+    SrotgLp64FnPtr,
+    SrotgIlp64FnPtr,
+    SrotgProvider
+);
+define_dual_backend!(
+    Drotg,
+    "drotg",
+    DrotgLp64FnPtr,
+    DrotgIlp64FnPtr,
+    DrotgProvider
+);
+define_dual_backend!(
+    Srotm,
+    "srotm",
+    SrotmLp64FnPtr,
+    SrotmIlp64FnPtr,
+    SrotmProvider
+);
+define_dual_backend!(
+    Drotm,
+    "drotm",
+    DrotmLp64FnPtr,
+    DrotmIlp64FnPtr,
+    DrotmProvider
+);
+define_dual_backend!(
+    Srotmg,
+    "srotmg",
+    SrotmgLp64FnPtr,
+    SrotmgIlp64FnPtr,
+    SrotmgProvider
+);
+define_dual_backend!(
+    Drotmg,
+    "drotmg",
+    DrotmgLp64FnPtr,
+    DrotmgIlp64FnPtr,
+    DrotmgProvider
+);
+define_dual_backend!(
+    Scabs1,
+    "scabs1",
+    Scabs1Lp64FnPtr,
+    Scabs1Ilp64FnPtr,
+    Scabs1Provider
+);
+define_dual_backend!(
+    Dcabs1,
+    "dcabs1",
+    Dcabs1Lp64FnPtr,
+    Dcabs1Ilp64FnPtr,
+    Dcabs1Provider
+);
 define_dual_backend!(Sdot, "sdot", SdotLp64FnPtr, SdotIlp64FnPtr, SdotProvider);
 define_dual_backend!(Ddot, "ddot", DdotLp64FnPtr, DdotIlp64FnPtr, DdotProvider);
-define_dual_backend!(Sdsdot, "sdsdot", SdsdotLp64FnPtr, SdsdotIlp64FnPtr, SdsdotProvider);
-define_dual_backend!(Dsdot, "dsdot", DsdotLp64FnPtr, DsdotIlp64FnPtr, DsdotProvider);
-define_dual_backend!(Snrm2, "snrm2", Snrm2Lp64FnPtr, Snrm2Ilp64FnPtr, Snrm2Provider);
-define_dual_backend!(Dnrm2, "dnrm2", Dnrm2Lp64FnPtr, Dnrm2Ilp64FnPtr, Dnrm2Provider);
-define_dual_backend!(Scnrm2, "scnrm2", Scnrm2Lp64FnPtr, Scnrm2Ilp64FnPtr, Scnrm2Provider);
-define_dual_backend!(Dznrm2, "dznrm2", Dznrm2Lp64FnPtr, Dznrm2Ilp64FnPtr, Dznrm2Provider);
-define_dual_backend!(Sasum, "sasum", SasumLp64FnPtr, SasumIlp64FnPtr, SasumProvider);
-define_dual_backend!(Dasum, "dasum", DasumLp64FnPtr, DasumIlp64FnPtr, DasumProvider);
-define_dual_backend!(Scasum, "scasum", ScasumLp64FnPtr, ScasumIlp64FnPtr, ScasumProvider);
-define_dual_backend!(Dzasum, "dzasum", DzasumLp64FnPtr, DzasumIlp64FnPtr, DzasumProvider);
-define_dual_backend!(Isamax, "isamax", IsamaxLp64FnPtr, IsamaxIlp64FnPtr, IsamaxProvider);
-define_dual_backend!(Idamax, "idamax", IdamaxLp64FnPtr, IdamaxIlp64FnPtr, IdamaxProvider);
-define_dual_backend!(Icamax, "icamax", IcamaxLp64FnPtr, IcamaxIlp64FnPtr, IcamaxProvider);
-define_dual_backend!(Izamax, "izamax", IzamaxLp64FnPtr, IzamaxIlp64FnPtr, IzamaxProvider);
-define_dual_backend!(Sgemv, "sgemv", SgemvLp64FnPtr, SgemvIlp64FnPtr, SgemvProvider);
-define_dual_backend!(Dgemv, "dgemv", DgemvLp64FnPtr, DgemvIlp64FnPtr, DgemvProvider);
-define_dual_backend!(Cgemv, "cgemv", CgemvLp64FnPtr, CgemvIlp64FnPtr, CgemvProvider);
-define_dual_backend!(Zgemv, "zgemv", ZgemvLp64FnPtr, ZgemvIlp64FnPtr, ZgemvProvider);
-define_dual_backend!(Sgbmv, "sgbmv", SgbmvLp64FnPtr, SgbmvIlp64FnPtr, SgbmvProvider);
-define_dual_backend!(Dgbmv, "dgbmv", DgbmvLp64FnPtr, DgbmvIlp64FnPtr, DgbmvProvider);
-define_dual_backend!(Cgbmv, "cgbmv", CgbmvLp64FnPtr, CgbmvIlp64FnPtr, CgbmvProvider);
-define_dual_backend!(Zgbmv, "zgbmv", ZgbmvLp64FnPtr, ZgbmvIlp64FnPtr, ZgbmvProvider);
-define_dual_backend!(Ssymv, "ssymv", SsymvLp64FnPtr, SsymvIlp64FnPtr, SsymvProvider);
-define_dual_backend!(Dsymv, "dsymv", DsymvLp64FnPtr, DsymvIlp64FnPtr, DsymvProvider);
-define_dual_backend!(Chemv, "chemv", ChemvLp64FnPtr, ChemvIlp64FnPtr, ChemvProvider);
-define_dual_backend!(Zhemv, "zhemv", ZhemvLp64FnPtr, ZhemvIlp64FnPtr, ZhemvProvider);
-define_dual_backend!(Ssbmv, "ssbmv", SsbmvLp64FnPtr, SsbmvIlp64FnPtr, SsbmvProvider);
-define_dual_backend!(Dsbmv, "dsbmv", DsbmvLp64FnPtr, DsbmvIlp64FnPtr, DsbmvProvider);
-define_dual_backend!(Chbmv, "chbmv", ChbmvLp64FnPtr, ChbmvIlp64FnPtr, ChbmvProvider);
-define_dual_backend!(Zhbmv, "zhbmv", ZhbmvLp64FnPtr, ZhbmvIlp64FnPtr, ZhbmvProvider);
-define_dual_backend!(Strmv, "strmv", StrmvLp64FnPtr, StrmvIlp64FnPtr, StrmvProvider);
-define_dual_backend!(Dtrmv, "dtrmv", DtrmvLp64FnPtr, DtrmvIlp64FnPtr, DtrmvProvider);
-define_dual_backend!(Ctrmv, "ctrmv", CtrmvLp64FnPtr, CtrmvIlp64FnPtr, CtrmvProvider);
-define_dual_backend!(Ztrmv, "ztrmv", ZtrmvLp64FnPtr, ZtrmvIlp64FnPtr, ZtrmvProvider);
-define_dual_backend!(Strsv, "strsv", StrsvLp64FnPtr, StrsvIlp64FnPtr, StrsvProvider);
-define_dual_backend!(Dtrsv, "dtrsv", DtrsvLp64FnPtr, DtrsvIlp64FnPtr, DtrsvProvider);
-define_dual_backend!(Ctrsv, "ctrsv", CtrsvLp64FnPtr, CtrsvIlp64FnPtr, CtrsvProvider);
-define_dual_backend!(Ztrsv, "ztrsv", ZtrsvLp64FnPtr, ZtrsvIlp64FnPtr, ZtrsvProvider);
-define_dual_backend!(Stbmv, "stbmv", StbmvLp64FnPtr, StbmvIlp64FnPtr, StbmvProvider);
-define_dual_backend!(Dtbmv, "dtbmv", DtbmvLp64FnPtr, DtbmvIlp64FnPtr, DtbmvProvider);
-define_dual_backend!(Ctbmv, "ctbmv", CtbmvLp64FnPtr, CtbmvIlp64FnPtr, CtbmvProvider);
-define_dual_backend!(Ztbmv, "ztbmv", ZtbmvLp64FnPtr, ZtbmvIlp64FnPtr, ZtbmvProvider);
-define_dual_backend!(Stbsv, "stbsv", StbsvLp64FnPtr, StbsvIlp64FnPtr, StbsvProvider);
-define_dual_backend!(Dtbsv, "dtbsv", DtbsvLp64FnPtr, DtbsvIlp64FnPtr, DtbsvProvider);
-define_dual_backend!(Ctbsv, "ctbsv", CtbsvLp64FnPtr, CtbsvIlp64FnPtr, CtbsvProvider);
-define_dual_backend!(Ztbsv, "ztbsv", ZtbsvLp64FnPtr, ZtbsvIlp64FnPtr, ZtbsvProvider);
+define_dual_backend!(
+    Sdsdot,
+    "sdsdot",
+    SdsdotLp64FnPtr,
+    SdsdotIlp64FnPtr,
+    SdsdotProvider
+);
+define_dual_backend!(
+    Dsdot,
+    "dsdot",
+    DsdotLp64FnPtr,
+    DsdotIlp64FnPtr,
+    DsdotProvider
+);
+define_dual_backend!(
+    Snrm2,
+    "snrm2",
+    Snrm2Lp64FnPtr,
+    Snrm2Ilp64FnPtr,
+    Snrm2Provider
+);
+define_dual_backend!(
+    Dnrm2,
+    "dnrm2",
+    Dnrm2Lp64FnPtr,
+    Dnrm2Ilp64FnPtr,
+    Dnrm2Provider
+);
+define_dual_backend!(
+    Scnrm2,
+    "scnrm2",
+    Scnrm2Lp64FnPtr,
+    Scnrm2Ilp64FnPtr,
+    Scnrm2Provider
+);
+define_dual_backend!(
+    Dznrm2,
+    "dznrm2",
+    Dznrm2Lp64FnPtr,
+    Dznrm2Ilp64FnPtr,
+    Dznrm2Provider
+);
+define_dual_backend!(
+    Sasum,
+    "sasum",
+    SasumLp64FnPtr,
+    SasumIlp64FnPtr,
+    SasumProvider
+);
+define_dual_backend!(
+    Dasum,
+    "dasum",
+    DasumLp64FnPtr,
+    DasumIlp64FnPtr,
+    DasumProvider
+);
+define_dual_backend!(
+    Scasum,
+    "scasum",
+    ScasumLp64FnPtr,
+    ScasumIlp64FnPtr,
+    ScasumProvider
+);
+define_dual_backend!(
+    Dzasum,
+    "dzasum",
+    DzasumLp64FnPtr,
+    DzasumIlp64FnPtr,
+    DzasumProvider
+);
+define_dual_backend!(
+    Isamax,
+    "isamax",
+    IsamaxLp64FnPtr,
+    IsamaxIlp64FnPtr,
+    IsamaxProvider
+);
+define_dual_backend!(
+    Idamax,
+    "idamax",
+    IdamaxLp64FnPtr,
+    IdamaxIlp64FnPtr,
+    IdamaxProvider
+);
+define_dual_backend!(
+    Icamax,
+    "icamax",
+    IcamaxLp64FnPtr,
+    IcamaxIlp64FnPtr,
+    IcamaxProvider
+);
+define_dual_backend!(
+    Izamax,
+    "izamax",
+    IzamaxLp64FnPtr,
+    IzamaxIlp64FnPtr,
+    IzamaxProvider
+);
+define_dual_backend!(
+    Sgemv,
+    "sgemv",
+    SgemvLp64FnPtr,
+    SgemvIlp64FnPtr,
+    SgemvProvider
+);
+define_dual_backend!(
+    Dgemv,
+    "dgemv",
+    DgemvLp64FnPtr,
+    DgemvIlp64FnPtr,
+    DgemvProvider
+);
+define_dual_backend!(
+    Cgemv,
+    "cgemv",
+    CgemvLp64FnPtr,
+    CgemvIlp64FnPtr,
+    CgemvProvider
+);
+define_dual_backend!(
+    Zgemv,
+    "zgemv",
+    ZgemvLp64FnPtr,
+    ZgemvIlp64FnPtr,
+    ZgemvProvider
+);
+define_dual_backend!(
+    Sgbmv,
+    "sgbmv",
+    SgbmvLp64FnPtr,
+    SgbmvIlp64FnPtr,
+    SgbmvProvider
+);
+define_dual_backend!(
+    Dgbmv,
+    "dgbmv",
+    DgbmvLp64FnPtr,
+    DgbmvIlp64FnPtr,
+    DgbmvProvider
+);
+define_dual_backend!(
+    Cgbmv,
+    "cgbmv",
+    CgbmvLp64FnPtr,
+    CgbmvIlp64FnPtr,
+    CgbmvProvider
+);
+define_dual_backend!(
+    Zgbmv,
+    "zgbmv",
+    ZgbmvLp64FnPtr,
+    ZgbmvIlp64FnPtr,
+    ZgbmvProvider
+);
+define_dual_backend!(
+    Ssymv,
+    "ssymv",
+    SsymvLp64FnPtr,
+    SsymvIlp64FnPtr,
+    SsymvProvider
+);
+define_dual_backend!(
+    Dsymv,
+    "dsymv",
+    DsymvLp64FnPtr,
+    DsymvIlp64FnPtr,
+    DsymvProvider
+);
+define_dual_backend!(
+    Chemv,
+    "chemv",
+    ChemvLp64FnPtr,
+    ChemvIlp64FnPtr,
+    ChemvProvider
+);
+define_dual_backend!(
+    Zhemv,
+    "zhemv",
+    ZhemvLp64FnPtr,
+    ZhemvIlp64FnPtr,
+    ZhemvProvider
+);
+define_dual_backend!(
+    Ssbmv,
+    "ssbmv",
+    SsbmvLp64FnPtr,
+    SsbmvIlp64FnPtr,
+    SsbmvProvider
+);
+define_dual_backend!(
+    Dsbmv,
+    "dsbmv",
+    DsbmvLp64FnPtr,
+    DsbmvIlp64FnPtr,
+    DsbmvProvider
+);
+define_dual_backend!(
+    Chbmv,
+    "chbmv",
+    ChbmvLp64FnPtr,
+    ChbmvIlp64FnPtr,
+    ChbmvProvider
+);
+define_dual_backend!(
+    Zhbmv,
+    "zhbmv",
+    ZhbmvLp64FnPtr,
+    ZhbmvIlp64FnPtr,
+    ZhbmvProvider
+);
+define_dual_backend!(
+    Strmv,
+    "strmv",
+    StrmvLp64FnPtr,
+    StrmvIlp64FnPtr,
+    StrmvProvider
+);
+define_dual_backend!(
+    Dtrmv,
+    "dtrmv",
+    DtrmvLp64FnPtr,
+    DtrmvIlp64FnPtr,
+    DtrmvProvider
+);
+define_dual_backend!(
+    Ctrmv,
+    "ctrmv",
+    CtrmvLp64FnPtr,
+    CtrmvIlp64FnPtr,
+    CtrmvProvider
+);
+define_dual_backend!(
+    Ztrmv,
+    "ztrmv",
+    ZtrmvLp64FnPtr,
+    ZtrmvIlp64FnPtr,
+    ZtrmvProvider
+);
+define_dual_backend!(
+    Strsv,
+    "strsv",
+    StrsvLp64FnPtr,
+    StrsvIlp64FnPtr,
+    StrsvProvider
+);
+define_dual_backend!(
+    Dtrsv,
+    "dtrsv",
+    DtrsvLp64FnPtr,
+    DtrsvIlp64FnPtr,
+    DtrsvProvider
+);
+define_dual_backend!(
+    Ctrsv,
+    "ctrsv",
+    CtrsvLp64FnPtr,
+    CtrsvIlp64FnPtr,
+    CtrsvProvider
+);
+define_dual_backend!(
+    Ztrsv,
+    "ztrsv",
+    ZtrsvLp64FnPtr,
+    ZtrsvIlp64FnPtr,
+    ZtrsvProvider
+);
+define_dual_backend!(
+    Stbmv,
+    "stbmv",
+    StbmvLp64FnPtr,
+    StbmvIlp64FnPtr,
+    StbmvProvider
+);
+define_dual_backend!(
+    Dtbmv,
+    "dtbmv",
+    DtbmvLp64FnPtr,
+    DtbmvIlp64FnPtr,
+    DtbmvProvider
+);
+define_dual_backend!(
+    Ctbmv,
+    "ctbmv",
+    CtbmvLp64FnPtr,
+    CtbmvIlp64FnPtr,
+    CtbmvProvider
+);
+define_dual_backend!(
+    Ztbmv,
+    "ztbmv",
+    ZtbmvLp64FnPtr,
+    ZtbmvIlp64FnPtr,
+    ZtbmvProvider
+);
+define_dual_backend!(
+    Stbsv,
+    "stbsv",
+    StbsvLp64FnPtr,
+    StbsvIlp64FnPtr,
+    StbsvProvider
+);
+define_dual_backend!(
+    Dtbsv,
+    "dtbsv",
+    DtbsvLp64FnPtr,
+    DtbsvIlp64FnPtr,
+    DtbsvProvider
+);
+define_dual_backend!(
+    Ctbsv,
+    "ctbsv",
+    CtbsvLp64FnPtr,
+    CtbsvIlp64FnPtr,
+    CtbsvProvider
+);
+define_dual_backend!(
+    Ztbsv,
+    "ztbsv",
+    ZtbsvLp64FnPtr,
+    ZtbsvIlp64FnPtr,
+    ZtbsvProvider
+);
 define_dual_backend!(Sger, "sger", SgerLp64FnPtr, SgerIlp64FnPtr, SgerProvider);
 define_dual_backend!(Dger, "dger", DgerLp64FnPtr, DgerIlp64FnPtr, DgerProvider);
-define_dual_backend!(Cgeru, "cgeru", CgeruLp64FnPtr, CgeruIlp64FnPtr, CgeruProvider);
-define_dual_backend!(Cgerc, "cgerc", CgercLp64FnPtr, CgercIlp64FnPtr, CgercProvider);
-define_dual_backend!(Zgeru, "zgeru", ZgeruLp64FnPtr, ZgeruIlp64FnPtr, ZgeruProvider);
-define_dual_backend!(Zgerc, "zgerc", ZgercLp64FnPtr, ZgercIlp64FnPtr, ZgercProvider);
+define_dual_backend!(
+    Cgeru,
+    "cgeru",
+    CgeruLp64FnPtr,
+    CgeruIlp64FnPtr,
+    CgeruProvider
+);
+define_dual_backend!(
+    Cgerc,
+    "cgerc",
+    CgercLp64FnPtr,
+    CgercIlp64FnPtr,
+    CgercProvider
+);
+define_dual_backend!(
+    Zgeru,
+    "zgeru",
+    ZgeruLp64FnPtr,
+    ZgeruIlp64FnPtr,
+    ZgeruProvider
+);
+define_dual_backend!(
+    Zgerc,
+    "zgerc",
+    ZgercLp64FnPtr,
+    ZgercIlp64FnPtr,
+    ZgercProvider
+);
 define_dual_backend!(Ssyr, "ssyr", SsyrLp64FnPtr, SsyrIlp64FnPtr, SsyrProvider);
 define_dual_backend!(Dsyr, "dsyr", DsyrLp64FnPtr, DsyrIlp64FnPtr, DsyrProvider);
 define_dual_backend!(Cher, "cher", CherLp64FnPtr, CherIlp64FnPtr, CherProvider);
 define_dual_backend!(Zher, "zher", ZherLp64FnPtr, ZherIlp64FnPtr, ZherProvider);
-define_dual_backend!(Ssyr2, "ssyr2", Ssyr2Lp64FnPtr, Ssyr2Ilp64FnPtr, Ssyr2Provider);
-define_dual_backend!(Dsyr2, "dsyr2", Dsyr2Lp64FnPtr, Dsyr2Ilp64FnPtr, Dsyr2Provider);
-define_dual_backend!(Cher2, "cher2", Cher2Lp64FnPtr, Cher2Ilp64FnPtr, Cher2Provider);
-define_dual_backend!(Zher2, "zher2", Zher2Lp64FnPtr, Zher2Ilp64FnPtr, Zher2Provider);
-define_dual_backend!(Sspmv, "sspmv", SspmvLp64FnPtr, SspmvIlp64FnPtr, SspmvProvider);
-define_dual_backend!(Dspmv, "dspmv", DspmvLp64FnPtr, DspmvIlp64FnPtr, DspmvProvider);
-define_dual_backend!(Chpmv, "chpmv", ChpmvLp64FnPtr, ChpmvIlp64FnPtr, ChpmvProvider);
-define_dual_backend!(Zhpmv, "zhpmv", ZhpmvLp64FnPtr, ZhpmvIlp64FnPtr, ZhpmvProvider);
-define_dual_backend!(Stpmv, "stpmv", StpmvLp64FnPtr, StpmvIlp64FnPtr, StpmvProvider);
-define_dual_backend!(Dtpmv, "dtpmv", DtpmvLp64FnPtr, DtpmvIlp64FnPtr, DtpmvProvider);
-define_dual_backend!(Ctpmv, "ctpmv", CtpmvLp64FnPtr, CtpmvIlp64FnPtr, CtpmvProvider);
-define_dual_backend!(Ztpmv, "ztpmv", ZtpmvLp64FnPtr, ZtpmvIlp64FnPtr, ZtpmvProvider);
-define_dual_backend!(Stpsv, "stpsv", StpsvLp64FnPtr, StpsvIlp64FnPtr, StpsvProvider);
-define_dual_backend!(Dtpsv, "dtpsv", DtpsvLp64FnPtr, DtpsvIlp64FnPtr, DtpsvProvider);
-define_dual_backend!(Ctpsv, "ctpsv", CtpsvLp64FnPtr, CtpsvIlp64FnPtr, CtpsvProvider);
-define_dual_backend!(Ztpsv, "ztpsv", ZtpsvLp64FnPtr, ZtpsvIlp64FnPtr, ZtpsvProvider);
+define_dual_backend!(
+    Ssyr2,
+    "ssyr2",
+    Ssyr2Lp64FnPtr,
+    Ssyr2Ilp64FnPtr,
+    Ssyr2Provider
+);
+define_dual_backend!(
+    Dsyr2,
+    "dsyr2",
+    Dsyr2Lp64FnPtr,
+    Dsyr2Ilp64FnPtr,
+    Dsyr2Provider
+);
+define_dual_backend!(
+    Cher2,
+    "cher2",
+    Cher2Lp64FnPtr,
+    Cher2Ilp64FnPtr,
+    Cher2Provider
+);
+define_dual_backend!(
+    Zher2,
+    "zher2",
+    Zher2Lp64FnPtr,
+    Zher2Ilp64FnPtr,
+    Zher2Provider
+);
+define_dual_backend!(
+    Sspmv,
+    "sspmv",
+    SspmvLp64FnPtr,
+    SspmvIlp64FnPtr,
+    SspmvProvider
+);
+define_dual_backend!(
+    Dspmv,
+    "dspmv",
+    DspmvLp64FnPtr,
+    DspmvIlp64FnPtr,
+    DspmvProvider
+);
+define_dual_backend!(
+    Chpmv,
+    "chpmv",
+    ChpmvLp64FnPtr,
+    ChpmvIlp64FnPtr,
+    ChpmvProvider
+);
+define_dual_backend!(
+    Zhpmv,
+    "zhpmv",
+    ZhpmvLp64FnPtr,
+    ZhpmvIlp64FnPtr,
+    ZhpmvProvider
+);
+define_dual_backend!(
+    Stpmv,
+    "stpmv",
+    StpmvLp64FnPtr,
+    StpmvIlp64FnPtr,
+    StpmvProvider
+);
+define_dual_backend!(
+    Dtpmv,
+    "dtpmv",
+    DtpmvLp64FnPtr,
+    DtpmvIlp64FnPtr,
+    DtpmvProvider
+);
+define_dual_backend!(
+    Ctpmv,
+    "ctpmv",
+    CtpmvLp64FnPtr,
+    CtpmvIlp64FnPtr,
+    CtpmvProvider
+);
+define_dual_backend!(
+    Ztpmv,
+    "ztpmv",
+    ZtpmvLp64FnPtr,
+    ZtpmvIlp64FnPtr,
+    ZtpmvProvider
+);
+define_dual_backend!(
+    Stpsv,
+    "stpsv",
+    StpsvLp64FnPtr,
+    StpsvIlp64FnPtr,
+    StpsvProvider
+);
+define_dual_backend!(
+    Dtpsv,
+    "dtpsv",
+    DtpsvLp64FnPtr,
+    DtpsvIlp64FnPtr,
+    DtpsvProvider
+);
+define_dual_backend!(
+    Ctpsv,
+    "ctpsv",
+    CtpsvLp64FnPtr,
+    CtpsvIlp64FnPtr,
+    CtpsvProvider
+);
+define_dual_backend!(
+    Ztpsv,
+    "ztpsv",
+    ZtpsvLp64FnPtr,
+    ZtpsvIlp64FnPtr,
+    ZtpsvProvider
+);
 define_dual_backend!(Sspr, "sspr", SsprLp64FnPtr, SsprIlp64FnPtr, SsprProvider);
 define_dual_backend!(Dspr, "dspr", DsprLp64FnPtr, DsprIlp64FnPtr, DsprProvider);
 define_dual_backend!(Chpr, "chpr", ChprLp64FnPtr, ChprIlp64FnPtr, ChprProvider);
 define_dual_backend!(Zhpr, "zhpr", ZhprLp64FnPtr, ZhprIlp64FnPtr, ZhprProvider);
-define_dual_backend!(Sspr2, "sspr2", Sspr2Lp64FnPtr, Sspr2Ilp64FnPtr, Sspr2Provider);
-define_dual_backend!(Dspr2, "dspr2", Dspr2Lp64FnPtr, Dspr2Ilp64FnPtr, Dspr2Provider);
-define_dual_backend!(Chpr2, "chpr2", Chpr2Lp64FnPtr, Chpr2Ilp64FnPtr, Chpr2Provider);
-define_dual_backend!(Zhpr2, "zhpr2", Zhpr2Lp64FnPtr, Zhpr2Ilp64FnPtr, Zhpr2Provider);
-define_dual_backend!(Ssymm, "ssymm", SsymmLp64FnPtr, SsymmIlp64FnPtr, SsymmProvider);
-define_dual_backend!(Dsymm, "dsymm", DsymmLp64FnPtr, DsymmIlp64FnPtr, DsymmProvider);
-define_dual_backend!(Csymm, "csymm", CsymmLp64FnPtr, CsymmIlp64FnPtr, CsymmProvider);
-define_dual_backend!(Zsymm, "zsymm", ZsymmLp64FnPtr, ZsymmIlp64FnPtr, ZsymmProvider);
-define_dual_backend!(Chemm, "chemm", ChemmLp64FnPtr, ChemmIlp64FnPtr, ChemmProvider);
-define_dual_backend!(Zhemm, "zhemm", ZhemmLp64FnPtr, ZhemmIlp64FnPtr, ZhemmProvider);
-define_dual_backend!(Ssyrk, "ssyrk", SsyrkLp64FnPtr, SsyrkIlp64FnPtr, SsyrkProvider);
-define_dual_backend!(Dsyrk, "dsyrk", DsyrkLp64FnPtr, DsyrkIlp64FnPtr, DsyrkProvider);
-define_dual_backend!(Csyrk, "csyrk", CsyrkLp64FnPtr, CsyrkIlp64FnPtr, CsyrkProvider);
-define_dual_backend!(Zsyrk, "zsyrk", ZsyrkLp64FnPtr, ZsyrkIlp64FnPtr, ZsyrkProvider);
-define_dual_backend!(Cherk, "cherk", CherkLp64FnPtr, CherkIlp64FnPtr, CherkProvider);
-define_dual_backend!(Zherk, "zherk", ZherkLp64FnPtr, ZherkIlp64FnPtr, ZherkProvider);
-define_dual_backend!(Ssyr2k, "ssyr2k", Ssyr2kLp64FnPtr, Ssyr2kIlp64FnPtr, Ssyr2kProvider);
-define_dual_backend!(Dsyr2k, "dsyr2k", Dsyr2kLp64FnPtr, Dsyr2kIlp64FnPtr, Dsyr2kProvider);
-define_dual_backend!(Csyr2k, "csyr2k", Csyr2kLp64FnPtr, Csyr2kIlp64FnPtr, Csyr2kProvider);
-define_dual_backend!(Zsyr2k, "zsyr2k", Zsyr2kLp64FnPtr, Zsyr2kIlp64FnPtr, Zsyr2kProvider);
-define_dual_backend!(Cher2k, "cher2k", Cher2kLp64FnPtr, Cher2kIlp64FnPtr, Cher2kProvider);
-define_dual_backend!(Zher2k, "zher2k", Zher2kLp64FnPtr, Zher2kIlp64FnPtr, Zher2kProvider);
-define_dual_backend!(Strmm, "strmm", StrmmLp64FnPtr, StrmmIlp64FnPtr, StrmmProvider);
-define_dual_backend!(Dtrmm, "dtrmm", DtrmmLp64FnPtr, DtrmmIlp64FnPtr, DtrmmProvider);
-define_dual_backend!(Ctrmm, "ctrmm", CtrmmLp64FnPtr, CtrmmIlp64FnPtr, CtrmmProvider);
-define_dual_backend!(Ztrmm, "ztrmm", ZtrmmLp64FnPtr, ZtrmmIlp64FnPtr, ZtrmmProvider);
-define_dual_backend!(Strsm, "strsm", StrsmLp64FnPtr, StrsmIlp64FnPtr, StrsmProvider);
-define_dual_backend!(Dtrsm, "dtrsm", DtrsmLp64FnPtr, DtrsmIlp64FnPtr, DtrsmProvider);
-define_dual_backend!(Ctrsm, "ctrsm", CtrsmLp64FnPtr, CtrsmIlp64FnPtr, CtrsmProvider);
-define_dual_backend!(Ztrsm, "ztrsm", ZtrsmLp64FnPtr, ZtrsmIlp64FnPtr, ZtrsmProvider);
+define_dual_backend!(
+    Sspr2,
+    "sspr2",
+    Sspr2Lp64FnPtr,
+    Sspr2Ilp64FnPtr,
+    Sspr2Provider
+);
+define_dual_backend!(
+    Dspr2,
+    "dspr2",
+    Dspr2Lp64FnPtr,
+    Dspr2Ilp64FnPtr,
+    Dspr2Provider
+);
+define_dual_backend!(
+    Chpr2,
+    "chpr2",
+    Chpr2Lp64FnPtr,
+    Chpr2Ilp64FnPtr,
+    Chpr2Provider
+);
+define_dual_backend!(
+    Zhpr2,
+    "zhpr2",
+    Zhpr2Lp64FnPtr,
+    Zhpr2Ilp64FnPtr,
+    Zhpr2Provider
+);
+define_dual_backend!(
+    Ssymm,
+    "ssymm",
+    SsymmLp64FnPtr,
+    SsymmIlp64FnPtr,
+    SsymmProvider
+);
+define_dual_backend!(
+    Dsymm,
+    "dsymm",
+    DsymmLp64FnPtr,
+    DsymmIlp64FnPtr,
+    DsymmProvider
+);
+define_dual_backend!(
+    Csymm,
+    "csymm",
+    CsymmLp64FnPtr,
+    CsymmIlp64FnPtr,
+    CsymmProvider
+);
+define_dual_backend!(
+    Zsymm,
+    "zsymm",
+    ZsymmLp64FnPtr,
+    ZsymmIlp64FnPtr,
+    ZsymmProvider
+);
+define_dual_backend!(
+    Chemm,
+    "chemm",
+    ChemmLp64FnPtr,
+    ChemmIlp64FnPtr,
+    ChemmProvider
+);
+define_dual_backend!(
+    Zhemm,
+    "zhemm",
+    ZhemmLp64FnPtr,
+    ZhemmIlp64FnPtr,
+    ZhemmProvider
+);
+define_dual_backend!(
+    Ssyrk,
+    "ssyrk",
+    SsyrkLp64FnPtr,
+    SsyrkIlp64FnPtr,
+    SsyrkProvider
+);
+define_dual_backend!(
+    Dsyrk,
+    "dsyrk",
+    DsyrkLp64FnPtr,
+    DsyrkIlp64FnPtr,
+    DsyrkProvider
+);
+define_dual_backend!(
+    Csyrk,
+    "csyrk",
+    CsyrkLp64FnPtr,
+    CsyrkIlp64FnPtr,
+    CsyrkProvider
+);
+define_dual_backend!(
+    Zsyrk,
+    "zsyrk",
+    ZsyrkLp64FnPtr,
+    ZsyrkIlp64FnPtr,
+    ZsyrkProvider
+);
+define_dual_backend!(
+    Cherk,
+    "cherk",
+    CherkLp64FnPtr,
+    CherkIlp64FnPtr,
+    CherkProvider
+);
+define_dual_backend!(
+    Zherk,
+    "zherk",
+    ZherkLp64FnPtr,
+    ZherkIlp64FnPtr,
+    ZherkProvider
+);
+define_dual_backend!(
+    Ssyr2k,
+    "ssyr2k",
+    Ssyr2kLp64FnPtr,
+    Ssyr2kIlp64FnPtr,
+    Ssyr2kProvider
+);
+define_dual_backend!(
+    Dsyr2k,
+    "dsyr2k",
+    Dsyr2kLp64FnPtr,
+    Dsyr2kIlp64FnPtr,
+    Dsyr2kProvider
+);
+define_dual_backend!(
+    Csyr2k,
+    "csyr2k",
+    Csyr2kLp64FnPtr,
+    Csyr2kIlp64FnPtr,
+    Csyr2kProvider
+);
+define_dual_backend!(
+    Zsyr2k,
+    "zsyr2k",
+    Zsyr2kLp64FnPtr,
+    Zsyr2kIlp64FnPtr,
+    Zsyr2kProvider
+);
+define_dual_backend!(
+    Cher2k,
+    "cher2k",
+    Cher2kLp64FnPtr,
+    Cher2kIlp64FnPtr,
+    Cher2kProvider
+);
+define_dual_backend!(
+    Zher2k,
+    "zher2k",
+    Zher2kLp64FnPtr,
+    Zher2kIlp64FnPtr,
+    Zher2kProvider
+);
+define_dual_backend!(
+    Strmm,
+    "strmm",
+    StrmmLp64FnPtr,
+    StrmmIlp64FnPtr,
+    StrmmProvider
+);
+define_dual_backend!(
+    Dtrmm,
+    "dtrmm",
+    DtrmmLp64FnPtr,
+    DtrmmIlp64FnPtr,
+    DtrmmProvider
+);
+define_dual_backend!(
+    Ctrmm,
+    "ctrmm",
+    CtrmmLp64FnPtr,
+    CtrmmIlp64FnPtr,
+    CtrmmProvider
+);
+define_dual_backend!(
+    Ztrmm,
+    "ztrmm",
+    ZtrmmLp64FnPtr,
+    ZtrmmIlp64FnPtr,
+    ZtrmmProvider
+);
+define_dual_backend!(
+    Strsm,
+    "strsm",
+    StrsmLp64FnPtr,
+    StrsmIlp64FnPtr,
+    StrsmProvider
+);
+define_dual_backend!(
+    Dtrsm,
+    "dtrsm",
+    DtrsmLp64FnPtr,
+    DtrsmIlp64FnPtr,
+    DtrsmProvider
+);
+define_dual_backend!(
+    Ctrsm,
+    "ctrsm",
+    CtrsmLp64FnPtr,
+    CtrsmIlp64FnPtr,
+    CtrsmProvider
+);
+define_dual_backend!(
+    Ztrsm,
+    "ztrsm",
+    ZtrsmLp64FnPtr,
+    ZtrsmIlp64FnPtr,
+    ZtrsmProvider
+);
 
 // =============================================================================
 // Registration functions
@@ -5409,25 +6035,14 @@ unsafe fn register_dgemm_lp64_ptr(f: *const c_void) -> i32 {
     let f = unsafe { std::mem::transmute::<*const c_void, DgemmLp64FnPtr>(f) };
     let _guard = registration_guard();
 
-    #[cfg(not(feature = "ilp64"))]
-    {
-        if DGEMM.get().is_some() || DGEMM_LP64.get().is_some() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-
-        if DGEMM_LP64.set(f).is_err() || DGEMM.set(f).is_err() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-        CBLAS_INJECT_STATUS_OK
+    if DGEMM.get().is_some() || DGEMM_LP64.get().is_some() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
     }
 
-    #[cfg(feature = "ilp64")]
-    {
-        match DGEMM_LP64.set(f) {
-            Ok(()) => CBLAS_INJECT_STATUS_OK,
-            Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
-        }
+    if DGEMM_LP64.set(f).is_err() || DGEMM.set(f).is_err() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
     }
+    CBLAS_INJECT_STATUS_OK
 }
 
 unsafe fn register_dgemm_ilp64_ptr(f: *const c_void) -> i32 {
@@ -5438,24 +6053,9 @@ unsafe fn register_dgemm_ilp64_ptr(f: *const c_void) -> i32 {
     let f = unsafe { std::mem::transmute::<*const c_void, DgemmIlp64FnPtr>(f) };
     let _guard = registration_guard();
 
-    #[cfg(feature = "ilp64")]
-    {
-        if DGEMM.get().is_some() || DGEMM_ILP64.get().is_some() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-
-        if DGEMM_ILP64.set(f).is_err() || DGEMM.set(f).is_err() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-        CBLAS_INJECT_STATUS_OK
-    }
-
-    #[cfg(not(feature = "ilp64"))]
-    {
-        match DGEMM_ILP64.set(f) {
-            Ok(()) => CBLAS_INJECT_STATUS_OK,
-            Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
-        }
+    match DGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
 }
 
@@ -5467,25 +6067,14 @@ unsafe fn register_zgemm_lp64_ptr(f: *const c_void) -> i32 {
     let f = unsafe { std::mem::transmute::<*const c_void, ZgemmLp64FnPtr>(f) };
     let _guard = registration_guard();
 
-    #[cfg(not(feature = "ilp64"))]
-    {
-        if ZGEMM.get().is_some() || ZGEMM_LP64.get().is_some() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-
-        if ZGEMM_LP64.set(f).is_err() || ZGEMM.set(f).is_err() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-        CBLAS_INJECT_STATUS_OK
+    if ZGEMM.get().is_some() || ZGEMM_LP64.get().is_some() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
     }
 
-    #[cfg(feature = "ilp64")]
-    {
-        match ZGEMM_LP64.set(f) {
-            Ok(()) => CBLAS_INJECT_STATUS_OK,
-            Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
-        }
+    if ZGEMM_LP64.set(f).is_err() || ZGEMM.set(f).is_err() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
     }
+    CBLAS_INJECT_STATUS_OK
 }
 
 unsafe fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
@@ -5496,24 +6085,9 @@ unsafe fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
     let f = unsafe { std::mem::transmute::<*const c_void, ZgemmIlp64FnPtr>(f) };
     let _guard = registration_guard();
 
-    #[cfg(feature = "ilp64")]
-    {
-        if ZGEMM.get().is_some() || ZGEMM_ILP64.get().is_some() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-
-        if ZGEMM_ILP64.set(f).is_err() || ZGEMM.set(f).is_err() {
-            return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
-        }
-        CBLAS_INJECT_STATUS_OK
-    }
-
-    #[cfg(not(feature = "ilp64"))]
-    {
-        match ZGEMM_ILP64.set(f) {
-            Ok(()) => CBLAS_INJECT_STATUS_OK,
-            Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
-        }
+    match ZGEMM_ILP64.set(f) {
+        Ok(()) => CBLAS_INJECT_STATUS_OK,
+        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
 }
 
@@ -5563,17 +6137,25 @@ pub unsafe extern "C" fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> 
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_sgemm_lp64(f: *const c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    let f: SgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
-    match SGEMM_LP64.set(f) {
-        Ok(()) => CBLAS_INJECT_STATUS_OK,
-        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
     }
+    let f: SgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
+    let _guard = registration_guard();
+    if SGEMM.get().is_some() || SGEMM_LP64.get().is_some() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
+    }
+    if SGEMM_LP64.set(f).is_err() || SGEMM.set(f).is_err() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
+    }
+    CBLAS_INJECT_STATUS_OK
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     let f: SgemmIlp64FnPtr = unsafe { std::mem::transmute(f) };
     match SGEMM_ILP64.set(f) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
@@ -5583,17 +6165,25 @@ pub unsafe extern "C" fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> 
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cgemm_lp64(f: *const c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
-    let f: CgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
-    match CGEMM_LP64.set(f) {
-        Ok(()) => CBLAS_INJECT_STATUS_OK,
-        Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
     }
+    let f: CgemmLp64FnPtr = unsafe { std::mem::transmute(f) };
+    let _guard = registration_guard();
+    if CGEMM.get().is_some() || CGEMM_LP64.get().is_some() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
+    }
+    if CGEMM_LP64.set(f).is_err() || CGEMM.set(f).is_err() {
+        return CBLAS_INJECT_STATUS_ALREADY_REGISTERED;
+    }
+    CBLAS_INJECT_STATUS_OK
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cgemm_ilp64(f: *const c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     let f: CgemmIlp64FnPtr = unsafe { std::mem::transmute(f) };
     match CGEMM_ILP64.set(f) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
@@ -5604,9 +6194,7 @@ pub unsafe extern "C" fn cblas_inject_register_cgemm_ilp64(f: *const c_void) -> 
 /// Return the BLAS integer width used by unprefixed CBLAS symbols in this build.
 #[no_mangle]
 pub extern "C" fn cblas_inject_blas_int_width() -> i32 {
-    // Transitional behavior: the `ilp64` Cargo feature still changes the
-    // unprefixed `cblas_*` ABI, so report the actual loaded build.
-    (std::mem::size_of::<blasint>() * 8) as i32
+    32
 }
 
 /// Return whether this build accepts LP64 explicit provider registration.
@@ -5640,112 +6228,128 @@ pub extern "C" fn cblas_inject_supports_ilp64() -> i32 {
 pub unsafe extern "C" fn register_sswap(f: SswapFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSWAP>].set(f) };
-    let _ = paste::paste! { [<Sswap_LP64>].set(std::mem::transmute::<SswapFnPtr, SswapLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sswap_LP64>].set(std::mem::transmute::<SswapFnPtr, SswapLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dswap(f: DswapFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSWAP>].set(f) };
-    let _ = paste::paste! { [<Dswap_LP64>].set(std::mem::transmute::<DswapFnPtr, DswapLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dswap_LP64>].set(std::mem::transmute::<DswapFnPtr, DswapLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cswap(f: CswapFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CSWAP>].set(f) };
-    let _ = paste::paste! { [<Cswap_LP64>].set(std::mem::transmute::<CswapFnPtr, CswapLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cswap_LP64>].set(std::mem::transmute::<CswapFnPtr, CswapLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zswap(f: ZswapFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZSWAP>].set(f) };
-    let _ = paste::paste! { [<Zswap_LP64>].set(std::mem::transmute::<ZswapFnPtr, ZswapLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zswap_LP64>].set(std::mem::transmute::<ZswapFnPtr, ZswapLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_scopy(f: ScopyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SCOPY>].set(f) };
-    let _ = paste::paste! { [<Scopy_LP64>].set(std::mem::transmute::<ScopyFnPtr, ScopyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Scopy_LP64>].set(std::mem::transmute::<ScopyFnPtr, ScopyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dcopy(f: DcopyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DCOPY>].set(f) };
-    let _ = paste::paste! { [<Dcopy_LP64>].set(std::mem::transmute::<DcopyFnPtr, DcopyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dcopy_LP64>].set(std::mem::transmute::<DcopyFnPtr, DcopyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ccopy(f: CcopyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CCOPY>].set(f) };
-    let _ = paste::paste! { [<Ccopy_LP64>].set(std::mem::transmute::<CcopyFnPtr, CcopyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ccopy_LP64>].set(std::mem::transmute::<CcopyFnPtr, CcopyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zcopy(f: ZcopyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZCOPY>].set(f) };
-    let _ = paste::paste! { [<Zcopy_LP64>].set(std::mem::transmute::<ZcopyFnPtr, ZcopyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zcopy_LP64>].set(std::mem::transmute::<ZcopyFnPtr, ZcopyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_saxpy(f: SaxpyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SAXPY>].set(f) };
-    let _ = paste::paste! { [<Saxpy_LP64>].set(std::mem::transmute::<SaxpyFnPtr, SaxpyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Saxpy_LP64>].set(std::mem::transmute::<SaxpyFnPtr, SaxpyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_daxpy(f: DaxpyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DAXPY>].set(f) };
-    let _ = paste::paste! { [<Daxpy_LP64>].set(std::mem::transmute::<DaxpyFnPtr, DaxpyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Daxpy_LP64>].set(std::mem::transmute::<DaxpyFnPtr, DaxpyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_caxpy(f: CaxpyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CAXPY>].set(f) };
-    let _ = paste::paste! { [<Caxpy_LP64>].set(std::mem::transmute::<CaxpyFnPtr, CaxpyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Caxpy_LP64>].set(std::mem::transmute::<CaxpyFnPtr, CaxpyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zaxpy(f: ZaxpyFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZAXPY>].set(f) };
-    let _ = paste::paste! { [<Zaxpy_LP64>].set(std::mem::transmute::<ZaxpyFnPtr, ZaxpyLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zaxpy_LP64>].set(std::mem::transmute::<ZaxpyFnPtr, ZaxpyLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_sscal(f: SscalFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSCAL>].set(f) };
-    let _ = paste::paste! { [<Sscal_LP64>].set(std::mem::transmute::<SscalFnPtr, SscalLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sscal_LP64>].set(std::mem::transmute::<SscalFnPtr, SscalLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dscal(f: DscalFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSCAL>].set(f) };
-    let _ = paste::paste! { [<Dscal_LP64>].set(std::mem::transmute::<DscalFnPtr, DscalLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dscal_LP64>].set(std::mem::transmute::<DscalFnPtr, DscalLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cscal(f: CscalFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CSCAL>].set(f) };
-    let _ = paste::paste! { [<Cscal_LP64>].set(std::mem::transmute::<CscalFnPtr, CscalLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cscal_LP64>].set(std::mem::transmute::<CscalFnPtr, CscalLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zscal(f: ZscalFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZSCAL>].set(f) };
-    let _ = paste::paste! { [<Zscal_LP64>].set(std::mem::transmute::<ZscalFnPtr, ZscalLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zscal_LP64>].set(std::mem::transmute::<ZscalFnPtr, ZscalLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -5780,28 +6384,32 @@ pub unsafe extern "C" fn register_drot(f: DrotFnPtr) {
 pub unsafe extern "C" fn register_srotg(f: SrotgFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SROTG>].set(f) };
-    let _ = paste::paste! { [<Srotg_LP64>].set(std::mem::transmute::<SrotgFnPtr, SrotgLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Srotg_LP64>].set(std::mem::transmute::<SrotgFnPtr, SrotgLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_drotg(f: DrotgFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DROTG>].set(f) };
-    let _ = paste::paste! { [<Drotg_LP64>].set(std::mem::transmute::<DrotgFnPtr, DrotgLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Drotg_LP64>].set(std::mem::transmute::<DrotgFnPtr, DrotgLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_srotm(f: SrotmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SROTM>].set(f) };
-    let _ = paste::paste! { [<Srotm_LP64>].set(std::mem::transmute::<SrotmFnPtr, SrotmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Srotm_LP64>].set(std::mem::transmute::<SrotmFnPtr, SrotmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_drotm(f: DrotmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DROTM>].set(f) };
-    let _ = paste::paste! { [<Drotm_LP64>].set(std::mem::transmute::<DrotmFnPtr, DrotmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Drotm_LP64>].set(std::mem::transmute::<DrotmFnPtr, DrotmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -5857,21 +6465,24 @@ pub unsafe extern "C" fn register_sdsdot(f: SdsdotFnPtr) {
 pub unsafe extern "C" fn register_dsdot(f: DsdotFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSDOT>].set(f) };
-    let _ = paste::paste! { [<Dsdot_LP64>].set(std::mem::transmute::<DsdotFnPtr, DsdotLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsdot_LP64>].set(std::mem::transmute::<DsdotFnPtr, DsdotLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_snrm2(f: Snrm2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SNRM2>].set(f) };
-    let _ = paste::paste! { [<Snrm2_LP64>].set(std::mem::transmute::<Snrm2FnPtr, Snrm2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Snrm2_LP64>].set(std::mem::transmute::<Snrm2FnPtr, Snrm2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dnrm2(f: Dnrm2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DNRM2>].set(f) };
-    let _ = paste::paste! { [<Dnrm2_LP64>].set(std::mem::transmute::<Dnrm2FnPtr, Dnrm2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dnrm2_LP64>].set(std::mem::transmute::<Dnrm2FnPtr, Dnrm2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -5892,14 +6503,16 @@ pub unsafe extern "C" fn register_dznrm2(f: Dznrm2FnPtr) {
 pub unsafe extern "C" fn register_sasum(f: SasumFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SASUM>].set(f) };
-    let _ = paste::paste! { [<Sasum_LP64>].set(std::mem::transmute::<SasumFnPtr, SasumLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sasum_LP64>].set(std::mem::transmute::<SasumFnPtr, SasumLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dasum(f: DasumFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DASUM>].set(f) };
-    let _ = paste::paste! { [<Dasum_LP64>].set(std::mem::transmute::<DasumFnPtr, DasumLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dasum_LP64>].set(std::mem::transmute::<DasumFnPtr, DasumLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -5948,224 +6561,256 @@ pub unsafe extern "C" fn register_izamax(f: IzamaxFnPtr) {
 pub unsafe extern "C" fn register_sgemv(f: SgemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SGEMV>].set(f) };
-    let _ = paste::paste! { [<Sgemv_LP64>].set(std::mem::transmute::<SgemvFnPtr, SgemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sgemv_LP64>].set(std::mem::transmute::<SgemvFnPtr, SgemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dgemv(f: DgemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DGEMV>].set(f) };
-    let _ = paste::paste! { [<Dgemv_LP64>].set(std::mem::transmute::<DgemvFnPtr, DgemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dgemv_LP64>].set(std::mem::transmute::<DgemvFnPtr, DgemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cgemv(f: CgemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CGEMV>].set(f) };
-    let _ = paste::paste! { [<Cgemv_LP64>].set(std::mem::transmute::<CgemvFnPtr, CgemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cgemv_LP64>].set(std::mem::transmute::<CgemvFnPtr, CgemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zgemv(f: ZgemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZGEMV>].set(f) };
-    let _ = paste::paste! { [<Zgemv_LP64>].set(std::mem::transmute::<ZgemvFnPtr, ZgemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zgemv_LP64>].set(std::mem::transmute::<ZgemvFnPtr, ZgemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_sgbmv(f: SgbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SGBMV>].set(f) };
-    let _ = paste::paste! { [<Sgbmv_LP64>].set(std::mem::transmute::<SgbmvFnPtr, SgbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sgbmv_LP64>].set(std::mem::transmute::<SgbmvFnPtr, SgbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dgbmv(f: DgbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DGBMV>].set(f) };
-    let _ = paste::paste! { [<Dgbmv_LP64>].set(std::mem::transmute::<DgbmvFnPtr, DgbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dgbmv_LP64>].set(std::mem::transmute::<DgbmvFnPtr, DgbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cgbmv(f: CgbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CGBMV>].set(f) };
-    let _ = paste::paste! { [<Cgbmv_LP64>].set(std::mem::transmute::<CgbmvFnPtr, CgbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cgbmv_LP64>].set(std::mem::transmute::<CgbmvFnPtr, CgbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zgbmv(f: ZgbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZGBMV>].set(f) };
-    let _ = paste::paste! { [<Zgbmv_LP64>].set(std::mem::transmute::<ZgbmvFnPtr, ZgbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zgbmv_LP64>].set(std::mem::transmute::<ZgbmvFnPtr, ZgbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ssymv(f: SsymvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSYMV>].set(f) };
-    let _ = paste::paste! { [<Ssymv_LP64>].set(std::mem::transmute::<SsymvFnPtr, SsymvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ssymv_LP64>].set(std::mem::transmute::<SsymvFnPtr, SsymvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dsymv(f: DsymvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSYMV>].set(f) };
-    let _ = paste::paste! { [<Dsymv_LP64>].set(std::mem::transmute::<DsymvFnPtr, DsymvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsymv_LP64>].set(std::mem::transmute::<DsymvFnPtr, DsymvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_chemv(f: ChemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHEMV>].set(f) };
-    let _ = paste::paste! { [<Chemv_LP64>].set(std::mem::transmute::<ChemvFnPtr, ChemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Chemv_LP64>].set(std::mem::transmute::<ChemvFnPtr, ChemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zhemv(f: ZhemvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHEMV>].set(f) };
-    let _ = paste::paste! { [<Zhemv_LP64>].set(std::mem::transmute::<ZhemvFnPtr, ZhemvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zhemv_LP64>].set(std::mem::transmute::<ZhemvFnPtr, ZhemvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ssbmv(f: SsbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSBMV>].set(f) };
-    let _ = paste::paste! { [<Ssbmv_LP64>].set(std::mem::transmute::<SsbmvFnPtr, SsbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ssbmv_LP64>].set(std::mem::transmute::<SsbmvFnPtr, SsbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dsbmv(f: DsbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSBMV>].set(f) };
-    let _ = paste::paste! { [<Dsbmv_LP64>].set(std::mem::transmute::<DsbmvFnPtr, DsbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsbmv_LP64>].set(std::mem::transmute::<DsbmvFnPtr, DsbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_chbmv(f: ChbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHBMV>].set(f) };
-    let _ = paste::paste! { [<Chbmv_LP64>].set(std::mem::transmute::<ChbmvFnPtr, ChbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Chbmv_LP64>].set(std::mem::transmute::<ChbmvFnPtr, ChbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zhbmv(f: ZhbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHBMV>].set(f) };
-    let _ = paste::paste! { [<Zhbmv_LP64>].set(std::mem::transmute::<ZhbmvFnPtr, ZhbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zhbmv_LP64>].set(std::mem::transmute::<ZhbmvFnPtr, ZhbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_strmv(f: StrmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STRMV>].set(f) };
-    let _ = paste::paste! { [<Strmv_LP64>].set(std::mem::transmute::<StrmvFnPtr, StrmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Strmv_LP64>].set(std::mem::transmute::<StrmvFnPtr, StrmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtrmv(f: DtrmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTRMV>].set(f) };
-    let _ = paste::paste! { [<Dtrmv_LP64>].set(std::mem::transmute::<DtrmvFnPtr, DtrmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtrmv_LP64>].set(std::mem::transmute::<DtrmvFnPtr, DtrmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctrmv(f: CtrmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTRMV>].set(f) };
-    let _ = paste::paste! { [<Ctrmv_LP64>].set(std::mem::transmute::<CtrmvFnPtr, CtrmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctrmv_LP64>].set(std::mem::transmute::<CtrmvFnPtr, CtrmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztrmv(f: ZtrmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTRMV>].set(f) };
-    let _ = paste::paste! { [<Ztrmv_LP64>].set(std::mem::transmute::<ZtrmvFnPtr, ZtrmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztrmv_LP64>].set(std::mem::transmute::<ZtrmvFnPtr, ZtrmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_strsv(f: StrsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STRSV>].set(f) };
-    let _ = paste::paste! { [<Strsv_LP64>].set(std::mem::transmute::<StrsvFnPtr, StrsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Strsv_LP64>].set(std::mem::transmute::<StrsvFnPtr, StrsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtrsv(f: DtrsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTRSV>].set(f) };
-    let _ = paste::paste! { [<Dtrsv_LP64>].set(std::mem::transmute::<DtrsvFnPtr, DtrsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtrsv_LP64>].set(std::mem::transmute::<DtrsvFnPtr, DtrsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctrsv(f: CtrsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTRSV>].set(f) };
-    let _ = paste::paste! { [<Ctrsv_LP64>].set(std::mem::transmute::<CtrsvFnPtr, CtrsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctrsv_LP64>].set(std::mem::transmute::<CtrsvFnPtr, CtrsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztrsv(f: ZtrsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTRSV>].set(f) };
-    let _ = paste::paste! { [<Ztrsv_LP64>].set(std::mem::transmute::<ZtrsvFnPtr, ZtrsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztrsv_LP64>].set(std::mem::transmute::<ZtrsvFnPtr, ZtrsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_stbmv(f: StbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STBMV>].set(f) };
-    let _ = paste::paste! { [<Stbmv_LP64>].set(std::mem::transmute::<StbmvFnPtr, StbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Stbmv_LP64>].set(std::mem::transmute::<StbmvFnPtr, StbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtbmv(f: DtbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTBMV>].set(f) };
-    let _ = paste::paste! { [<Dtbmv_LP64>].set(std::mem::transmute::<DtbmvFnPtr, DtbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtbmv_LP64>].set(std::mem::transmute::<DtbmvFnPtr, DtbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctbmv(f: CtbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTBMV>].set(f) };
-    let _ = paste::paste! { [<Ctbmv_LP64>].set(std::mem::transmute::<CtbmvFnPtr, CtbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctbmv_LP64>].set(std::mem::transmute::<CtbmvFnPtr, CtbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztbmv(f: ZtbmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTBMV>].set(f) };
-    let _ = paste::paste! { [<Ztbmv_LP64>].set(std::mem::transmute::<ZtbmvFnPtr, ZtbmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztbmv_LP64>].set(std::mem::transmute::<ZtbmvFnPtr, ZtbmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_stbsv(f: StbsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STBSV>].set(f) };
-    let _ = paste::paste! { [<Stbsv_LP64>].set(std::mem::transmute::<StbsvFnPtr, StbsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Stbsv_LP64>].set(std::mem::transmute::<StbsvFnPtr, StbsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtbsv(f: DtbsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTBSV>].set(f) };
-    let _ = paste::paste! { [<Dtbsv_LP64>].set(std::mem::transmute::<DtbsvFnPtr, DtbsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtbsv_LP64>].set(std::mem::transmute::<DtbsvFnPtr, DtbsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctbsv(f: CtbsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTBSV>].set(f) };
-    let _ = paste::paste! { [<Ctbsv_LP64>].set(std::mem::transmute::<CtbsvFnPtr, CtbsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctbsv_LP64>].set(std::mem::transmute::<CtbsvFnPtr, CtbsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztbsv(f: ZtbsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTBSV>].set(f) };
-    let _ = paste::paste! { [<Ztbsv_LP64>].set(std::mem::transmute::<ZtbsvFnPtr, ZtbsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztbsv_LP64>].set(std::mem::transmute::<ZtbsvFnPtr, ZtbsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -6186,28 +6831,32 @@ pub unsafe extern "C" fn register_dger(f: DgerFnPtr) {
 pub unsafe extern "C" fn register_cgeru(f: CgeruFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CGERU>].set(f) };
-    let _ = paste::paste! { [<Cgeru_LP64>].set(std::mem::transmute::<CgeruFnPtr, CgeruLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cgeru_LP64>].set(std::mem::transmute::<CgeruFnPtr, CgeruLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cgerc(f: CgercFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CGERC>].set(f) };
-    let _ = paste::paste! { [<Cgerc_LP64>].set(std::mem::transmute::<CgercFnPtr, CgercLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cgerc_LP64>].set(std::mem::transmute::<CgercFnPtr, CgercLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zgeru(f: ZgeruFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZGERU>].set(f) };
-    let _ = paste::paste! { [<Zgeru_LP64>].set(std::mem::transmute::<ZgeruFnPtr, ZgeruLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zgeru_LP64>].set(std::mem::transmute::<ZgeruFnPtr, ZgeruLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zgerc(f: ZgercFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZGERC>].set(f) };
-    let _ = paste::paste! { [<Zgerc_LP64>].set(std::mem::transmute::<ZgercFnPtr, ZgercLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zgerc_LP64>].set(std::mem::transmute::<ZgercFnPtr, ZgercLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -6242,112 +6891,128 @@ pub unsafe extern "C" fn register_zher(f: ZherFnPtr) {
 pub unsafe extern "C" fn register_ssyr2(f: Ssyr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSYR2>].set(f) };
-    let _ = paste::paste! { [<Ssyr2_LP64>].set(std::mem::transmute::<Ssyr2FnPtr, Ssyr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ssyr2_LP64>].set(std::mem::transmute::<Ssyr2FnPtr, Ssyr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dsyr2(f: Dsyr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSYR2>].set(f) };
-    let _ = paste::paste! { [<Dsyr2_LP64>].set(std::mem::transmute::<Dsyr2FnPtr, Dsyr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsyr2_LP64>].set(std::mem::transmute::<Dsyr2FnPtr, Dsyr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cher2(f: Cher2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHER2>].set(f) };
-    let _ = paste::paste! { [<Cher2_LP64>].set(std::mem::transmute::<Cher2FnPtr, Cher2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cher2_LP64>].set(std::mem::transmute::<Cher2FnPtr, Cher2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zher2(f: Zher2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHER2>].set(f) };
-    let _ = paste::paste! { [<Zher2_LP64>].set(std::mem::transmute::<Zher2FnPtr, Zher2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zher2_LP64>].set(std::mem::transmute::<Zher2FnPtr, Zher2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_sspmv(f: SspmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSPMV>].set(f) };
-    let _ = paste::paste! { [<Sspmv_LP64>].set(std::mem::transmute::<SspmvFnPtr, SspmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sspmv_LP64>].set(std::mem::transmute::<SspmvFnPtr, SspmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dspmv(f: DspmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSPMV>].set(f) };
-    let _ = paste::paste! { [<Dspmv_LP64>].set(std::mem::transmute::<DspmvFnPtr, DspmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dspmv_LP64>].set(std::mem::transmute::<DspmvFnPtr, DspmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_chpmv(f: ChpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHPMV>].set(f) };
-    let _ = paste::paste! { [<Chpmv_LP64>].set(std::mem::transmute::<ChpmvFnPtr, ChpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Chpmv_LP64>].set(std::mem::transmute::<ChpmvFnPtr, ChpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zhpmv(f: ZhpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHPMV>].set(f) };
-    let _ = paste::paste! { [<Zhpmv_LP64>].set(std::mem::transmute::<ZhpmvFnPtr, ZhpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zhpmv_LP64>].set(std::mem::transmute::<ZhpmvFnPtr, ZhpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_stpmv(f: StpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STPMV>].set(f) };
-    let _ = paste::paste! { [<Stpmv_LP64>].set(std::mem::transmute::<StpmvFnPtr, StpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Stpmv_LP64>].set(std::mem::transmute::<StpmvFnPtr, StpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtpmv(f: DtpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTPMV>].set(f) };
-    let _ = paste::paste! { [<Dtpmv_LP64>].set(std::mem::transmute::<DtpmvFnPtr, DtpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtpmv_LP64>].set(std::mem::transmute::<DtpmvFnPtr, DtpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctpmv(f: CtpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTPMV>].set(f) };
-    let _ = paste::paste! { [<Ctpmv_LP64>].set(std::mem::transmute::<CtpmvFnPtr, CtpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctpmv_LP64>].set(std::mem::transmute::<CtpmvFnPtr, CtpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztpmv(f: ZtpmvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTPMV>].set(f) };
-    let _ = paste::paste! { [<Ztpmv_LP64>].set(std::mem::transmute::<ZtpmvFnPtr, ZtpmvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztpmv_LP64>].set(std::mem::transmute::<ZtpmvFnPtr, ZtpmvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_stpsv(f: StpsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STPSV>].set(f) };
-    let _ = paste::paste! { [<Stpsv_LP64>].set(std::mem::transmute::<StpsvFnPtr, StpsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Stpsv_LP64>].set(std::mem::transmute::<StpsvFnPtr, StpsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtpsv(f: DtpsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTPSV>].set(f) };
-    let _ = paste::paste! { [<Dtpsv_LP64>].set(std::mem::transmute::<DtpsvFnPtr, DtpsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtpsv_LP64>].set(std::mem::transmute::<DtpsvFnPtr, DtpsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctpsv(f: CtpsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTPSV>].set(f) };
-    let _ = paste::paste! { [<Ctpsv_LP64>].set(std::mem::transmute::<CtpsvFnPtr, CtpsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctpsv_LP64>].set(std::mem::transmute::<CtpsvFnPtr, CtpsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztpsv(f: ZtpsvFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTPSV>].set(f) };
-    let _ = paste::paste! { [<Ztpsv_LP64>].set(std::mem::transmute::<ZtpsvFnPtr, ZtpsvLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztpsv_LP64>].set(std::mem::transmute::<ZtpsvFnPtr, ZtpsvLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -6382,112 +7047,128 @@ pub unsafe extern "C" fn register_zhpr(f: ZhprFnPtr) {
 pub unsafe extern "C" fn register_sspr2(f: Sspr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSPR2>].set(f) };
-    let _ = paste::paste! { [<Sspr2_LP64>].set(std::mem::transmute::<Sspr2FnPtr, Sspr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Sspr2_LP64>].set(std::mem::transmute::<Sspr2FnPtr, Sspr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dspr2(f: Dspr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSPR2>].set(f) };
-    let _ = paste::paste! { [<Dspr2_LP64>].set(std::mem::transmute::<Dspr2FnPtr, Dspr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dspr2_LP64>].set(std::mem::transmute::<Dspr2FnPtr, Dspr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_chpr2(f: Chpr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHPR2>].set(f) };
-    let _ = paste::paste! { [<Chpr2_LP64>].set(std::mem::transmute::<Chpr2FnPtr, Chpr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Chpr2_LP64>].set(std::mem::transmute::<Chpr2FnPtr, Chpr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zhpr2(f: Zhpr2FnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHPR2>].set(f) };
-    let _ = paste::paste! { [<Zhpr2_LP64>].set(std::mem::transmute::<Zhpr2FnPtr, Zhpr2Lp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zhpr2_LP64>].set(std::mem::transmute::<Zhpr2FnPtr, Zhpr2Lp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ssymm(f: SsymmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSYMM>].set(f) };
-    let _ = paste::paste! { [<Ssymm_LP64>].set(std::mem::transmute::<SsymmFnPtr, SsymmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ssymm_LP64>].set(std::mem::transmute::<SsymmFnPtr, SsymmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dsymm(f: DsymmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSYMM>].set(f) };
-    let _ = paste::paste! { [<Dsymm_LP64>].set(std::mem::transmute::<DsymmFnPtr, DsymmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsymm_LP64>].set(std::mem::transmute::<DsymmFnPtr, DsymmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_csymm(f: CsymmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CSYMM>].set(f) };
-    let _ = paste::paste! { [<Csymm_LP64>].set(std::mem::transmute::<CsymmFnPtr, CsymmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Csymm_LP64>].set(std::mem::transmute::<CsymmFnPtr, CsymmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zsymm(f: ZsymmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZSYMM>].set(f) };
-    let _ = paste::paste! { [<Zsymm_LP64>].set(std::mem::transmute::<ZsymmFnPtr, ZsymmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zsymm_LP64>].set(std::mem::transmute::<ZsymmFnPtr, ZsymmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_chemm(f: ChemmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHEMM>].set(f) };
-    let _ = paste::paste! { [<Chemm_LP64>].set(std::mem::transmute::<ChemmFnPtr, ChemmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Chemm_LP64>].set(std::mem::transmute::<ChemmFnPtr, ChemmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zhemm(f: ZhemmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHEMM>].set(f) };
-    let _ = paste::paste! { [<Zhemm_LP64>].set(std::mem::transmute::<ZhemmFnPtr, ZhemmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zhemm_LP64>].set(std::mem::transmute::<ZhemmFnPtr, ZhemmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ssyrk(f: SsyrkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<SSYRK>].set(f) };
-    let _ = paste::paste! { [<Ssyrk_LP64>].set(std::mem::transmute::<SsyrkFnPtr, SsyrkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ssyrk_LP64>].set(std::mem::transmute::<SsyrkFnPtr, SsyrkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dsyrk(f: DsyrkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DSYRK>].set(f) };
-    let _ = paste::paste! { [<Dsyrk_LP64>].set(std::mem::transmute::<DsyrkFnPtr, DsyrkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dsyrk_LP64>].set(std::mem::transmute::<DsyrkFnPtr, DsyrkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_csyrk(f: CsyrkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CSYRK>].set(f) };
-    let _ = paste::paste! { [<Csyrk_LP64>].set(std::mem::transmute::<CsyrkFnPtr, CsyrkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Csyrk_LP64>].set(std::mem::transmute::<CsyrkFnPtr, CsyrkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zsyrk(f: ZsyrkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZSYRK>].set(f) };
-    let _ = paste::paste! { [<Zsyrk_LP64>].set(std::mem::transmute::<ZsyrkFnPtr, ZsyrkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zsyrk_LP64>].set(std::mem::transmute::<ZsyrkFnPtr, ZsyrkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cherk(f: CherkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CHERK>].set(f) };
-    let _ = paste::paste! { [<Cherk_LP64>].set(std::mem::transmute::<CherkFnPtr, CherkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Cherk_LP64>].set(std::mem::transmute::<CherkFnPtr, CherkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zherk(f: ZherkFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZHERK>].set(f) };
-    let _ = paste::paste! { [<Zherk_LP64>].set(std::mem::transmute::<ZherkFnPtr, ZherkLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Zherk_LP64>].set(std::mem::transmute::<ZherkFnPtr, ZherkLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
@@ -6536,85 +7217,78 @@ pub unsafe extern "C" fn register_zher2k(f: Zher2kFnPtr) {
 pub unsafe extern "C" fn register_strmm(f: StrmmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STRMM>].set(f) };
-    let _ = paste::paste! { [<Strmm_LP64>].set(std::mem::transmute::<StrmmFnPtr, StrmmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Strmm_LP64>].set(std::mem::transmute::<StrmmFnPtr, StrmmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtrmm(f: DtrmmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTRMM>].set(f) };
-    let _ = paste::paste! { [<Dtrmm_LP64>].set(std::mem::transmute::<DtrmmFnPtr, DtrmmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtrmm_LP64>].set(std::mem::transmute::<DtrmmFnPtr, DtrmmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctrmm(f: CtrmmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTRMM>].set(f) };
-    let _ = paste::paste! { [<Ctrmm_LP64>].set(std::mem::transmute::<CtrmmFnPtr, CtrmmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctrmm_LP64>].set(std::mem::transmute::<CtrmmFnPtr, CtrmmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztrmm(f: ZtrmmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTRMM>].set(f) };
-    let _ = paste::paste! { [<Ztrmm_LP64>].set(std::mem::transmute::<ZtrmmFnPtr, ZtrmmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztrmm_LP64>].set(std::mem::transmute::<ZtrmmFnPtr, ZtrmmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_strsm(f: StrsmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<STRSM>].set(f) };
-    let _ = paste::paste! { [<Strsm_LP64>].set(std::mem::transmute::<StrsmFnPtr, StrsmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Strsm_LP64>].set(std::mem::transmute::<StrsmFnPtr, StrsmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dtrsm(f: DtrsmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<DTRSM>].set(f) };
-    let _ = paste::paste! { [<Dtrsm_LP64>].set(std::mem::transmute::<DtrsmFnPtr, DtrsmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Dtrsm_LP64>].set(std::mem::transmute::<DtrsmFnPtr, DtrsmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ctrsm(f: CtrsmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<CTRSM>].set(f) };
-    let _ = paste::paste! { [<Ctrsm_LP64>].set(std::mem::transmute::<CtrsmFnPtr, CtrsmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ctrsm_LP64>].set(std::mem::transmute::<CtrsmFnPtr, CtrsmLp64FnPtr>(f)) };
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_ztrsm(f: ZtrsmFnPtr) {
     // Legacy LP64 registration - populate both old static and new LP64 storage
     let _ = paste::paste! { [<ZTRSM>].set(f) };
-    let _ = paste::paste! { [<Ztrsm_LP64>].set(std::mem::transmute::<ZtrsmFnPtr, ZtrsmLp64FnPtr>(f)) };
+    let _ =
+        paste::paste! { [<Ztrsm_LP64>].set(std::mem::transmute::<ZtrsmFnPtr, ZtrsmLp64FnPtr>(f)) };
 }
-
 
 // BLAS Level 3 registration (gemm)
 
 #[no_mangle]
 pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
     let _guard = registration_guard();
-    #[cfg(not(feature = "ilp64"))]
     if DGEMM.get().is_some() || DGEMM_LP64.get().is_some() {
         panic!("dgemm already registered (can only be set once)");
     }
-    #[cfg(feature = "ilp64")]
-    if DGEMM.get().is_some() || DGEMM_ILP64.get().is_some() {
-        panic!("dgemm already registered (can only be set once)");
-    }
 
-    #[cfg(not(feature = "ilp64"))]
-    {
-        DGEMM_LP64
-            .set(f)
-            .expect("dgemm already registered (can only be set once)");
-    }
-    #[cfg(feature = "ilp64")]
-    {
-        DGEMM_ILP64
-            .set(f)
-            .expect("dgemm already registered (can only be set once)");
-    }
+    DGEMM_LP64
+        .set(f)
+        .expect("dgemm already registered (can only be set once)");
     DGEMM
         .set(f)
         .expect("dgemm already registered (can only be set once)");
@@ -6622,39 +7296,28 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
 
 #[no_mangle]
 pub unsafe extern "C" fn register_sgemm(f: SgemmFnPtr) {
+    let _guard = registration_guard();
+    if SGEMM.get().is_some() || SGEMM_LP64.get().is_some() {
+        panic!("sgemm already registered (can only be set once)");
+    }
+    SGEMM_LP64
+        .set(f)
+        .expect("sgemm already registered (can only be set once)");
     SGEMM
         .set(f)
         .expect("sgemm already registered (can only be set once)");
-    #[cfg(not(feature = "ilp64"))]
-    {
-        let _ = SGEMM_LP64.set(f);
-    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
     let _guard = registration_guard();
-    #[cfg(not(feature = "ilp64"))]
     if ZGEMM.get().is_some() || ZGEMM_LP64.get().is_some() {
         panic!("zgemm already registered (can only be set once)");
     }
-    #[cfg(feature = "ilp64")]
-    if ZGEMM.get().is_some() || ZGEMM_ILP64.get().is_some() {
-        panic!("zgemm already registered (can only be set once)");
-    }
 
-    #[cfg(not(feature = "ilp64"))]
-    {
-        ZGEMM_LP64
-            .set(f)
-            .expect("zgemm already registered (can only be set once)");
-    }
-    #[cfg(feature = "ilp64")]
-    {
-        ZGEMM_ILP64
-            .set(f)
-            .expect("zgemm already registered (can only be set once)");
-    }
+    ZGEMM_LP64
+        .set(f)
+        .expect("zgemm already registered (can only be set once)");
     ZGEMM
         .set(f)
         .expect("zgemm already registered (can only be set once)");
@@ -6662,13 +7325,16 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
 
 #[no_mangle]
 pub unsafe extern "C" fn register_cgemm(f: CgemmFnPtr) {
+    let _guard = registration_guard();
+    if CGEMM.get().is_some() || CGEMM_LP64.get().is_some() {
+        panic!("cgemm already registered (can only be set once)");
+    }
+    CGEMM_LP64
+        .set(f)
+        .expect("cgemm already registered (can only be set once)");
     CGEMM
         .set(f)
         .expect("cgemm already registered (can only be set once)");
-    #[cfg(not(feature = "ilp64"))]
-    {
-        let _ = CGEMM_LP64.set(f);
-    }
 }
 
 /// Register the Fortran cdotu function pointer (return value convention, LP64).
@@ -6779,7 +7445,9 @@ pub unsafe extern "C" fn register_zdotc_raw(ptr: *const ()) {
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotu_lp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match CDOTU_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6788,7 +7456,9 @@ pub unsafe extern "C" fn cblas_inject_register_cdotu_lp64(f: *const std::ffi::c_
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotu_ilp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match CDOTU_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6797,7 +7467,9 @@ pub unsafe extern "C" fn cblas_inject_register_cdotu_ilp64(f: *const std::ffi::c
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotu_lp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match ZDOTU_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6806,7 +7478,9 @@ pub unsafe extern "C" fn cblas_inject_register_zdotu_lp64(f: *const std::ffi::c_
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotu_ilp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match ZDOTU_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6815,7 +7489,9 @@ pub unsafe extern "C" fn cblas_inject_register_zdotu_ilp64(f: *const std::ffi::c
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotc_lp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match CDOTC_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6824,7 +7500,9 @@ pub unsafe extern "C" fn cblas_inject_register_cdotc_lp64(f: *const std::ffi::c_
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_cdotc_ilp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match CDOTC_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6833,7 +7511,9 @@ pub unsafe extern "C" fn cblas_inject_register_cdotc_ilp64(f: *const std::ffi::c
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotc_lp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match ZDOTC_LP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
@@ -6842,69 +7522,120 @@ pub unsafe extern "C" fn cblas_inject_register_zdotc_lp64(f: *const std::ffi::c_
 
 #[no_mangle]
 pub unsafe extern "C" fn cblas_inject_register_zdotc_ilp64(f: *const std::ffi::c_void) -> i32 {
-    if f.is_null() { return CBLAS_INJECT_STATUS_NULL_POINTER; }
+    if f.is_null() {
+        return CBLAS_INJECT_STATUS_NULL_POINTER;
+    }
     match ZDOTC_ILP64_PTR.set(FnPtrWrapper(f as *const ())) {
         Ok(()) => CBLAS_INJECT_STATUS_OK,
         Err(_) => CBLAS_INJECT_STATUS_ALREADY_REGISTERED,
     }
 }
 
-// Complex dot getters (LP64-first with ILP64 fallback)
+// Complex dot getters. These functions preserve the registered provider width,
+// because the raw pointer must be transmuted to the matching ABI before call.
 
-pub(crate) fn get_cdotu_lp64_ptr() -> *const () {
+#[derive(Clone, Copy)]
+pub(crate) enum CdotuProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum ZdotuProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum CdotcProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum ZdotcProvider {
+    Lp64(*const ()),
+    Ilp64(*const ()),
+}
+
+pub(crate) fn get_cdotu_for_lp64_cblas() -> CdotuProvider {
     if let Some(p) = CDOTU_LP64_PTR.get() {
-        return p.0;
+        return CdotuProvider::Lp64(p.0);
     }
-    CDOTU_ILP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
-}
-
-pub(crate) fn get_cdotu_ilp64_ptr() -> *const () {
     if let Some(p) = CDOTU_ILP64_PTR.get() {
-        return p.0;
+        return CdotuProvider::Ilp64(p.0);
     }
-    CDOTU_LP64_PTR.get().map(|p| p.0).expect("cdotu not registered")
+    panic!("cdotu not registered")
 }
 
-pub(crate) fn get_zdotu_lp64_ptr() -> *const () {
+pub(crate) fn get_cdotu_for_ilp64_cblas() -> CdotuProvider {
+    if let Some(p) = CDOTU_ILP64_PTR.get() {
+        return CdotuProvider::Ilp64(p.0);
+    }
+    if let Some(p) = CDOTU_LP64_PTR.get() {
+        return CdotuProvider::Lp64(p.0);
+    }
+    panic!("cdotu not registered")
+}
+
+pub(crate) fn get_zdotu_for_lp64_cblas() -> ZdotuProvider {
     if let Some(p) = ZDOTU_LP64_PTR.get() {
-        return p.0;
+        return ZdotuProvider::Lp64(p.0);
     }
-    ZDOTU_ILP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
-}
-
-pub(crate) fn get_zdotu_ilp64_ptr() -> *const () {
     if let Some(p) = ZDOTU_ILP64_PTR.get() {
-        return p.0;
+        return ZdotuProvider::Ilp64(p.0);
     }
-    ZDOTU_LP64_PTR.get().map(|p| p.0).expect("zdotu not registered")
+    panic!("zdotu not registered")
 }
 
-pub(crate) fn get_cdotc_lp64_ptr() -> *const () {
+pub(crate) fn get_zdotu_for_ilp64_cblas() -> ZdotuProvider {
+    if let Some(p) = ZDOTU_ILP64_PTR.get() {
+        return ZdotuProvider::Ilp64(p.0);
+    }
+    if let Some(p) = ZDOTU_LP64_PTR.get() {
+        return ZdotuProvider::Lp64(p.0);
+    }
+    panic!("zdotu not registered")
+}
+
+pub(crate) fn get_cdotc_for_lp64_cblas() -> CdotcProvider {
     if let Some(p) = CDOTC_LP64_PTR.get() {
-        return p.0;
+        return CdotcProvider::Lp64(p.0);
     }
-    CDOTC_ILP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
-}
-
-pub(crate) fn get_cdotc_ilp64_ptr() -> *const () {
     if let Some(p) = CDOTC_ILP64_PTR.get() {
-        return p.0;
+        return CdotcProvider::Ilp64(p.0);
     }
-    CDOTC_LP64_PTR.get().map(|p| p.0).expect("cdotc not registered")
+    panic!("cdotc not registered")
 }
 
-pub(crate) fn get_zdotc_lp64_ptr() -> *const () {
+pub(crate) fn get_cdotc_for_ilp64_cblas() -> CdotcProvider {
+    if let Some(p) = CDOTC_ILP64_PTR.get() {
+        return CdotcProvider::Ilp64(p.0);
+    }
+    if let Some(p) = CDOTC_LP64_PTR.get() {
+        return CdotcProvider::Lp64(p.0);
+    }
+    panic!("cdotc not registered")
+}
+
+pub(crate) fn get_zdotc_for_lp64_cblas() -> ZdotcProvider {
     if let Some(p) = ZDOTC_LP64_PTR.get() {
-        return p.0;
+        return ZdotcProvider::Lp64(p.0);
     }
-    ZDOTC_ILP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
+    if let Some(p) = ZDOTC_ILP64_PTR.get() {
+        return ZdotcProvider::Ilp64(p.0);
+    }
+    panic!("zdotc not registered")
 }
 
-pub(crate) fn get_zdotc_ilp64_ptr() -> *const () {
+pub(crate) fn get_zdotc_for_ilp64_cblas() -> ZdotcProvider {
     if let Some(p) = ZDOTC_ILP64_PTR.get() {
-        return p.0;
+        return ZdotcProvider::Ilp64(p.0);
     }
-    ZDOTC_LP64_PTR.get().map(|p| p.0).expect("zdotc not registered")
+    if let Some(p) = ZDOTC_LP64_PTR.get() {
+        return ZdotcProvider::Lp64(p.0);
+    }
+    panic!("zdotc not registered")
 }
 
 // Internal getters (used by blas2/gemv.rs, blas3/gemm.rs etc.)
@@ -7330,7 +8061,6 @@ pub(crate) fn get_dgemm() -> DgemmFnPtr {
         .expect("dgemm not registered: call register_dgemm() first")
 }
 
-#[cfg(not(feature = "ilp64"))]
 #[inline]
 pub(crate) fn get_dgemm_for_current_cblas() -> DgemmProvider {
     if let Some(f) = DGEMM_LP64.get() {
@@ -7341,21 +8071,6 @@ pub(crate) fn get_dgemm_for_current_cblas() -> DgemmProvider {
         panic!(
             "dgemm not registered for current CBLAS ABI: call register_dgemm(), \
              cblas_inject_register_dgemm_lp64(), or cblas_inject_register_dgemm_ilp64() first"
-        );
-    }
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-pub(crate) fn get_dgemm_for_current_cblas() -> DgemmProvider {
-    if let Some(f) = DGEMM_ILP64.get() {
-        DgemmProvider::Ilp64(*f)
-    } else if let Some(f) = DGEMM_LP64.get() {
-        DgemmProvider::Lp64(*f)
-    } else {
-        panic!(
-            "dgemm not registered for current CBLAS ABI: call register_dgemm(), \
-             cblas_inject_register_dgemm_ilp64(), or cblas_inject_register_dgemm_lp64() first"
         );
     }
 }
@@ -7381,7 +8096,6 @@ pub(crate) fn get_sgemm() -> SgemmFnPtr {
         .expect("sgemm not registered: call register_sgemm() first")
 }
 
-#[cfg(not(feature = "ilp64"))]
 #[inline]
 pub(crate) fn get_sgemm_for_current_cblas() -> SgemmProvider {
     if let Some(f) = SGEMM_LP64.get() {
@@ -7389,23 +8103,7 @@ pub(crate) fn get_sgemm_for_current_cblas() -> SgemmProvider {
     } else if let Some(f) = SGEMM_ILP64.get() {
         SgemmProvider::Ilp64(*f)
     } else {
-        panic!(
-            "sgemm not registered: call register_sgemm() or cblas_inject_register_sgemm_lp64()"
-        );
-    }
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-pub(crate) fn get_sgemm_for_current_cblas() -> SgemmProvider {
-    if let Some(f) = SGEMM_ILP64.get() {
-        SgemmProvider::Ilp64(*f)
-    } else if let Some(f) = SGEMM_LP64.get() {
-        SgemmProvider::Lp64(*f)
-    } else {
-        panic!(
-            "sgemm not registered: call register_sgemm() or cblas_inject_register_sgemm_ilp64()"
-        );
+        panic!("sgemm not registered: call register_sgemm() or cblas_inject_register_sgemm_lp64()");
     }
 }
 
@@ -7428,7 +8126,6 @@ pub(crate) fn get_zgemm() -> ZgemmFnPtr {
         .expect("zgemm not registered: call register_zgemm() first")
 }
 
-#[cfg(not(feature = "ilp64"))]
 #[inline]
 pub(crate) fn get_zgemm_for_current_cblas() -> ZgemmProvider {
     if let Some(f) = ZGEMM_LP64.get() {
@@ -7439,21 +8136,6 @@ pub(crate) fn get_zgemm_for_current_cblas() -> ZgemmProvider {
         panic!(
             "zgemm not registered for current CBLAS ABI: call register_zgemm(), \
              cblas_inject_register_zgemm_lp64(), or cblas_inject_register_zgemm_ilp64() first"
-        );
-    }
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-pub(crate) fn get_zgemm_for_current_cblas() -> ZgemmProvider {
-    if let Some(f) = ZGEMM_ILP64.get() {
-        ZgemmProvider::Ilp64(*f)
-    } else if let Some(f) = ZGEMM_LP64.get() {
-        ZgemmProvider::Lp64(*f)
-    } else {
-        panic!(
-            "zgemm not registered for current CBLAS ABI: call register_zgemm(), \
-             cblas_inject_register_zgemm_ilp64(), or cblas_inject_register_zgemm_lp64() first"
         );
     }
 }
@@ -7479,7 +8161,6 @@ pub(crate) fn get_cgemm() -> CgemmFnPtr {
         .expect("cgemm not registered: call register_cgemm() first")
 }
 
-#[cfg(not(feature = "ilp64"))]
 #[inline]
 pub(crate) fn get_cgemm_for_current_cblas() -> CgemmProvider {
     if let Some(f) = CGEMM_LP64.get() {
@@ -7487,23 +8168,7 @@ pub(crate) fn get_cgemm_for_current_cblas() -> CgemmProvider {
     } else if let Some(f) = CGEMM_ILP64.get() {
         CgemmProvider::Ilp64(*f)
     } else {
-        panic!(
-            "cgemm not registered: call register_cgemm() or cblas_inject_register_cgemm_lp64()"
-        );
-    }
-}
-
-#[cfg(feature = "ilp64")]
-#[inline]
-pub(crate) fn get_cgemm_for_current_cblas() -> CgemmProvider {
-    if let Some(f) = CGEMM_ILP64.get() {
-        CgemmProvider::Ilp64(*f)
-    } else if let Some(f) = CGEMM_LP64.get() {
-        CgemmProvider::Lp64(*f)
-    } else {
-        panic!(
-            "cgemm not registered: call register_cgemm() or cblas_inject_register_cgemm_ilp64()"
-        );
+        panic!("cgemm not registered: call register_cgemm() or cblas_inject_register_cgemm_lp64()");
     }
 }
 
@@ -7657,7 +8322,6 @@ pub(crate) fn get_dtrsm() -> DtrsmFnPtr {
         .get()
         .expect("dtrsm not registered: call register_dtrsm() first")
 }
-
 
 #[inline]
 pub(crate) fn get_strmm() -> StrmmFnPtr {
@@ -7970,22 +8634,30 @@ pub(crate) fn get_ddot() -> DdotFnPtr {
 
 #[inline]
 pub(crate) fn get_cdotu_ptr() -> *const () {
-    get_cdotu_lp64_ptr()
+    match get_cdotu_for_lp64_cblas() {
+        CdotuProvider::Lp64(ptr) | CdotuProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_zdotu_ptr() -> *const () {
-    get_zdotu_lp64_ptr()
+    match get_zdotu_for_lp64_cblas() {
+        ZdotuProvider::Lp64(ptr) | ZdotuProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_cdotc_ptr() -> *const () {
-    get_cdotc_lp64_ptr()
+    match get_cdotc_for_lp64_cblas() {
+        CdotcProvider::Lp64(ptr) | CdotcProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]
 pub(crate) fn get_zdotc_ptr() -> *const () {
-    get_zdotc_lp64_ptr()
+    match get_zdotc_for_lp64_cblas() {
+        ZdotcProvider::Lp64(ptr) | ZdotcProvider::Ilp64(ptr) => ptr,
+    }
 }
 
 #[inline]

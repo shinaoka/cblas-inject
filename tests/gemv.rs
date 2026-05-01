@@ -61,14 +61,7 @@ setup_once!(setup_zgemv, register_zgemv, zgemv_);
 fn cgemv_row_vs_col_agree() {
     setup_cgemv();
 
-    let cases = [
-        (1usize, 1usize),
-        (1, 3),
-        (3, 1),
-        (2, 3),
-        (3, 2),
-        (5, 7),
-    ];
+    let cases = [(1usize, 1usize), (1, 3), (3, 1), (2, 3), (3, 2), (5, 7)];
     let transposes = [CblasNoTrans, CblasTrans, CblasConjTrans];
     let alpha = Complex32::new(0.7, 0.3);
     let beta = Complex32::new(1.3, -0.5);
@@ -77,17 +70,30 @@ fn cgemv_row_vs_col_agree() {
         for &trans in &transposes {
             // Build the same logical matrix in both layouts, with padding LDA.
             let a_row = Matrix::new_row_major(m, n, n + 2, |i, j| {
-                Complex32::new(((i + 3 * j) as f32 * 0.1).sin(), ((7 * i + j) as f32 * 0.2).cos())
+                Complex32::new(
+                    ((i + 3 * j) as f32 * 0.1).sin(),
+                    ((7 * i + j) as f32 * 0.2).cos(),
+                )
             });
             let a_col = a_row.to_layout(Layout::ColMajor, m + 2);
 
             let xl = x_len_gemv(trans, m, n);
             let yl = y_len_gemv(trans, m, n);
             let x: Vec<Complex32> = (0..xl)
-                .map(|k| Complex32::new(((k + 11) as f32 * 0.15).cos(), ((k + 5) as f32 * 0.25).sin()))
+                .map(|k| {
+                    Complex32::new(
+                        ((k + 11) as f32 * 0.15).cos(),
+                        ((k + 5) as f32 * 0.25).sin(),
+                    )
+                })
                 .collect();
             let y0: Vec<Complex32> = (0..yl)
-                .map(|k| Complex32::new(((k + 17) as f32 * 0.05).sin(), ((k + 19) as f32 * 0.07).cos()))
+                .map(|k| {
+                    Complex32::new(
+                        ((k + 17) as f32 * 0.05).sin(),
+                        ((k + 19) as f32 * 0.07).cos(),
+                    )
+                })
                 .collect();
 
             let mut y_row = y0.clone();
@@ -134,14 +140,7 @@ fn cgemv_row_vs_col_agree() {
 fn zgemv_row_vs_col_agree() {
     setup_zgemv();
 
-    let cases = [
-        (1usize, 1usize),
-        (1, 3),
-        (3, 1),
-        (2, 3),
-        (3, 2),
-        (5, 7),
-    ];
+    let cases = [(1usize, 1usize), (1, 3), (3, 1), (2, 3), (3, 2), (5, 7)];
     let transposes = [CblasNoTrans, CblasTrans, CblasConjTrans];
     let alpha = Complex64::new(0.7, 0.3);
     let beta = Complex64::new(1.3, -0.5);
@@ -149,17 +148,30 @@ fn zgemv_row_vs_col_agree() {
     for &(m, n) in &cases {
         for &trans in &transposes {
             let a_row = Matrix::new_row_major(m, n, n + 2, |i, j| {
-                Complex64::new(((i + 3 * j) as f64 * 0.1).sin(), ((7 * i + j) as f64 * 0.2).cos())
+                Complex64::new(
+                    ((i + 3 * j) as f64 * 0.1).sin(),
+                    ((7 * i + j) as f64 * 0.2).cos(),
+                )
             });
             let a_col = a_row.to_layout(Layout::ColMajor, m + 2);
 
             let xl = x_len_gemv(trans, m, n);
             let yl = y_len_gemv(trans, m, n);
             let x: Vec<Complex64> = (0..xl)
-                .map(|k| Complex64::new(((k + 11) as f64 * 0.15).cos(), ((k + 5) as f64 * 0.25).sin()))
+                .map(|k| {
+                    Complex64::new(
+                        ((k + 11) as f64 * 0.15).cos(),
+                        ((k + 5) as f64 * 0.25).sin(),
+                    )
+                })
                 .collect();
             let y0: Vec<Complex64> = (0..yl)
-                .map(|k| Complex64::new(((k + 17) as f64 * 0.05).sin(), ((k + 19) as f64 * 0.07).cos()))
+                .map(|k| {
+                    Complex64::new(
+                        ((k + 17) as f64 * 0.05).sin(),
+                        ((k + 19) as f64 * 0.07).cos(),
+                    )
+                })
                 .collect();
 
             let mut y_row = y0.clone();
@@ -201,4 +213,3 @@ fn zgemv_row_vs_col_agree() {
         }
     }
 }
-
