@@ -103,18 +103,19 @@ static ZGEMM_ALPHA_IM: AtomicU64 = AtomicU64::new(0);
 static ZGEMM_BETA_RE: AtomicU64 = AtomicU64::new(0);
 static ZGEMM_BETA_IM: AtomicU64 = AtomicU64::new(0);
 
+#[allow(clippy::too_many_arguments, clippy::unnecessary_cast)]
 unsafe extern "C" fn mock_dgemm_opposite_width(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const ProviderInt,
     n: *const ProviderInt,
     k: *const ProviderInt,
-    _alpha: *const f64,
-    _a: *const f64,
+    alpha: *const f64,
+    a: *const f64,
     lda: *const ProviderInt,
-    _b: *const f64,
+    b: *const f64,
     ldb: *const ProviderInt,
-    _beta: *const f64,
+    beta: *const f64,
     c: *mut f64,
     ldc: *const ProviderInt,
 ) {
@@ -126,19 +127,39 @@ unsafe extern "C" fn mock_dgemm_opposite_width(
     DGEMM_LDB.store((*ldb) as i64, Ordering::SeqCst);
     DGEMM_LDC.store((*ldc) as i64, Ordering::SeqCst);
 
-    *c = 64.0;
+    for j in 0..(*n as usize) {
+        for i in 0..(*m as usize) {
+            let mut sum = 0.0;
+            for p in 0..(*k as usize) {
+                let ai = if *transa as u8 == b'N' {
+                    i + p * (*lda as usize)
+                } else {
+                    p + i * (*lda as usize)
+                };
+                let bi = if *transb as u8 == b'N' {
+                    p + j * (*ldb as usize)
+                } else {
+                    j + p * (*ldb as usize)
+                };
+                sum += *a.add(ai) * *b.add(bi);
+            }
+            let out = c.add(i + j * (*ldc as usize));
+            *out = *alpha * sum + if *beta == 0.0 { 0.0 } else { *beta * *out };
+        }
+    }
 }
 
+#[allow(clippy::too_many_arguments, clippy::unnecessary_cast)]
 unsafe extern "C" fn mock_zgemm_opposite_width(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const ProviderInt,
     n: *const ProviderInt,
     k: *const ProviderInt,
     alpha: *const Complex64,
-    _a: *const Complex64,
+    a: *const Complex64,
     lda: *const ProviderInt,
-    _b: *const Complex64,
+    b: *const Complex64,
     ldb: *const ProviderInt,
     beta: *const Complex64,
     c: *mut Complex64,
@@ -156,7 +177,39 @@ unsafe extern "C" fn mock_zgemm_opposite_width(
     ZGEMM_BETA_RE.store((*beta).re.to_bits(), Ordering::SeqCst);
     ZGEMM_BETA_IM.store((*beta).im.to_bits(), Ordering::SeqCst);
 
-    *c = Complex64::new(64.0, -64.0);
+    for j in 0..(*n as usize) {
+        for i in 0..(*m as usize) {
+            let mut sum = Complex64::new(0.0, 0.0);
+            for p in 0..(*k as usize) {
+                let ai = if *transa as u8 == b'N' {
+                    i + p * (*lda as usize)
+                } else {
+                    p + i * (*lda as usize)
+                };
+                let bi = if *transb as u8 == b'N' {
+                    p + j * (*ldb as usize)
+                } else {
+                    j + p * (*ldb as usize)
+                };
+                let mut av = *a.add(ai);
+                let mut bv = *b.add(bi);
+                if *transa as u8 == b'C' {
+                    av.im = -av.im;
+                }
+                if *transb as u8 == b'C' {
+                    bv.im = -bv.im;
+                }
+                sum += av * bv;
+            }
+            let out = c.add(i + j * (*ldc as usize));
+            *out = *alpha * sum
+                + if *beta == Complex64::new(0.0, 0.0) {
+                    Complex64::new(0.0, 0.0)
+                } else {
+                    *beta * *out
+                };
+        }
+    }
 }
 
 #[test]
@@ -228,7 +281,7 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             2,
         );
 
-        assert_eq!(c[0], expected_sentinel());
+        assert_eq!(c[0], 12.0);
         assert_eq!(DGEMM_CALLS.load(Ordering::SeqCst), 1);
         assert_eq!(DGEMM_M.load(Ordering::SeqCst), 2);
         assert_eq!(DGEMM_N.load(Ordering::SeqCst), 3);
@@ -259,10 +312,7 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             3,
         );
 
-        assert_eq!(
-            zc[0],
-            Complex64::new(expected_sentinel(), -expected_sentinel())
-        );
+        assert_eq!(zc[0], Complex64::new(16.0, 24.0));
         assert_eq!(ZGEMM_CALLS.load(Ordering::SeqCst), 1);
         assert_eq!(ZGEMM_M.load(Ordering::SeqCst), 3);
         assert_eq!(ZGEMM_N.load(Ordering::SeqCst), 2);
@@ -282,7 +332,7 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             CBLAS_COL_MAJOR,
             CBLAS_NO_TRANS,
             CBLAS_NO_TRANS,
-            large_base + 1,
+            0,
             large_base + 2,
             large_base + 3,
             1.5,
@@ -294,9 +344,9 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             c64.as_mut_ptr(),
             large_base + 6,
         );
-        assert_eq!(c64[0], 64.0);
+        assert_eq!(c64[0], 0.0);
         assert_eq!(DGEMM_CALLS.load(Ordering::SeqCst), before_dgemm_calls + 1);
-        assert_eq!(DGEMM_M.load(Ordering::SeqCst), large_base + 1);
+        assert_eq!(DGEMM_M.load(Ordering::SeqCst), 0);
         assert_eq!(DGEMM_N.load(Ordering::SeqCst), large_base + 2);
         assert_eq!(DGEMM_K.load(Ordering::SeqCst), large_base + 3);
         assert_eq!(DGEMM_LDA.load(Ordering::SeqCst), large_base + 4);
@@ -309,7 +359,7 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             CBLAS_ROW_MAJOR,
             CBLAS_NO_TRANS,
             CBLAS_NO_TRANS,
-            large_base + 1,
+            0,
             large_base + 2,
             large_base + 3,
             &alpha,
@@ -321,10 +371,10 @@ fn loaded_cdylib_registers_opposite_width_providers_and_dispatches_unprefixed_ge
             zc64.as_mut_ptr(),
             large_base + 6,
         );
-        assert_eq!(zc64[0], Complex64::new(64.0, -64.0));
+        assert_eq!(zc64[0], Complex64::new(0.0, 0.0));
         assert_eq!(ZGEMM_CALLS.load(Ordering::SeqCst), before_zgemm_calls + 1);
         assert_eq!(ZGEMM_M.load(Ordering::SeqCst), large_base + 2);
-        assert_eq!(ZGEMM_N.load(Ordering::SeqCst), large_base + 1);
+        assert_eq!(ZGEMM_N.load(Ordering::SeqCst), 0);
         assert_eq!(ZGEMM_K.load(Ordering::SeqCst), large_base + 3);
         assert_eq!(ZGEMM_LDA.load(Ordering::SeqCst), large_base + 5);
         assert_eq!(ZGEMM_LDB.load(Ordering::SeqCst), large_base + 4);
@@ -426,10 +476,6 @@ fn cdylib_file_name() -> &'static str {
 
 fn expected_cblas_int_width() -> c_int {
     32
-}
-
-fn expected_sentinel() -> f64 {
-    64.0
 }
 
 fn register_dgemm_symbol() -> &'static [u8] {

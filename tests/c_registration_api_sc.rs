@@ -1,18 +1,26 @@
 #![cfg(not(feature = "openblas"))]
 
-use std::ffi::{c_char, c_void};
-
+use cblas_inject::{register_cgemm, register_sgemm, BlasInt32, BlasInt64};
 use cblas_inject::{
-    is_dgemm_registered, is_zgemm_registered, BlasInt32, BlasInt64,
-    CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_OK,
+    CBLAS_INJECT_STATUS_ALREADY_REGISTERED, CBLAS_INJECT_STATUS_NULL_POINTER,
+    CBLAS_INJECT_STATUS_OK,
 };
-use num_complex::Complex64;
+use num_complex::Complex32;
+use std::ffi::{c_char, c_void};
+use std::ptr;
+
+extern "C" {
+    fn cblas_inject_register_sgemm_lp64(f: *const c_void) -> i32;
+    fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> i32;
+    fn cblas_inject_register_cgemm_lp64(f: *const c_void) -> i32;
+    fn cblas_inject_register_cgemm_ilp64(f: *const c_void) -> i32;
+}
 
 trait Scalar: Copy + PartialEq + std::ops::Add<Output = Self> + std::ops::Mul<Output = Self> {
     fn zero() -> Self;
     fn conj(self) -> Self;
 }
-impl Scalar for f64 {
+impl Scalar for f32 {
     fn zero() -> Self {
         0.0
     }
@@ -20,12 +28,12 @@ impl Scalar for f64 {
         self
     }
 }
-impl Scalar for Complex64 {
+impl Scalar for Complex32 {
     fn zero() -> Self {
-        Complex64::new(0.0, 0.0)
+        Complex32::new(0.0, 0.0)
     }
     fn conj(self) -> Self {
-        Complex64::new(self.re, -self.im)
+        Complex32::new(self.re, -self.im)
     }
 }
 
@@ -84,7 +92,7 @@ unsafe fn gemm<T: Scalar, I: Copy + Into<i64>>(
 }
 
 macro_rules! callback {
-    ($name:ident, $ty:ty, $int:ty) => {
+    ($name:ident,$ty:ty,$int:ty) => {
         unsafe extern "C" fn $name(
             ta: *const c_char,
             tb: *const c_char,
@@ -104,66 +112,55 @@ macro_rules! callback {
         }
     };
 }
-callback!(mock_dgemm_lp64, f64, BlasInt32);
-callback!(mock_dgemm_ilp64, f64, BlasInt64);
-callback!(mock_zgemm_lp64, Complex64, BlasInt32);
-callback!(mock_zgemm_ilp64, Complex64, BlasInt64);
+callback!(sgemm_lp64, f32, BlasInt32);
+callback!(sgemm_ilp64, f32, BlasInt64);
+callback!(cgemm_lp64, Complex32, BlasInt32);
+callback!(cgemm_ilp64, Complex32, BlasInt64);
 
 #[test]
-fn lp64_c_registration_populates_legacy_current_abi_storage() {
+fn s_and_c_registration_reject_null_and_report_duplicates() {
     unsafe {
         assert_eq!(
-            cblas_inject::cblas_inject_register_dgemm_lp64(mock_dgemm_lp64 as *const c_void),
-            CBLAS_INJECT_STATUS_OK
+            cblas_inject_register_sgemm_lp64(ptr::null()),
+            CBLAS_INJECT_STATUS_NULL_POINTER
         );
         assert_eq!(
-            cblas_inject::cblas_inject_register_zgemm_lp64(mock_zgemm_lp64 as *const c_void),
-            CBLAS_INJECT_STATUS_OK
+            cblas_inject_register_sgemm_ilp64(ptr::null()),
+            CBLAS_INJECT_STATUS_NULL_POINTER
         );
-
-        let one = 1i32;
-        let alpha = Complex64::new(2.0, 0.0);
-        let beta = Complex64::new(0.0, 0.0);
-        let a = Complex64::new(1.0, 2.0);
-        let b = Complex64::new(3.0, 4.0);
-        let mut c = Complex64::new(f64::NAN, f64::NAN);
-        mock_zgemm_lp64(
-            b"C".as_ptr() as *const c_char,
-            b"N".as_ptr() as *const c_char,
-            &one,
-            &one,
-            &one,
-            &alpha,
-            &a,
-            &one,
-            &b,
-            &one,
-            &beta,
-            &mut c,
-            &one,
-        );
-        assert_eq!(c, Complex64::new(22.0, -4.0));
-    }
-
-    assert!(is_dgemm_registered());
-    assert!(is_zgemm_registered());
-
-    unsafe {
         assert_eq!(
-            cblas_inject::cblas_inject_register_dgemm_lp64(mock_dgemm_lp64 as *const c_void),
+            cblas_inject_register_cgemm_lp64(ptr::null()),
+            CBLAS_INJECT_STATUS_NULL_POINTER
+        );
+        assert_eq!(
+            cblas_inject_register_cgemm_ilp64(ptr::null()),
+            CBLAS_INJECT_STATUS_NULL_POINTER
+        );
+        register_sgemm(sgemm_lp64);
+        register_cgemm(cgemm_lp64);
+        assert_eq!(
+            cblas_inject_register_sgemm_lp64(sgemm_lp64 as *const c_void),
             CBLAS_INJECT_STATUS_ALREADY_REGISTERED
         );
         assert_eq!(
-            cblas_inject::cblas_inject_register_zgemm_lp64(mock_zgemm_lp64 as *const c_void),
+            cblas_inject_register_cgemm_lp64(cgemm_lp64 as *const c_void),
             CBLAS_INJECT_STATUS_ALREADY_REGISTERED
         );
         assert_eq!(
-            cblas_inject::cblas_inject_register_dgemm_ilp64(mock_dgemm_ilp64 as *const c_void),
+            cblas_inject_register_sgemm_ilp64(sgemm_ilp64 as *const c_void),
             CBLAS_INJECT_STATUS_OK
         );
         assert_eq!(
-            cblas_inject::cblas_inject_register_zgemm_ilp64(mock_zgemm_ilp64 as *const c_void),
+            cblas_inject_register_cgemm_ilp64(cgemm_ilp64 as *const c_void),
             CBLAS_INJECT_STATUS_OK
+        );
+        assert_eq!(
+            cblas_inject_register_sgemm_ilp64(sgemm_ilp64 as *const c_void),
+            CBLAS_INJECT_STATUS_ALREADY_REGISTERED
+        );
+        assert_eq!(
+            cblas_inject_register_cgemm_ilp64(cgemm_ilp64 as *const c_void),
+            CBLAS_INJECT_STATUS_ALREADY_REGISTERED
         );
     }
 }

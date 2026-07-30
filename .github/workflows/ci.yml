@@ -35,6 +35,12 @@ jobs:
       - name: cblas-sys compatibility test
         run: cargo test --test cblas_sys_compat
 
+      - name: ILP64 GEMM registration test
+        run: cargo test --release --test gemm_beta_zero_ilp64
+
+      - name: Run ILP64 Rust tests
+        run: cargo test --release --features ilp64
+
       - name: Run Rust tests
         run: cargo test --release
 
@@ -60,6 +66,9 @@ jobs:
 
       - name: Build library
         run: cargo build --release --features openblas
+
+      - name: OpenBLAS GEMM beta-zero test
+        run: cargo test --release --features openblas --test gemm_beta_zero_openblas
 
       - name: Run BLAS Level 1 tests
         working-directory: ctest
