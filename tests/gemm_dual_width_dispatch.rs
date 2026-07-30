@@ -41,19 +41,77 @@ static SGEMM_CALLS: AtomicUsize = AtomicUsize::new(0);
 #[cfg(feature = "ilp64")]
 static CGEMM_CALLS: AtomicUsize = AtomicUsize::new(0);
 
+unsafe fn complex_gemm<I: Copy + Into<i64>>(
+    ta: *const c_char,
+    tb: *const c_char,
+    m: *const I,
+    n: *const I,
+    k: *const I,
+    alpha: *const Complex64,
+    a: *const Complex64,
+    lda: *const I,
+    b: *const Complex64,
+    ldb: *const I,
+    beta: *const Complex64,
+    c: *mut Complex64,
+    ldc: *const I,
+) {
+    let (m, n, k, lda, ldb, ldc) = (
+        (*m).into() as usize,
+        (*n).into() as usize,
+        (*k).into() as usize,
+        (*lda).into() as usize,
+        (*ldb).into() as usize,
+        (*ldc).into() as usize,
+    );
+    let load = |p: *const Complex64, i: usize, trans: u8| unsafe {
+        let value = *p.add(i);
+        if trans == b'C' {
+            value.conj()
+        } else {
+            value
+        }
+    };
+    for j in 0..n {
+        for i in 0..m {
+            let mut sum = Complex64::new(0.0, 0.0);
+            for p in 0..k {
+                let ai = if *ta as u8 == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if *tb as u8 == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                sum += load(a, ai, *ta as u8) * load(b, bi, *tb as u8);
+            }
+            let out = c.add(i + j * ldc);
+            *out = *alpha * sum
+                + if *beta == Complex64::new(0.0, 0.0) {
+                    Complex64::new(0.0, 0.0)
+                } else {
+                    *beta * *out
+                };
+        }
+    }
+}
+
 #[cfg(feature = "ilp64")]
 unsafe extern "C" fn mock_dgemm_lp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const BlasInt32,
     n: *const BlasInt32,
     k: *const BlasInt32,
-    _alpha: *const f64,
-    _a: *const f64,
+    alpha: *const f64,
+    a: *const f64,
     lda: *const BlasInt32,
-    _b: *const f64,
+    b: *const f64,
     ldb: *const BlasInt32,
-    _beta: *const f64,
+    beta: *const f64,
     c: *mut f64,
     ldc: *const BlasInt32,
 ) {
@@ -64,24 +122,53 @@ unsafe extern "C" fn mock_dgemm_lp64(
     DGEMM_LDA.store(i64::from(unsafe { *lda }), Ordering::SeqCst);
     DGEMM_LDB.store(i64::from(unsafe { *ldb }), Ordering::SeqCst);
     DGEMM_LDC.store(i64::from(unsafe { *ldc }), Ordering::SeqCst);
-    unsafe {
-        *c = 32.0;
+    let (m, n, k) = (
+        unsafe { *m } as usize,
+        unsafe { *n } as usize,
+        unsafe { *k } as usize,
+    );
+    let (lda, ldb, ldc) = (
+        unsafe { *lda } as usize,
+        unsafe { *ldb } as usize,
+        unsafe { *ldc } as usize,
+    );
+    for j in 0..n {
+        for i in 0..m {
+            let mut sum = 0.0;
+            for p in 0..k {
+                let ai = if unsafe { *transa as u8 } == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if unsafe { *transb as u8 } == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                sum += unsafe { *a.add(ai) * *b.add(bi) };
+            }
+            let out = unsafe { c.add(i + j * ldc) };
+            unsafe {
+                *out = *alpha * sum + if *beta == 0.0 { 0.0 } else { *beta * *out };
+            }
+        }
     }
 }
 
 #[cfg(not(feature = "ilp64"))]
 unsafe extern "C" fn mock_dgemm_ilp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const BlasInt64,
     n: *const BlasInt64,
     k: *const BlasInt64,
-    _alpha: *const f64,
-    _a: *const f64,
+    alpha: *const f64,
+    a: *const f64,
     lda: *const BlasInt64,
-    _b: *const f64,
+    b: *const f64,
     ldb: *const BlasInt64,
-    _beta: *const f64,
+    beta: *const f64,
     c: *mut f64,
     ldc: *const BlasInt64,
 ) {
@@ -92,22 +179,51 @@ unsafe extern "C" fn mock_dgemm_ilp64(
     DGEMM_LDA.store(unsafe { *lda }, Ordering::SeqCst);
     DGEMM_LDB.store(unsafe { *ldb }, Ordering::SeqCst);
     DGEMM_LDC.store(unsafe { *ldc }, Ordering::SeqCst);
-    unsafe {
-        *c = 64.0;
+    let (m, n, k) = (
+        unsafe { *m } as usize,
+        unsafe { *n } as usize,
+        unsafe { *k } as usize,
+    );
+    let (lda, ldb, ldc) = (
+        unsafe { *lda } as usize,
+        unsafe { *ldb } as usize,
+        unsafe { *ldc } as usize,
+    );
+    for j in 0..n {
+        for i in 0..m {
+            let mut sum = 0.0;
+            for p in 0..k {
+                let ai = if unsafe { *transa as u8 } == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if unsafe { *transb as u8 } == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                sum += unsafe { *a.add(ai) * *b.add(bi) };
+            }
+            let out = unsafe { c.add(i + j * ldc) };
+            unsafe {
+                *out = *alpha * sum + if *beta == 0.0 { 0.0 } else { *beta * *out };
+            }
+        }
     }
 }
 
 #[cfg(feature = "ilp64")]
 unsafe extern "C" fn mock_zgemm_lp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const BlasInt32,
     n: *const BlasInt32,
     k: *const BlasInt32,
     alpha: *const Complex64,
-    _a: *const Complex64,
+    a: *const Complex64,
     lda: *const BlasInt32,
-    _b: *const Complex64,
+    b: *const Complex64,
     ldb: *const BlasInt32,
     beta: *const Complex64,
     c: *mut Complex64,
@@ -120,72 +236,143 @@ unsafe extern "C" fn mock_zgemm_lp64(
     ZGEMM_LDA.store(i64::from(unsafe { *lda }), Ordering::SeqCst);
     ZGEMM_LDB.store(i64::from(unsafe { *ldb }), Ordering::SeqCst);
     ZGEMM_LDC.store(i64::from(unsafe { *ldc }), Ordering::SeqCst);
-    let alpha = unsafe { *alpha };
-    let beta = unsafe { *beta };
-    ZGEMM_ALPHA_RE.store(alpha.re.to_bits(), Ordering::SeqCst);
-    ZGEMM_ALPHA_IM.store(alpha.im.to_bits(), Ordering::SeqCst);
-    ZGEMM_BETA_RE.store(beta.re.to_bits(), Ordering::SeqCst);
-    ZGEMM_BETA_IM.store(beta.im.to_bits(), Ordering::SeqCst);
+    ZGEMM_ALPHA_RE.store(unsafe { (*alpha).re.to_bits() }, Ordering::SeqCst);
+    ZGEMM_ALPHA_IM.store(unsafe { (*alpha).im.to_bits() }, Ordering::SeqCst);
+    ZGEMM_BETA_RE.store(unsafe { (*beta).re.to_bits() }, Ordering::SeqCst);
+    ZGEMM_BETA_IM.store(unsafe { (*beta).im.to_bits() }, Ordering::SeqCst);
     unsafe {
-        *c = Complex64::new(32.0, -32.0);
+        complex_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
     }
 }
 
 #[cfg(feature = "ilp64")]
 unsafe extern "C" fn mock_sgemm_lp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
-    _m: *const BlasInt32,
-    _n: *const BlasInt32,
-    _k: *const BlasInt32,
-    _alpha: *const f32,
-    _a: *const f32,
-    _lda: *const BlasInt32,
-    _b: *const f32,
-    _ldb: *const BlasInt32,
-    _beta: *const f32,
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const f32,
+    a: *const f32,
+    lda: *const BlasInt32,
+    b: *const f32,
+    ldb: *const BlasInt32,
+    beta: *const f32,
     c: *mut f32,
-    _ldc: *const BlasInt32,
+    ldc: *const BlasInt32,
 ) {
     SGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
-    unsafe {
-        *c = 32.0;
+    let (m, n, k, lda, ldb, ldc) = unsafe {
+        (
+            *m as usize,
+            *n as usize,
+            *k as usize,
+            *lda as usize,
+            *ldb as usize,
+            *ldc as usize,
+        )
+    };
+    for j in 0..n {
+        for i in 0..m {
+            let mut sum = 0.0;
+            for p in 0..k {
+                let ai = if unsafe { *transa as u8 } == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if unsafe { *transb as u8 } == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                sum += unsafe { *a.add(ai) * *b.add(bi) };
+            }
+            let out = unsafe { c.add(i + j * ldc) };
+            unsafe {
+                *out = *alpha * sum + if *beta == 0.0 { 0.0 } else { *beta * *out };
+            }
+        }
     }
 }
 
 #[cfg(feature = "ilp64")]
 unsafe extern "C" fn mock_cgemm_lp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
-    _m: *const BlasInt32,
-    _n: *const BlasInt32,
-    _k: *const BlasInt32,
-    _alpha: *const Complex32,
-    _a: *const Complex32,
-    _lda: *const BlasInt32,
-    _b: *const Complex32,
-    _ldb: *const BlasInt32,
-    _beta: *const Complex32,
+    transa: *const c_char,
+    transb: *const c_char,
+    m: *const BlasInt32,
+    n: *const BlasInt32,
+    k: *const BlasInt32,
+    alpha: *const Complex32,
+    a: *const Complex32,
+    lda: *const BlasInt32,
+    b: *const Complex32,
+    ldb: *const BlasInt32,
+    beta: *const Complex32,
     c: *mut Complex32,
-    _ldc: *const BlasInt32,
+    ldc: *const BlasInt32,
 ) {
     CGEMM_CALLS.fetch_add(1, Ordering::SeqCst);
-    unsafe {
-        *c = Complex32::new(32.0, -32.0);
+    let (m, n, k, lda, ldb, ldc) = unsafe {
+        (
+            *m as usize,
+            *n as usize,
+            *k as usize,
+            *lda as usize,
+            *ldb as usize,
+            *ldc as usize,
+        )
+    };
+    for j in 0..n {
+        for i in 0..m {
+            let mut sum = Complex32::new(0.0, 0.0);
+            for p in 0..k {
+                let ai = if unsafe { *transa as u8 } == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if unsafe { *transb as u8 } == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                let av = unsafe { *a.add(ai) };
+                let bv = unsafe { *b.add(bi) };
+                sum += if unsafe { *transa as u8 } == b'C' {
+                    av.conj()
+                } else {
+                    av
+                } * if unsafe { *transb as u8 } == b'C' {
+                    bv.conj()
+                } else {
+                    bv
+                };
+            }
+            let out = unsafe { c.add(i + j * ldc) };
+            unsafe {
+                *out = *alpha * sum
+                    + if *beta == Complex32::new(0.0, 0.0) {
+                        Complex32::new(0.0, 0.0)
+                    } else {
+                        *beta * *out
+                    };
+            }
+        }
     }
 }
 
 #[cfg(not(feature = "ilp64"))]
 unsafe extern "C" fn mock_zgemm_ilp64(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const BlasInt64,
     n: *const BlasInt64,
     k: *const BlasInt64,
     alpha: *const Complex64,
-    _a: *const Complex64,
+    a: *const Complex64,
     lda: *const BlasInt64,
-    _b: *const Complex64,
+    b: *const Complex64,
     ldb: *const BlasInt64,
     beta: *const Complex64,
     c: *mut Complex64,
@@ -198,14 +385,12 @@ unsafe extern "C" fn mock_zgemm_ilp64(
     ZGEMM_LDA.store(unsafe { *lda }, Ordering::SeqCst);
     ZGEMM_LDB.store(unsafe { *ldb }, Ordering::SeqCst);
     ZGEMM_LDC.store(unsafe { *ldc }, Ordering::SeqCst);
-    let alpha = unsafe { *alpha };
-    let beta = unsafe { *beta };
-    ZGEMM_ALPHA_RE.store(alpha.re.to_bits(), Ordering::SeqCst);
-    ZGEMM_ALPHA_IM.store(alpha.im.to_bits(), Ordering::SeqCst);
-    ZGEMM_BETA_RE.store(beta.re.to_bits(), Ordering::SeqCst);
-    ZGEMM_BETA_IM.store(beta.im.to_bits(), Ordering::SeqCst);
+    ZGEMM_ALPHA_RE.store(unsafe { (*alpha).re.to_bits() }, Ordering::SeqCst);
+    ZGEMM_ALPHA_IM.store(unsafe { (*alpha).im.to_bits() }, Ordering::SeqCst);
+    ZGEMM_BETA_RE.store(unsafe { (*beta).re.to_bits() }, Ordering::SeqCst);
+    ZGEMM_BETA_IM.store(unsafe { (*beta).im.to_bits() }, Ordering::SeqCst);
     unsafe {
-        *c = Complex64::new(64.0, -64.0);
+        complex_gemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
     }
 }
 
@@ -245,7 +430,7 @@ fn lp64_cblas_dgemm_and_zgemm_dispatch_to_ilp64_fallback_provider() {
         );
     }
 
-    assert_eq!(c[0], 64.0);
+    assert_eq!(c[0], 12.0);
     assert_eq!(DGEMM_M.load(Ordering::SeqCst), 2);
     assert_eq!(DGEMM_N.load(Ordering::SeqCst), 3);
     assert_eq!(DGEMM_K.load(Ordering::SeqCst), 4);
@@ -277,7 +462,7 @@ fn lp64_cblas_dgemm_and_zgemm_dispatch_to_ilp64_fallback_provider() {
         );
     }
 
-    assert_eq!(zc[0], Complex64::new(64.0, -64.0));
+    assert_eq!(zc[0], Complex64::new(16.0, 24.0));
     assert_eq!(ZGEMM_M.load(Ordering::SeqCst), 3);
     assert_eq!(ZGEMM_N.load(Ordering::SeqCst), 2);
     assert_eq!(ZGEMM_K.load(Ordering::SeqCst), 4);
@@ -334,7 +519,7 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
         );
     }
 
-    assert_eq!(c[0], 32.0);
+    assert_eq!(c[0], 12.0);
     assert_eq!(DGEMM_CALLS.load(Ordering::SeqCst), 1);
     assert_eq!(DGEMM_M.load(Ordering::SeqCst), 2);
     assert_eq!(DGEMM_N.load(Ordering::SeqCst), 3);
@@ -367,7 +552,7 @@ fn ilp64_cblas_dgemm_and_zgemm_dispatch_to_lp64_fallback_provider() {
         );
     }
 
-    assert_eq!(zc[0], Complex64::new(32.0, -32.0));
+    assert_eq!(zc[0], Complex64::new(16.0, 24.0));
     assert_eq!(ZGEMM_M.load(Ordering::SeqCst), 3);
     assert_eq!(ZGEMM_N.load(Ordering::SeqCst), 2);
     assert_eq!(ZGEMM_K.load(Ordering::SeqCst), 4);

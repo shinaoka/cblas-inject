@@ -1,6 +1,6 @@
 [package]
 name = "cblas-inject"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Hiroshi Shinaoka <h.shinaoka@gmail.com>"]
 license = "(MIT OR Apache-2.0) AND BSD-3-Clause"
@@ -24,6 +24,7 @@ lapack-sys = "0.14"
 blas-src = { version = "0.10", features = ["openblas"] }
 openblas-src = { version = "0.10", features = ["system"] }
 libloading = "0.8"
+libc = "0.2"
 
 [features]
 default = []

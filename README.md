@@ -15,8 +15,8 @@ This crate provides CBLAS-style functions (with row-major support) that internal
 - **Row-major support**: Handles row-major (C-style) data without memory copy for BLAS operations
 - **Partial registration**: Only register the functions you need
 - **Zero runtime overhead**: Uses `OnceLock` for minimal overhead (~0.5ns per call)
-- **LP64/ILP64 GEMM provider support**: Register LP64 and ILP64 `dgemm`/`zgemm` Fortran BLAS providers explicitly at runtime
-- **ILP64 CBLAS extensions**: `cblas_dgemm_64` and `cblas_zgemm_64` accept 64-bit CBLAS dimensions independent of the default LP64 ABI
+- **LP64/ILP64 GEMM provider support**: Register LP64 and ILP64 `s/d/c/zgemm` Fortran BLAS providers explicitly at runtime
+- **ILP64 CBLAS extensions**: `cblas_sgemm_64`, `cblas_dgemm_64`, `cblas_cgemm_64`, and `cblas_zgemm_64` accept 64-bit CBLAS dimensions independent of the default LP64 ABI
 - **Complex return style**: Configurable ABI for complex dot products (cdotc, cdotu, zdotc, zdotu)
 
 ## Usage
@@ -71,11 +71,14 @@ BLAS libraries commonly expose one of two integer ABIs:
 - **LP64**: Fortran BLAS integer arguments are `int32_t`.
 - **ILP64**: Fortran BLAS integer arguments are `int64_t`.
 
-The default build keeps unprefixed `cblas_*` symbols LP64-compatible, which is
-the build to use with `cblas-sys`. The `ilp64` Cargo feature is transitional:
-it changes the crate's `blasint` alias and unprefixed `cblas_*` ABI to 64-bit,
-so it is not `cblas-sys` compatible. `openblas` and `ilp64` cannot be enabled
-together because the `openblas` feature auto-registers LP64 OpenBLAS symbols.
+Unprefixed `cblas_*` symbols are always LP64-compatible and use 32-bit CBLAS
+dimensions, including when the `ilp64` Cargo feature is enabled. In this GEMM
+section, the stable dual-width contract covers the explicit
+`cblas_inject_register_{s,d,c,z}gemm_{lp64,ilp64}` APIs, the legacy GEMM
+`register_{s,d,c,z}gemm` APIs, and the `cblas_{s,d,c,z}gemm_64` entry points.
+Other legacy Fortran provider aliases may still follow the crate's `blasint`
+and feature behavior. `openblas` and `ilp64` cannot be enabled together
+because the `openblas` feature auto-registers LP64 OpenBLAS symbols.
 
 For new C or FFI integrations, use the stable prefixed registration API:
 
@@ -102,28 +105,41 @@ Available registration entry points:
 
 - `cblas_inject_register_dgemm_lp64`
 - `cblas_inject_register_dgemm_ilp64`
+- `cblas_inject_register_sgemm_lp64`
+- `cblas_inject_register_sgemm_ilp64`
+- `cblas_inject_register_cgemm_lp64`
+- `cblas_inject_register_cgemm_ilp64`
 - `cblas_inject_register_zgemm_lp64`
 - `cblas_inject_register_zgemm_ilp64`
 
+All eight raw registration functions share one safety contract: NULL returns
+`CBLAS_INJECT_STATUS_NULL_POINTER` without registration. A successful
+non-NULL callback must use the exact LP64 or ILP64 ABI, remain valid and safe
+for concurrent calls, and obey BLAS semantics. With exact-zero beta it must
+never read `C` at any point and must initialize every logical `C` element on
+normal return, including `k == 0`. Callbacks must not unwind or `longjmp`
+across the C ABI boundary.
+
 Capability queries:
 
-- `cblas_inject_blas_int_width()` returns the integer width of unprefixed
-  `cblas_*` symbols in the loaded library instance: `32` for the default build,
-  `64` for the transitional `--features ilp64` build.
+- `cblas_inject_blas_int_width()` returns `32`: unprefixed `cblas_*` symbols
+  always use the LP64/32 CBLAS ABI, independent of the `ilp64` feature.
 - `cblas_inject_supports_lp64_registration()` and
   `cblas_inject_supports_ilp64_registration()` report whether the loaded build
   accepts those explicit provider registrations.
 
-True ILP64 CBLAS calls are exposed as `cblas_dgemm_64` and `cblas_zgemm_64`.
+True ILP64 CBLAS calls are exposed as `cblas_sgemm_64`, `cblas_dgemm_64`,
+`cblas_cgemm_64`, and `cblas_zgemm_64`.
 They always take `int64_t` dimensions and leading dimensions. Their
 order/transpose arguments use standard CBLAS numeric values, or the
 `CBLAS_INJECT_*` constants from `include/cblas_inject.h`. If only an LP64
 provider is registered, `_64` calls dispatch only when all BLAS integer
 arguments fit in `int32_t`; otherwise they call `cblas_xerbla` and return.
 
-The older `register_*` symbols, such as `register_dgemm`, are compatibility
-entry points whose ABI follows the current Rust build. New C integrations
-should prefer the explicit `cblas_inject_register_*_{lp64,ilp64}` API.
+The older GEMM symbols `register_{s,d,c,z}gemm`, such as `register_dgemm`, are
+LP64/32 compatibility entry points. Other legacy `register_*` symbols are not
+covered by this GEMM-specific dual-width guarantee. New C integrations should
+prefer the explicit `cblas_inject_register_*_{lp64,ilp64}` API for GEMM.
 
 Registration and CBLAS calls must use the same loaded `libcblas_inject`
 instance. If a host program `dlopen`s one path but a downstream shared library
@@ -230,8 +246,9 @@ cblas-inject to provide the underlying CBLAS implementation.
 
 **Notes:**
 
-- Use the default build for `cblas-sys`. The `ilp64` feature changes the
-  unprefixed `cblas_*` ABI to 64-bit and is not compatible with cblas-sys.
+- `cblas-sys` compatibility applies to the unprefixed `cblas_*` C ABI, which
+  remains LP64/32-compatible. For GEMM with 64-bit dimensions, use explicit
+  ILP64 provider registration and the `*_64` entry points.
 - Do not link another native CBLAS library (e.g., via `openblas-src`) at the
   same time, as this would cause duplicate symbol errors.
 
@@ -298,7 +315,9 @@ All functions from [cblas-sys](https://crates.io/crates/cblas-sys) are implement
 
 Additional ILP64 CBLAS extension symbols:
 
+- `cblas_sgemm_64`
 - `cblas_dgemm_64`
+- `cblas_cgemm_64`
 - `cblas_zgemm_64`
 
 ### Error Handling

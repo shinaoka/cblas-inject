@@ -3,11 +3,31 @@
 
 OPENBLAS_DIR = ../extern/OpenBLAS
 OPENBLAS_CTEST = $(OPENBLAS_DIR)/ctest
+OPENBLAS_COMMIT = 29703e52ad07310bf61407a86b1d5f25821fff44
 VPATH = $(OPENBLAS_CTEST)
 
-# Clone OpenBLAS if not present
-$(OPENBLAS_DIR):
-	git clone --depth 1 https://github.com/OpenMathLib/OpenBLAS.git $(OPENBLAS_DIR)
+# Fetch the known-compatible OpenBLAS ctest sources into a temporary checkout,
+# then publish it only after the commit has been verified.
+clone-openblas:
+	set -eu; \
+	if test -d "$(OPENBLAS_DIR)/.git" && test "$$(git -C "$(OPENBLAS_DIR)" rev-parse HEAD 2>/dev/null)" = "$(OPENBLAS_COMMIT)" && test -z "$$(git -C "$(OPENBLAS_DIR)" status --porcelain --untracked-files=all -- ctest)"; then exit 0; fi; \
+	mkdir -p "../extern"; \
+	tmp="$$(mktemp -d "../extern/OpenBLAS.tmp.XXXXXX")"; \
+	old="$$(mktemp -d "../extern/OpenBLAS.old.XXXXXX")"; rmdir "$$old"; \
+	published=0; restored=0; \
+	cleanup() { status=$$?; if test "$$published" -eq 0 && test -d "$$old" && test ! -e "$(OPENBLAS_DIR)"; then if mv "$$old" "$(OPENBLAS_DIR)"; then restored=1; else echo "failed to restore previous OpenBLAS checkout" >&2; status=1; fi; fi; rm -rf "$$tmp"; if test "$$published" -eq 1 || test "$$restored" -eq 1; then rm -rf "$$old"; fi; exit "$$status"; }; \
+	trap cleanup 0; \
+	trap 'trap - HUP INT TERM; exit 129' HUP; \
+	trap 'trap - HUP INT TERM; exit 130' INT; \
+	trap 'trap - HUP INT TERM; exit 143' TERM; \
+	git -C "$$tmp" init -q; \
+	git -C "$$tmp" remote add origin https://github.com/OpenMathLib/OpenBLAS.git; \
+	git -C "$$tmp" fetch -q --depth 1 origin "$(OPENBLAS_COMMIT)"; \
+	git -C "$$tmp" checkout -q --detach FETCH_HEAD; \
+	test "$$(git -C "$$tmp" rev-parse HEAD)" = "$(OPENBLAS_COMMIT)"; \
+	if test -e "$(OPENBLAS_DIR)"; then mv "$(OPENBLAS_DIR)" "$$old"; fi; \
+	mv "$$tmp" "$(OPENBLAS_DIR)"; \
+	published=1; rm -rf "$$old"; trap - 0 HUP INT TERM
 
 CC = cc
 CFLAGS = -DADD_ -DCBLAS -I. -I$(OPENBLAS_CTEST)
@@ -64,9 +84,7 @@ ztestl3_driver = c_zblat3c.o
 .PHONY: all clean test test1 test2 test3 build-trampoline clone-openblas \
        _run-test1 _run-test2 _run-test3
 
-all: $(OPENBLAS_DIR) build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1 xscblat2 xdcblat2 xccblat2 xzcblat2 xscblat3 xdcblat3 xccblat3 xzcblat3
-
-clone-openblas: $(OPENBLAS_DIR)
+all: clone-openblas build-trampoline xscblat1 xdcblat1 xccblat1 xzcblat1 xscblat2 xdcblat2 xccblat2 xzcblat2 xscblat3 xdcblat3 xccblat3 xzcblat3
 
 build-trampoline:
 	cd .. && cargo build --release --features openblas
@@ -117,7 +135,7 @@ xzcblat3: $(ztestl3_driver) $(ztestl3o)
 # Use recursive make so that VPATH can find .c files after OpenBLAS is cloned.
 # Make resolves the full dependency graph before executing any commands, so
 # VPATH directories must exist at parse time for pattern rules to work.
-test1: $(OPENBLAS_DIR) build-trampoline
+test1: clone-openblas build-trampoline
 	$(MAKE) _run-test1
 
 _run-test1: xscblat1 xdcblat1 xccblat1 xzcblat1
@@ -126,7 +144,7 @@ _run-test1: xscblat1 xdcblat1 xccblat1 xzcblat1
 	./xccblat1
 	./xzcblat1
 
-test2: $(OPENBLAS_DIR) build-trampoline
+test2: clone-openblas build-trampoline
 	$(MAKE) _run-test2
 
 _run-test2: xscblat2 xdcblat2 xccblat2 xzcblat2
@@ -135,7 +153,7 @@ _run-test2: xscblat2 xdcblat2 xccblat2 xzcblat2
 	./xccblat2 < $(OPENBLAS_CTEST)/cin2
 	./xzcblat2 < $(OPENBLAS_CTEST)/zin2
 
-test3: $(OPENBLAS_DIR) build-trampoline
+test3: clone-openblas build-trampoline
 	$(MAKE) _run-test3
 
 _run-test3: xscblat3 xdcblat3 xccblat3 xzcblat3

@@ -6091,51 +6091,72 @@ unsafe fn register_zgemm_ilp64_ptr(f: *const c_void) -> i32 {
     }
 }
 
-/// Register an LP64 Fortran dgemm provider through the stable C API.
+#[no_mangle]
+/// Register an LP64 C ABI `dgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
 ///
 /// # Safety
 ///
-/// `f` must be null or a valid LP64 Fortran `dgemm` function pointer that
-/// remains callable for the lifetime of the process.
-#[no_mangle]
+/// A non-null callback must use the exact LP64 ABI, remain valid after success,
+/// support concurrent calls, never read `C` at any point for exact-zero beta,
+/// fully initialize every logical `C` element on normal return including
+/// `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_dgemm_lp64(f: *const c_void) -> i32 {
     unsafe { register_dgemm_lp64_ptr(f) }
 }
 
-/// Register an ILP64 Fortran dgemm provider through the stable C API.
+#[no_mangle]
+/// Register an ILP64 C ABI `dgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
 ///
 /// # Safety
 ///
-/// `f` must be null or a valid ILP64 Fortran `dgemm` function pointer that
-/// remains callable for the lifetime of the process.
-#[no_mangle]
+/// A non-null callback must use the exact ILP64 ABI, remain valid after
+/// success, support concurrent calls, never read `C` at any point for
+/// exact-zero beta, fully initialize every logical `C` element on normal
+/// return including `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_dgemm_ilp64(f: *const c_void) -> i32 {
     unsafe { register_dgemm_ilp64_ptr(f) }
 }
 
-/// Register an LP64 Fortran zgemm provider through the stable C API.
+#[no_mangle]
+/// Register an LP64 C ABI `zgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
 ///
 /// # Safety
 ///
-/// `f` must be null or a valid LP64 Fortran `zgemm` function pointer that
-/// remains callable for the lifetime of the process.
-#[no_mangle]
+/// A non-null callback must use the exact LP64 ABI, remain valid after success,
+/// support concurrent calls, never read `C` at any point for exact-zero beta,
+/// fully initialize every logical `C` element on normal return including
+/// `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_zgemm_lp64(f: *const c_void) -> i32 {
     unsafe { register_zgemm_lp64_ptr(f) }
 }
 
-/// Register an ILP64 Fortran zgemm provider through the stable C API.
+#[no_mangle]
+/// Register an ILP64 C ABI `zgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
 ///
 /// # Safety
 ///
-/// `f` must be null or a valid ILP64 Fortran `zgemm` function pointer that
-/// remains callable for the lifetime of the process.
-#[no_mangle]
+/// A non-null callback must use the exact ILP64 ABI, remain valid after
+/// success, support concurrent calls, never read `C` at any point for
+/// exact-zero beta, fully initialize every logical `C` element on normal
+/// return including `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_zgemm_ilp64(f: *const c_void) -> i32 {
     unsafe { register_zgemm_ilp64_ptr(f) }
 }
 
 #[no_mangle]
+/// Register an LP64 C ABI `sgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
+///
+/// # Safety
+///
+/// A non-null callback must use the exact LP64 ABI, remain valid after success,
+/// support concurrent calls, never read `C` at any point for exact-zero beta,
+/// fully initialize every logical `C` element on normal return including
+/// `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_sgemm_lp64(f: *const c_void) -> i32 {
     if f.is_null() {
         return CBLAS_INJECT_STATUS_NULL_POINTER;
@@ -6152,6 +6173,15 @@ pub unsafe extern "C" fn cblas_inject_register_sgemm_lp64(f: *const c_void) -> i
 }
 
 #[no_mangle]
+/// Register an ILP64 C ABI `sgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
+///
+/// # Safety
+///
+/// A non-null callback must use the exact ILP64 ABI, remain valid after
+/// success, support concurrent calls, never read `C` at any point for
+/// exact-zero beta, fully initialize every logical `C` element on normal
+/// return including `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> i32 {
     if f.is_null() {
         return CBLAS_INJECT_STATUS_NULL_POINTER;
@@ -6164,6 +6194,15 @@ pub unsafe extern "C" fn cblas_inject_register_sgemm_ilp64(f: *const c_void) -> 
 }
 
 #[no_mangle]
+/// Register an LP64 C ABI `cgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
+///
+/// # Safety
+///
+/// A non-null callback must use the exact LP64 ABI, remain valid after success,
+/// support concurrent calls, never read `C` at any point for exact-zero beta,
+/// fully initialize every logical `C` element on normal return including
+/// `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_cgemm_lp64(f: *const c_void) -> i32 {
     if f.is_null() {
         return CBLAS_INJECT_STATUS_NULL_POINTER;
@@ -6180,6 +6219,15 @@ pub unsafe extern "C" fn cblas_inject_register_cgemm_lp64(f: *const c_void) -> i
 }
 
 #[no_mangle]
+/// Register an ILP64 C ABI `cgemm` callback. A null pointer returns
+/// `CBLAS_INJECT_STATUS_NULL_POINTER` without registration.
+///
+/// # Safety
+///
+/// A non-null callback must use the exact ILP64 ABI, remain valid after
+/// success, support concurrent calls, never read `C` at any point for
+/// exact-zero beta, fully initialize every logical `C` element on normal
+/// return including `k == 0`, and never unwind or longjmp across C.
 pub unsafe extern "C" fn cblas_inject_register_cgemm_ilp64(f: *const c_void) -> i32 {
     if f.is_null() {
         return CBLAS_INJECT_STATUS_NULL_POINTER;
@@ -7280,6 +7328,20 @@ pub unsafe extern "C" fn register_ztrsm(f: ZtrsmFnPtr) {
 // BLAS Level 3 registration (gemm)
 
 #[no_mangle]
+/// Register a Fortran `dgemm` callback.
+///
+/// # Safety
+///
+/// `f` must be non-null, have the declared Fortran ABI, remain valid after
+/// successful registration, support concurrent calls, and obey BLAS semantics.
+/// In particular, when `beta` is exactly
+/// zero it must not read `c` at any point; on normal return it must fully
+/// initialize every logical element of `c`, including when `k == 0`, and must
+/// not unwind or longjmp across this C ABI boundary. Calls may be concurrent.
+///
+/// Registration is single-assignment and duplicate registration panics. Callers
+/// crossing this `extern "C"` boundary cannot recover that failure; callers
+/// needing recoverable status must use the raw `cblas_inject_register_*` API.
 pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
     let _guard = registration_guard();
     if DGEMM.get().is_some() || DGEMM_LP64.get().is_some() {
@@ -7295,6 +7357,20 @@ pub unsafe extern "C" fn register_dgemm(f: DgemmFnPtr) {
 }
 
 #[no_mangle]
+/// Register a Fortran `sgemm` callback.
+///
+/// # Safety
+///
+/// `f` must be non-null, have the declared Fortran ABI, remain valid after
+/// successful registration, support concurrent calls, and obey BLAS semantics.
+/// In particular, when `beta` is exactly zero it must not read `c` at any
+/// point; on normal return it must fully initialize every logical element of
+/// `c`, including when `k == 0`, and must not unwind or longjmp across this C
+/// ABI boundary.
+///
+/// Registration is single-assignment and duplicate registration panics. Callers
+/// crossing this `extern "C"` boundary cannot recover that failure; callers
+/// needing recoverable status must use the raw `cblas_inject_register_*` API.
 pub unsafe extern "C" fn register_sgemm(f: SgemmFnPtr) {
     let _guard = registration_guard();
     if SGEMM.get().is_some() || SGEMM_LP64.get().is_some() {
@@ -7309,6 +7385,20 @@ pub unsafe extern "C" fn register_sgemm(f: SgemmFnPtr) {
 }
 
 #[no_mangle]
+/// Register a Fortran `zgemm` callback.
+///
+/// # Safety
+///
+/// `f` must be non-null, have the declared Fortran ABI, remain valid after
+/// successful registration, support concurrent calls, and obey BLAS semantics.
+/// In particular, when `beta` is exactly zero it must not read `c` at any
+/// point; on normal return it must fully initialize every logical element of
+/// `c`, including when `k == 0`, and must not unwind or longjmp across this C
+/// ABI boundary.
+///
+/// Registration is single-assignment and duplicate registration panics. Callers
+/// crossing this `extern "C"` boundary cannot recover that failure; callers
+/// needing recoverable status must use the raw `cblas_inject_register_*` API.
 pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
     let _guard = registration_guard();
     if ZGEMM.get().is_some() || ZGEMM_LP64.get().is_some() {
@@ -7324,6 +7414,20 @@ pub unsafe extern "C" fn register_zgemm(f: ZgemmFnPtr) {
 }
 
 #[no_mangle]
+/// Register a Fortran `cgemm` callback.
+///
+/// # Safety
+///
+/// `f` must be non-null, have the declared Fortran ABI, remain valid after
+/// successful registration, support concurrent calls, and obey BLAS semantics.
+/// In particular, when `beta` is exactly zero it must not read `c` at any
+/// point; on normal return it must fully initialize every logical element of
+/// `c`, including when `k == 0`, and must not unwind or longjmp across this C
+/// ABI boundary.
+///
+/// Registration is single-assignment and duplicate registration panics. Callers
+/// crossing this `extern "C"` boundary cannot recover that failure; callers
+/// needing recoverable status must use the raw `cblas_inject_register_*` API.
 pub unsafe extern "C" fn register_cgemm(f: CgemmFnPtr) {
     let _guard = registration_guard();
     if CGEMM.get().is_some() || CGEMM_LP64.get().is_some() {

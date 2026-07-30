@@ -21,8 +21,8 @@ use cblas_inject::{blasint, register_dgemm};
 ///
 /// Computes: C = alpha * A * B + beta * C  (column-major storage)
 unsafe extern "C" fn mock_dgemm(
-    _transa: *const c_char,
-    _transb: *const c_char,
+    transa: *const c_char,
+    transb: *const c_char,
     m: *const blasint,
     n: *const blasint,
     k: *const blasint,
@@ -40,6 +40,8 @@ unsafe extern "C" fn mock_dgemm(
     let k = *k as usize;
     let alpha = *alpha;
     let beta = *beta;
+    let transa = *transa as u8;
+    let transb = *transb as u8;
     let lda = *lda as usize;
     let ldb = *ldb as usize;
     let ldc = *ldc as usize;
@@ -48,10 +50,24 @@ unsafe extern "C" fn mock_dgemm(
         for i in 0..m {
             let mut sum = 0.0;
             for p in 0..k {
-                sum += *a.add(i + p * lda) * *b.add(p + j * ldb);
+                let ai = if transa == b'N' {
+                    i + p * lda
+                } else {
+                    p + i * lda
+                };
+                let bi = if transb == b'N' {
+                    p + j * ldb
+                } else {
+                    j + p * ldb
+                };
+                sum += *a.add(ai) * *b.add(bi);
             }
             let c_ptr = c.add(i + j * ldc);
-            *c_ptr = alpha * sum + beta * *c_ptr;
+            *c_ptr = if beta == 0.0 {
+                alpha * sum
+            } else {
+                alpha * sum + beta * *c_ptr
+            };
         }
     }
 }
